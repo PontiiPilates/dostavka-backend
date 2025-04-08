@@ -31,3 +31,4 @@ auth.json
 
 # This project
 /storage
+.vscode
