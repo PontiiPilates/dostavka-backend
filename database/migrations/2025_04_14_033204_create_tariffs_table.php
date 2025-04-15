@@ -18,8 +18,10 @@ return new class extends Migration
             $table->char('name', 100)->comment('систменое имя тарифа');
             $table->char('label', 200)->comment('название тарифа');
             $table->char('number', 200)->comment('внешний идентификатор тарифа');
-            $table->boolean('oc')->nullable()->comment('признак объявленной ценности');
-            $table->boolean('np')->nullable()->comment('признак наложенного платежа');
+            $table->boolean('sumoc')->nullable()->comment('признак объявленной ценности');
+            $table->boolean('sumnp')->nullable()->comment('признак наложенного платежа');
+            $table->boolean('international')->nullable()->comment('признак международной доставки');
+            $table->boolean('disabled')->default(true)->comment('признак участия тарифа в калькуляции');
 
             $table->timestamps();
         });
