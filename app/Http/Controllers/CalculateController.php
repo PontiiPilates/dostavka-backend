@@ -10,6 +10,7 @@ use App\Models\Company;
 use App\UseCases\TK\BaikalsrCase;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -36,79 +37,142 @@ class CalculateController extends Controller
                 $selectedWeight = $place['weight'];
                 $selectedPack = $this->choosePack([$place['length'], $place['width'], $place['height']]);
 
-                if ($selectedInternationals) {
-                    if ($selectedSumoc && !$selectedSumnp) {
-                        $tariffs = $company->tariffs()->where([
-                            ['sumoc', '=', true],
-                            ['sumnp', '=', false],
-                            ['international', '=', true],
-                            ['disabled', '=', true],
-                        ])->get();
-                    }
-                    if ($selectedSumoc && $selectedSumnp) {
-                        $tariffs = $company->tariffs()->where([
-                            ['sumoc', '=', true],
-                            ['sumnp', '=', true],
-                            ['international', '=', true],
-                            ['disabled', '=', true],
-                        ])->get();
-                    }
-                } else {
-                    if ($selectedSumoc && !$selectedSumnp) {
-                        $tariffs = $company->tariffs()->where([
-                            ['sumoc', '=', true],
-                            ['sumnp', '=', false],
-                            ['international', '=', false],
-                            ['disabled', '=', true],
-                        ])->get();
-                    }
-                    if ($selectedSumoc && $selectedSumnp) {
-                        $tariffs = $company->tariffs()->where([
-                            ['sumoc', '=', true],
-                            ['sumnp', '=', true],
-                            ['international', '=', false],
-                            ['disabled', '=', true],
-                        ])->get();
-                    }
-                }
 
-                foreach ($tariffs as $tariff) {
+                if ($selectedInternationals) {
 
                     $parameters = [
                         'json' => '', // ответ в формате json
-                        'object' => $tariff->number, // тариф -> приложение 1
+                        'weight' => $selectedWeight, // вес отправления в граммах
+                        'from' => $selectedFrom, // откуда
+                        'country-to' => $selectedTo, // куда
+                        'size' => $selectedSize, // размеры в см
+                        'pack' => $selectedPack, // код типа упаковки -> приложение 3
+                    ];
+
+                    if ($selectedSumoc && !$selectedSumnp) {
+                        $tariffs = $company->tariffs()->where([
+                            ['sumoc', '=', true],
+                            ['sumnp', '=', false],
+                            ['international', '=', true],
+                            ['available', '=', true],
+                        ])->get();
+
+                        $parameters['sumoc'] = $selectedSumoc; // сумма объявленной ценности в копейках
+
+                    }
+                    if ($selectedSumoc && $selectedSumnp) {
+                        $tariffs = $company->tariffs()->where([
+                            ['sumoc', '=', true],
+                            ['sumnp', '=', true],
+                            ['international', '=', true],
+                            ['available', '=', true],
+                        ])->get();
+
+                        $parameters['sumoc'] = $selectedSumoc; // сумма объявленной ценности в копейках
+                        $parameters['sumnp'] = $selectedSumnp; // сумма объявленной ценности в копейках
+                    }
+                } else {
+
+                    $parameters = [
+                        'json' => '', // ответ в формате json
                         'weight' => $selectedWeight, // вес отправления в граммах
                         'from' => $selectedFrom, // откуда
                         'to' => $selectedTo, // куда
-                        'sumoc' => $selectedSumoc, // сумма объявленной ценности в копейках
                         'size' => $selectedSize, // размеры в см
                         'pack' => $selectedPack, // код типа упаковки -> приложение 3
-                        // 'countinpack' => 1 // для простого международного исходящего
                     ];
 
-                    $response = Http::get(config('companies.pochta.url'), $parameters)->object();
+                    if ($selectedSumoc && !$selectedSumnp) {
+                        $tariffs = $company->tariffs()->where([
+                            ['sumoc', '=', true],
+                            ['sumnp', '=', false],
+                            ['international', '=', false],
+                            ['available', '=', true],
+                        ])->get();
 
-                    $responseData[] = [
-                        'tariff_name' => $tariff->name,
-                        'tariff_label' => $response->name,
-                        'pay' => isset($response->paynds)
-                            ? $response->paynds / 100
-                            : null,
-                        'errors' => isset($response->errors)
-                            ? $response->errors
-                            : null,
-                        'deadline' => Carbon::parse($response->delivery->deadline)->format('d.m.Y'),
-                        'days' => "от {$response->delivery->min} до {$response->delivery->max}",
-                    ];
+                        $parameters['sumoc'] = $selectedSumoc; // сумма объявленной ценности в копейках
 
-                    dd($responseData);
+                    }
+                    if ($selectedSumoc && $selectedSumnp) {
+                        $tariffs = $company->tariffs()->where([
+                            ['sumoc', '=', true],
+                            ['sumnp', '=', true],
+                            ['international', '=', false],
+                            ['available', '=', true],
+                        ])->get();
+
+                        $parameters['sumoc'] = $selectedSumoc; // сумма объявленной ценности в копейках
+                        $parameters['sumnp'] = $selectedSumnp; // сумма объявленной ценности в копейках
+                    }
                 }
+
+                $responses = Http::pool(fn(Pool $pool) => $this->pools($pool, $tariffs, $parameters));
+
+                dd($this->responsePrepare($responses));
             }
         }
     }
 
     /**
-     * Проверка: является ли доставка интернациональной?
+     * Подготовка структуры данных для ответа.
+     */
+    private function responsePrepare($responses)
+    {
+        $responseData = [];
+
+        foreach ($responses as $response) {
+
+            $response = $response->object();
+
+            if (isset($response->delivery)) {
+                $deadline = Carbon::parse($response->delivery->deadline)->format('d.m.Y');
+                $days = $this->rangeDays($response);
+            } else {
+                $deadline = null;
+                $days = null;
+            }
+
+            $responseData[] = [
+                'tariff_name' => $response->name,
+                'tariff_number' => $response->id,
+                'pay' => isset($response->paynds)
+                    ? $response->paynds / 100
+                    : null,
+                'errors' => isset($response->errors)
+                    ? $response->errors
+                    : null,
+                'deadline' => $deadline,
+                'days' => $days,
+            ];
+        }
+
+        return $responseData;
+    }
+
+
+    private function rangeDays($response)
+    {
+        if ($response->delivery->min == $response->delivery->max) {
+            return $response->delivery->min;
+        } else {
+            return "{$response->delivery->min} - {$response->delivery->max}";
+        }
+    }
+
+    /**
+     * Генератор динамических запросов.
+     */
+    private function pools($pool, $tariffs, $parameters): array
+    {
+        foreach ($tariffs as $tariff) {
+            $parameters['object'] = $tariff->number;
+            $pools[] = $pool->get(config('companies.pochta.url'), $parameters);
+        }
+        return $pools;
+    }
+
+    /**
+     * Проверка: является ли доставка интернациональной.
      * Это влияет на выбор группы тарифов.
      */
     private function isInternational($code): bool
