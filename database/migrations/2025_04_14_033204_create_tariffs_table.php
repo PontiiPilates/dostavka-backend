@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('sumoc')->nullable()->comment('признак объявленной ценности');
             $table->boolean('sumnp')->nullable()->comment('признак наложенного платежа');
             $table->boolean('international')->nullable()->comment('признак международной доставки');
-            $table->boolean('disabled')->default(true)->comment('признак участия тарифа в калькуляции');
+            $table->boolean('available')->default(true)->comment('признак участия тарифа в калькуляции');
 
             $table->timestamps();
         });
