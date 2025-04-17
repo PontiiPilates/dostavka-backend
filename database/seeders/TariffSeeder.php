@@ -25,6 +25,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 100,
         ]);
 
         DB::table('tariffs')->insert([
@@ -35,6 +36,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 100,
         ]);
 
         DB::table('tariffs')->insert([
@@ -45,6 +47,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 100,
         ]);
 
         DB::table('tariffs')->insert([
@@ -55,6 +58,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => false,
+            'const_weight' => 100,
         ]);
 
         DB::table('tariffs')->insert([
@@ -65,6 +69,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -75,6 +80,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -85,6 +91,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => false,
+            'const_weight' => 500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -105,16 +112,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
-        ]);
-
-        DB::table('tariffs')->insert([
-            'companies_id' => $pochta->id,
-            'name' => 'track_letter',
-            'label' => 'Трек-письмо',
-            'number' => '37000',
-            'sumoc' => false,
-            'sumnp' => false,
-            'international' => false,
+            'const_weight' => 500,
         ]);
 
         // почтовая карточка, секограмма
@@ -146,6 +144,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 7000,
         ]);
 
         // бандероль
@@ -157,6 +156,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 5000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -167,6 +167,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 5000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -177,6 +178,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 5000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -187,6 +189,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => false,
+            'const_weight' => 5000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -197,6 +200,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 2500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -207,6 +211,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 2500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -217,6 +222,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => false,
+            'const_weight' => 2500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -227,6 +233,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 10000,
         ]);
 
         // посылки для населения
@@ -258,6 +265,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -268,6 +276,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -278,6 +287,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -288,6 +298,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -298,6 +309,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -308,6 +320,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 5000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -318,6 +331,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 5000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -328,6 +342,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => false,
+            'const_weight' => 5000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -338,6 +353,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 5000,
         ]);
 
         // посылки для организаций
@@ -349,6 +365,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -359,6 +376,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -369,6 +387,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -379,6 +398,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -389,6 +409,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -399,6 +420,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -409,6 +431,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -419,6 +442,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -429,6 +453,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -439,6 +464,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -449,6 +475,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -459,6 +486,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -469,6 +497,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -479,6 +508,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -489,6 +519,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -499,6 +530,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -509,6 +541,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -519,6 +552,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         // ems отправления
@@ -530,6 +564,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -540,6 +575,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -550,6 +586,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -560,6 +597,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -630,6 +668,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -640,6 +679,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -650,6 +690,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -660,6 +701,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -670,6 +712,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => false,
+            'const_weight' => 31500,
         ]);
 
         // международная исходящая письменная корреспонденция
@@ -681,6 +724,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 2000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -691,6 +735,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 2000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -701,6 +746,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 2000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -731,6 +777,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 7000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -741,6 +788,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 5000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -751,6 +799,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 5000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -761,6 +810,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 14500,
         ]);
 
         DB::table('tariffs')->insert([
@@ -771,6 +821,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 14500,
         ]);
 
         // международные исходящие отправления с товарным вложением
@@ -782,6 +833,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -792,6 +844,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -802,6 +855,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => true,
             'international' => true,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -812,6 +866,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 30000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -822,6 +877,7 @@ class TariffSeeder extends Seeder
             'sumoc' => true,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -842,6 +898,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 20000,
         ]);
 
         DB::table('tariffs')->insert([
@@ -852,6 +909,7 @@ class TariffSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
+            'const_weight' => 20000,
         ]);
 
         // возможно устаревшие, но существуют в документации

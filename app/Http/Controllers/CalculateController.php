@@ -25,8 +25,8 @@ class CalculateController extends Controller
         $selectedCompanies = $request->companies;
         $selectedRegimes = $request->regimes;
         $selectedPlaces = $request->places;
-        $selectedSumoc = $request->sumoc;
-        $selectedSumnp = $request->sumnp;
+        $selectedSumoc = $request->sumoc * 100; // перевод в копейки
+        $selectedSumnp = $request->sumnp * 100; // перевод в копейки
         $selectedInternationals = $this->isInternational($request->to);
 
         $companies = Company::whereIn('name', $selectedCompanies)->with(['tariffs'])->get();
@@ -34,79 +34,114 @@ class CalculateController extends Controller
 
             foreach ($selectedPlaces as $place) {
                 $selectedSize = "{$place['length']}x{$place['width']}x{$place['height']}";
-                $selectedWeight = $place['weight'];
+                $selectedWeight = $place['weight'] * 1000; // перевод в граммы
                 $selectedPack = $this->choosePack([$place['length'], $place['width'], $place['height']]);
 
+                // 'volume' => "3000", // код типа упаковки -> приложение 3
+                // 'sizemax' => "500", // максимальный размер одной из сторон  
+                // 'country-to' => 398, // куда
+                // 'sumoc' => 7000, // сумма объявленной ценности в копейках
+                // 'sumnp' => 6899, ; // сумма объявленной ценности в копейках
 
-                if ($selectedInternationals) {
+                $requestParameters = [
+                    'json' => '', // ответ в формате json
+                    'weight' => $selectedWeight, // вес отправления в граммах
+                    'from' => $selectedFrom, // откуда
+                    'size' => $selectedSize, // размеры в см
+                    'pack' => $selectedPack, // код типа упаковки -> приложение 3
+                ];
 
-                    $parameters = [
-                        'json' => '', // ответ в формате json
-                        'weight' => $selectedWeight, // вес отправления в граммах
-                        'from' => $selectedFrom, // откуда
-                        'country-to' => $selectedTo, // куда
-                        'size' => $selectedSize, // размеры в см
-                        'pack' => $selectedPack, // код типа упаковки -> приложение 3
-                    ];
+                $queryParameters = [
+                    ['available', '=', true],
+                    ['const_weight', '>=', $selectedWeight],
+                ];
 
-                    if ($selectedSumoc && !$selectedSumnp) {
-                        $tariffs = $company->tariffs()->where([
-                            ['sumoc', '=', true],
-                            ['sumnp', '=', false],
-                            ['international', '=', true],
-                            ['available', '=', true],
-                        ])->get();
+                // интернациональный, без объявленной ценности, без наложенного платежа
+                if ($selectedInternationals && !$selectedSumoc && !$selectedSumnp) {
 
-                        $parameters['sumoc'] = $selectedSumoc; // сумма объявленной ценности в копейках
+                    $requestParameters['country-to'] = $selectedTo;
 
-                    }
-                    if ($selectedSumoc && $selectedSumnp) {
-                        $tariffs = $company->tariffs()->where([
-                            ['sumoc', '=', true],
-                            ['sumnp', '=', true],
-                            ['international', '=', true],
-                            ['available', '=', true],
-                        ])->get();
+                    $queryParameters[] = ['international', '=', true];
+                    $queryParameters[] = ['sumoc', '=', false];
+                    $queryParameters[] = ['sumnp', '=', false];
 
-                        $parameters['sumoc'] = $selectedSumoc; // сумма объявленной ценности в копейках
-                        $parameters['sumnp'] = $selectedSumnp; // сумма объявленной ценности в копейках
-                    }
-                } else {
-
-                    $parameters = [
-                        'json' => '', // ответ в формате json
-                        'weight' => $selectedWeight, // вес отправления в граммах
-                        'from' => $selectedFrom, // откуда
-                        'to' => $selectedTo, // куда
-                        'size' => $selectedSize, // размеры в см
-                        'pack' => $selectedPack, // код типа упаковки -> приложение 3
-                    ];
-
-                    if ($selectedSumoc && !$selectedSumnp) {
-                        $tariffs = $company->tariffs()->where([
-                            ['sumoc', '=', true],
-                            ['sumnp', '=', false],
-                            ['international', '=', false],
-                            ['available', '=', true],
-                        ])->get();
-
-                        $parameters['sumoc'] = $selectedSumoc; // сумма объявленной ценности в копейках
-
-                    }
-                    if ($selectedSumoc && $selectedSumnp) {
-                        $tariffs = $company->tariffs()->where([
-                            ['sumoc', '=', true],
-                            ['sumnp', '=', true],
-                            ['international', '=', false],
-                            ['available', '=', true],
-                        ])->get();
-
-                        $parameters['sumoc'] = $selectedSumoc; // сумма объявленной ценности в копейках
-                        $parameters['sumnp'] = $selectedSumnp; // сумма объявленной ценности в копейках
-                    }
+                    $tariffs = $company->tariffs()->where($queryParameters)->get();
                 }
 
-                $responses = Http::pool(fn(Pool $pool) => $this->pools($pool, $tariffs, $parameters));
+                // интернациональный, с объявленной ценностью, без наложенного платежа
+                if ($selectedInternationals && $selectedSumoc && !$selectedSumnp) {
+
+                    $requestParameters['country-to'] = $selectedTo;
+                    $requestParameters['sumoc'] = $selectedSumoc;
+
+                    $queryParameters[] = ['international', '=', true];
+                    $queryParameters[] = ['sumoc', '=', true];
+                    $queryParameters[] = ['sumnp', '=', false];
+
+                    $tariffs = $company->tariffs()->where($queryParameters)->get();
+                }
+
+                // интернациональный, с объявленной ценностью, с наложенным платежём
+                if ($selectedInternationals && $selectedSumoc && $selectedSumnp) {
+
+                    $requestParameters['country-to'] = $selectedTo;
+                    $requestParameters['sumoc'] = $selectedSumoc;
+                    $requestParameters['sumnp'] = $selectedSumnp;
+
+                    $queryParameters[] = ['international', '=', true];
+                    $queryParameters[] = ['sumoc', '=', true];
+                    $queryParameters[] = ['sumnp', '=', true];
+
+                    $tariffs = $company->tariffs()->where($queryParameters)->get();
+                }
+
+                // внутренний, без объявленной ценности, без наложенного платежа
+                if (!$selectedInternationals && !$selectedSumoc && !$selectedSumnp) {
+
+                    $requestParameters['to'] = $selectedTo;
+
+                    $queryParameters[] = ['international', '=', false];
+                    $queryParameters[] = ['sumoc', '=', false];
+                    $queryParameters[] = ['sumnp', '=', false];
+
+                    $tariffs = $company->tariffs()->where($queryParameters)->get();
+                }
+
+                // внутренний, с объявленной ценностью, без наложенного платежа
+                if (!$selectedInternationals && $selectedSumoc && !$selectedSumnp) {
+
+                    $requestParameters['to'] = $selectedTo;
+                    $requestParameters['sumoc'] = $selectedSumoc;
+
+                    $queryParameters[] = ['international', '=', false];
+                    $queryParameters[] = ['sumoc', '=', true];
+                    $queryParameters[] = ['sumnp', '=', false];
+
+                    $tariffs = $company->tariffs()->where($queryParameters)->get();
+                }
+
+                // внутренний, с объявленной ценностью, с наложенным платежём
+                if (!$selectedInternationals && $selectedSumoc && $selectedSumnp) {
+
+                    $requestParameters['to'] = $selectedTo;
+                    $requestParameters['sumoc'] = $selectedSumoc;
+                    $requestParameters['sumnp'] = $selectedSumnp;
+
+                    $queryParameters[] = ['international', '=', false];
+                    $queryParameters[] = ['sumoc', '=', true];
+                    $queryParameters[] = ['sumnp', '=', true];
+
+                    $tariffs = $company->tariffs()->where($queryParameters)->get();
+                }
+
+                // если не найдено тарифов
+                if ($tariffs->count() === 0) {
+                    return response()->json([
+                        'message' => 'для заданных условий нет подходящих тарифов',
+                    ]);
+                }
+
+                $responses = Http::pool(fn(Pool $pool) => $this->pools($pool, $tariffs, $requestParameters));
 
                 dd($this->responsePrepare($responses));
             }
@@ -128,8 +163,8 @@ class CalculateController extends Controller
                 $deadline = Carbon::parse($response->delivery->deadline)->format('d.m.Y');
                 $days = $this->rangeDays($response);
             } else {
-                $deadline = null;
-                $days = null;
+                $deadline = 'требует уточнения';
+                $days = 'требует уточнения';
             }
 
             $responseData[] = [
@@ -155,7 +190,7 @@ class CalculateController extends Controller
         if ($response->delivery->min == $response->delivery->max) {
             return $response->delivery->min;
         } else {
-            return "{$response->delivery->min} - {$response->delivery->max}";
+            return "{$response->delivery->min}-{$response->delivery->max}";
         }
     }
 
@@ -205,6 +240,6 @@ class CalculateController extends Controller
                 $param[2] <= $v[2]
             ) return $k;
         }
-        return null;
+        return PochtaPackagesType::Unstandart->value;
     }
 }

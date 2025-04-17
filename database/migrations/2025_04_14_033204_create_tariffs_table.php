@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('sumnp')->nullable()->comment('признак наложенного платежа');
             $table->boolean('international')->nullable()->comment('признак международной доставки');
             $table->boolean('available')->default(true)->comment('признак участия тарифа в калькуляции');
+            $table->integer('const_weight')->default(999999)->comment('ограничение веса (гр)');
 
             $table->timestamps();
         });
