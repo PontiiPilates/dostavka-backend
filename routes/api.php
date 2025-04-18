@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\CalculateController;
+use App\Http\Controllers\Api\CalculateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
