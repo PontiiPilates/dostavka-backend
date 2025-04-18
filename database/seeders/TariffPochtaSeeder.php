@@ -3,11 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Company;
+use App\Models\TariffPochta;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class TariffSeeder extends Seeder
+class TariffPochtaSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -16,8 +17,10 @@ class TariffSeeder extends Seeder
     {
         $pochta = Company::where('name', 'pochta')->first();
 
+        $table = app(TariffPochta::class)->getTable();
+
         // письмо
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'letter',
             'label' => 'Письмо простое',
@@ -28,7 +31,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 100,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'letter_ordered',
             'label' => 'Письмо заказное',
@@ -39,7 +42,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 100,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'letter_with_sumoc',
             'label' => 'Письмо с объявленной ценностью',
@@ -50,7 +53,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 100,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'letter_with_sumoc_and_cash',
             'label' => 'Письмо с объявленной ценностью и наложенным платежом',
@@ -61,7 +64,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 100,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'letter_first_class_ordered',
             'label' => 'Письмо 1 класса заказное',
@@ -72,7 +75,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'letter_first_class_with_sumoc',
             'label' => 'Письмо 1 класса с объявленной ценностью',
@@ -83,7 +86,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'letter_first_class_with_sumoc_and_cash',
             'label' => 'Письмо 1 класса с объявленной ценностью и наложенным платежом',
@@ -94,7 +97,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'track_postcard',
             'label' => 'Трек-открытка',
@@ -104,7 +107,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'track_letter',
             'label' => 'Трек-письмо',
@@ -116,7 +119,7 @@ class TariffSeeder extends Seeder
         ]);
 
         // почтовая карточка, секограмма
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'postcard',
             'label' => 'Почтовая карточка простая',
@@ -126,7 +129,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'postcard_ordered',
             'label' => 'Почтовая карточка заказная',
@@ -136,7 +139,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'secogram',
             'label' => 'Секограмма',
@@ -148,7 +151,7 @@ class TariffSeeder extends Seeder
         ]);
 
         // бандероль
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'parcel',
             'label' => 'Бандероль простая',
@@ -159,7 +162,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 5000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'parcel_ordered',
             'label' => 'Бандероль заказная',
@@ -170,7 +173,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 5000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'parcel_with_sumoc',
             'label' => 'Бандероль с объявленной ценностью',
@@ -181,7 +184,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 5000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'parcel_with_sumoc_and_cash',
             'label' => 'Бандероль с объявленной ценностью и наложенным платежом',
@@ -192,7 +195,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 5000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'parcel_first_class_ordered',
             'label' => 'Бандероль 1 класса заказная',
@@ -203,7 +206,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 2500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'parcel_first_class_with_sumoc',
             'label' => 'Бандероль 1 класса с объявленной ценностью',
@@ -214,7 +217,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 2500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'parcel_first_class_with_sumoc_and_cach',
             'label' => 'Бандероль 1 класса с объявленной ценностью и наложенным платежом',
@@ -225,7 +228,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 2500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'parcel_complect',
             'label' => 'Бандероль-комплект',
@@ -237,7 +240,7 @@ class TariffSeeder extends Seeder
         ]);
 
         // посылки для населения
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'standatr_package',
             'label' => 'Письмо простое',
@@ -247,7 +250,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'standatr_package_with_sumoc',
             'label' => 'Посылка стандарт с объявленной ценностью',
@@ -257,7 +260,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'standatr_package_with_sumoc_and_cash',
             'label' => 'Посылка стандарт с объявленной ценностью и наложенным платежом',
@@ -268,7 +271,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'unstandart_package',
             'label' => 'Посылка нестандартная',
@@ -279,7 +282,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'unstandart_package_with_sumoc',
             'label' => 'Посылка нестандартная с объявленной ценностью',
@@ -290,7 +293,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'unstandart_package_with_sumoc_and_cash',
             'label' => 'Посылка нестандартная с объявленной ценностью и наложенным платежом',
@@ -301,7 +304,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'package_with_sumoc_and_necessarily_payment',
             'label' => 'Посылка с объявленной ценностью и обязательным платежом',
@@ -312,7 +315,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'first_class_package',
             'label' => 'Посылка 1 класса',
@@ -323,7 +326,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 5000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'first_class_package_with_sumoc',
             'label' => 'Посылка 1 класса с объявленной ценностью',
@@ -334,7 +337,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 5000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'first_class_package_with_sumoc_and_cash',
             'label' => 'Посылка 1 класса с объявленной ценностью и наложенным платежом',
@@ -345,7 +348,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 5000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'first_class_package_with_sumoc_and_necessarily_payment',
             'label' => 'Посылка 1 класса с объявленной ценностью и обязательным платежом',
@@ -357,7 +360,7 @@ class TariffSeeder extends Seeder
         ]);
 
         // посылки для организаций
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'online_package',
             'label' => 'Посылка онлайн обыкновенная',
@@ -368,7 +371,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'online_package_with_sumoc',
             'label' => 'Посылка онлайн с объявленной ценностью',
@@ -379,7 +382,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'online_package_with_sumoc_and_cash',
             'label' => 'Посылка онлайн с объявленной ценностью и наложенным платежом',
@@ -390,7 +393,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'online_package_with_sumoc_and_necessarily_payment',
             'label' => 'Посылка онлайн с объявленной ценностью и обязательным платежом',
@@ -401,7 +404,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'online_package_combine',
             'label' => 'Посылка онлайн комбинированная',
@@ -412,7 +415,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'online_package_combine_with_sumoc',
             'label' => 'Посылка онлайн комбинированная с объявленной ценностью',
@@ -423,7 +426,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'online_courier',
             'label' => 'Курьер онлайн обыкновенный',
@@ -434,7 +437,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'online_courier_with_sumoc',
             'label' => 'Курьер онлайн с объявленной ценностью',
@@ -445,7 +448,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'online_courier_with_sumoc_and_cash',
             'label' => 'Курьер онлайн с объявленной ценностью и наложенным платежом',
@@ -456,7 +459,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'online_courier_with_sumoc_and_necessarily_payment',
             'label' => 'Курьер онлайн с объявленной ценностью и обязательным платежом',
@@ -467,7 +470,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'busines_courier',
             'label' => 'Бизнес курьер',
@@ -478,7 +481,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'busines_courier_with_sumoc',
             'label' => 'Бизнес курьер с объявленной ценностью',
@@ -489,7 +492,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'BusinesCourierExpress',
             'label' => 'Бизнес курьер экспресс',
@@ -500,7 +503,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'BusinesCourierExpressWithSumoc',
             'label' => 'Бизнес курьер экспресс с объявленной ценностью',
@@ -511,7 +514,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'easy_return_package',
             'label' => 'Посылка “Легкий возврат” обыкновенная',
@@ -522,7 +525,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'easy_return_package_with_sumoc',
             'label' => 'Посылка “Легкий возврат” с объявленной ценностью',
@@ -533,7 +536,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ekom_marketplace_with_sumoc',
             'label' => 'ЕКОМ Маркетплейс с объявленной ценностью',
@@ -544,7 +547,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ekom_marketplace_with_sumoc_and_necessarily_payment',
             'label' => 'ЕКОМ Маркетплейс с объявленной ценностью и обязательным платежом',
@@ -556,7 +559,7 @@ class TariffSeeder extends Seeder
         ]);
 
         // ems отправления
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems',
             'label' => 'EMS',
@@ -567,7 +570,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_with_sumoc',
             'label' => 'EMS с объявленной ценностью',
@@ -578,7 +581,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_with_sumoc_and_cash',
             'label' => 'EMS с объявленной ценностью и наложенным платежом',
@@ -589,7 +592,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_with_sumoc_and_cash',
             'label' => 'EMS с объявленной ценностью и обязательным платежом',
@@ -600,7 +603,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_optium',
             'label' => 'EMS оптимальное',
@@ -610,7 +613,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_optium_with_sumoc',
             'label' => 'EMS оптимальное с объявленной ценностью',
@@ -620,7 +623,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_optium_with_sumoc_and_cash',
             'label' => 'EMS оптимальное с объявленной ценностью и наложенным платежом',
@@ -630,7 +633,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_optium_with_sumoc_and_necessarily_payment',
             'label' => 'EMS оптимальное с объявленной ценностью и обязательным платежом',
@@ -640,7 +643,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_pt',
             'label' => 'EMS PT',
@@ -650,7 +653,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_pt_with_sumoc',
             'label' => 'EMS PT с объявленной ценностью',
@@ -660,7 +663,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_tender',
             'label' => 'EMS Тендер',
@@ -671,7 +674,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_tender_with_sumoc',
             'label' => 'EMS PT с объявленной ценностью',
@@ -682,7 +685,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_tender_with_sumoc_and_cash',
             'label' => 'EMS Тендер с объявленной ценностью и наложенным платежом',
@@ -693,7 +696,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_tender_with_sumoc_and_necessarily_payment',
             'label' => 'EMS Тендер с объявленной ценностью и обязательным платежом',
@@ -704,7 +707,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 31500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'return_accompanying_documents',
             'label' => 'Возврат сопроводительных документов',
@@ -716,7 +719,7 @@ class TariffSeeder extends Seeder
         ]);
 
         // международная исходящая письменная корреспонденция
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'letter_outgoing',
             'label' => 'Письмо простое международное исходящее',
@@ -727,7 +730,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 2000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'letter_ordered_outgoing',
             'label' => 'Письмо заказное международное исходящее',
@@ -738,7 +741,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 2000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'letter_with_sumoc_outgoing',
             'label' => 'Письмо с объявленной ценностью международное исходящее',
@@ -749,7 +752,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 2000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'postcard_outgoing',
             'label' => 'Почтовая карточка простая международная исходящая',
@@ -759,7 +762,7 @@ class TariffSeeder extends Seeder
             'international' => true,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'postcard_ordered_outgoing',
             'label' => 'Почтовая карточка заказная международная исходящая',
@@ -769,7 +772,7 @@ class TariffSeeder extends Seeder
             'international' => true,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'secogram_ordered_outgoing',
             'label' => 'Секограмма заказная международная исходящая',
@@ -780,7 +783,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 7000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'parcel_outgoing',
             'label' => 'Бандероль простая международная исходящая',
@@ -791,7 +794,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 5000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'parcel_ordered_outgoing',
             'label' => 'Бандероль заказная международная исходящая',
@@ -802,7 +805,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 5000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'bag_m_outgoing',
             'label' => 'Мешок М простой исходящий',
@@ -813,7 +816,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 14500,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'bag_m_ordered_outgoing',
             'label' => 'Мешок М заказной исходящий',
@@ -825,7 +828,7 @@ class TariffSeeder extends Seeder
         ]);
 
         // международные исходящие отправления с товарным вложением
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'package_outgoing',
             'label' => 'Посылка обыкновенная международная исходящая',
@@ -836,7 +839,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'package_with_sumoc_outgoing',
             'label' => 'Посылка с объявленной ценностью исходящая',
@@ -847,7 +850,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'package_with_sumoc_and_cash_outgoing',
             'label' => 'Посылка с объявленной ценностью и наложенным платежом исходящая',
@@ -858,7 +861,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_outgoing',
             'label' => 'EMS обыкновенное исходящее',
@@ -869,7 +872,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 30000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_with_sumoc_outgoing',
             'label' => 'EMS с объявленной ценностью международное исходящее',
@@ -880,7 +883,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_with_cash_outgoing',
             'label' => 'EMS с наложенным платежом международное исходящее',
@@ -890,7 +893,7 @@ class TariffSeeder extends Seeder
             'international' => true,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'litle_package_outgoing',
             'label' => 'Мелкий пакет простой исходящий',
@@ -901,7 +904,7 @@ class TariffSeeder extends Seeder
             'const_weight' => 20000,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'litle_package_ordered_outgoing',
             'label' => 'Мелкий пакет заказной исходящий',
@@ -913,7 +916,7 @@ class TariffSeeder extends Seeder
         ]);
 
         // возможно устаревшие, но существуют в документации
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'kpo_standart',
             'label' => 'КПО-стандарт',
@@ -923,7 +926,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'kpo_econom',
             'label' => 'КПО-эконом',
@@ -933,7 +936,7 @@ class TariffSeeder extends Seeder
             'international' => false,
         ]);
 
-        DB::table('tariffs')->insert([
+        DB::table($table)->insert([
             'companies_id' => $pochta->id,
             'name' => 'ems_pt_with_sumoc_and_cash',
             'label' => 'EMS PT с объявленной ценностью и наложенным платежом',

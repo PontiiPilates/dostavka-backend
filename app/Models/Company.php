@@ -17,6 +17,6 @@ class Company extends Model
 
     public function tariffs(): HasMany
     {
-        return $this->hasMany(Tariff::class, 'companies_id', 'id');
+        return $this->hasMany(TariffPochta::class, 'companies_id', 'id');
     }
 }

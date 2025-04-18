@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tariffs', function (Blueprint $table) {
+        Schema::create('tariffs_pochta', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('companies_id')->constrained()->comment('транспортная компания');
@@ -33,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tariffs');
+        Schema::dropIfExists('tariffs_pochta');
     }
 };
