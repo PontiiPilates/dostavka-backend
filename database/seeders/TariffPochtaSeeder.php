@@ -901,7 +901,7 @@ class TariffPochtaSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
-            'const_weight' => 20000,
+            'const_weight' => 2000,
         ]);
 
         DB::table($table)->insert([
@@ -912,7 +912,7 @@ class TariffPochtaSeeder extends Seeder
             'sumoc' => false,
             'sumnp' => false,
             'international' => true,
-            'const_weight' => 20000,
+            'const_weight' => 2000,
         ]);
 
         // возможно устаревшие, но существуют в документации
