@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\UseCases\TK;
 
+use App\Enums\CompanyType;
 use App\Enums\Pochta\PochtaPackagesType;
 use App\Models\Company;
 use Carbon\Carbon;
@@ -18,129 +19,126 @@ final class PochtaCase extends BaseCase
     {
         $selectedFrom = $request->from;
         $selectedTo = $request->to;
-        $selectedCompanies = $request->companies;
         $selectedRegimes = $request->regimes;
         $selectedPlaces = $request->places;
         $selectedSumoc = $request->sumoc * 100; // перевод в копейки
         $selectedSumnp = $request->sumnp * 100; // перевод в копейки
         $selectedInternationals = $this->isInternational($request->to);
 
-        $companies = Company::whereIn('name', $selectedCompanies)->with(['tariffs'])->get();
-        foreach ($companies as $company) {
+        $company = Company::where('name', CompanyType::Pochta->value)->with(['tariffs'])->first();
 
-            foreach ($selectedPlaces as $place) {
-                $selectedSize = "{$place['length']}x{$place['width']}x{$place['height']}";
-                $selectedWeight = $place['weight'] * 1000; // перевод в граммы
-                $selectedPack = $this->choosePack([$place['length'], $place['width'], $place['height']]);
+        foreach ($selectedPlaces as $place) {
+            $selectedSize = "{$place['length']}x{$place['width']}x{$place['height']}";
+            $selectedWeight = $place['weight'] * 1000; // перевод в граммы
+            $selectedPack = $this->choosePack([$place['length'], $place['width'], $place['height']]);
 
-                // 'volume' => "3000", // код типа упаковки -> приложение 3
-                // 'sizemax' => "500", // максимальный размер одной из сторон  
-                // 'country-to' => 398, // куда
-                // 'sumoc' => 7000, // сумма объявленной ценности в копейках
-                // 'sumnp' => 6899, ; // сумма объявленной ценности в копейках
+            // 'volume' => "3000", // код типа упаковки -> приложение 3
+            // 'sizemax' => "500", // максимальный размер одной из сторон  
+            // 'country-to' => 398, // куда
+            // 'sumoc' => 7000, // сумма объявленной ценности в копейках
+            // 'sumnp' => 6899, ; // сумма объявленной ценности в копейках
 
-                $requestParameters = [
-                    'json' => '', // ответ в формате json
-                    'weight' => $selectedWeight, // вес отправления в граммах
-                    'from' => $selectedFrom, // откуда
-                    'size' => $selectedSize, // размеры в см
-                    'pack' => $selectedPack, // код типа упаковки -> приложение 3
-                ];
+            $requestParameters = [
+                'json' => '', // ответ в формате json
+                'weight' => $selectedWeight, // вес отправления в граммах
+                'from' => $selectedFrom, // откуда
+                'size' => $selectedSize, // размеры в см
+                'pack' => $selectedPack, // код типа упаковки -> приложение 3
+            ];
 
-                $queryParameters = [
-                    ['available', '=', true],
-                    ['const_weight', '>=', $selectedWeight],
-                ];
+            $queryParameters = [
+                ['available', '=', true],
+                ['const_weight', '>=', $selectedWeight],
+            ];
 
-                // интернациональный, без объявленной ценности, без наложенного платежа
-                if ($selectedInternationals && !$selectedSumoc && !$selectedSumnp) {
+            // интернациональный, без объявленной ценности, без наложенного платежа
+            if ($selectedInternationals && !$selectedSumoc && !$selectedSumnp) {
 
-                    $requestParameters['country-to'] = $selectedTo;
+                $requestParameters['country-to'] = $selectedTo;
 
-                    $queryParameters[] = ['international', '=', true];
-                    $queryParameters[] = ['sumoc', '=', false];
-                    $queryParameters[] = ['sumnp', '=', false];
+                $queryParameters[] = ['international', '=', true];
+                $queryParameters[] = ['sumoc', '=', false];
+                $queryParameters[] = ['sumnp', '=', false];
 
-                    $tariffs = $company->tariffs()->where($queryParameters)->get();
-                }
-
-                // интернациональный, с объявленной ценностью, без наложенного платежа
-                if ($selectedInternationals && $selectedSumoc && !$selectedSumnp) {
-
-                    $requestParameters['country-to'] = $selectedTo;
-                    $requestParameters['sumoc'] = $selectedSumoc;
-
-                    $queryParameters[] = ['international', '=', true];
-                    $queryParameters[] = ['sumoc', '=', true];
-                    $queryParameters[] = ['sumnp', '=', false];
-
-                    $tariffs = $company->tariffs()->where($queryParameters)->get();
-                }
-
-                // интернациональный, с объявленной ценностью, с наложенным платежём
-                if ($selectedInternationals && $selectedSumoc && $selectedSumnp) {
-
-                    $requestParameters['country-to'] = $selectedTo;
-                    $requestParameters['sumoc'] = $selectedSumoc;
-                    $requestParameters['sumnp'] = $selectedSumnp;
-
-                    $queryParameters[] = ['international', '=', true];
-                    $queryParameters[] = ['sumoc', '=', true];
-                    $queryParameters[] = ['sumnp', '=', true];
-
-                    $tariffs = $company->tariffs()->where($queryParameters)->get();
-                }
-
-                // внутренний, без объявленной ценности, без наложенного платежа
-                if (!$selectedInternationals && !$selectedSumoc && !$selectedSumnp) {
-
-                    $requestParameters['to'] = $selectedTo;
-
-                    $queryParameters[] = ['international', '=', false];
-                    $queryParameters[] = ['sumoc', '=', false];
-                    $queryParameters[] = ['sumnp', '=', false];
-
-                    $tariffs = $company->tariffs()->where($queryParameters)->get();
-                }
-
-                // внутренний, с объявленной ценностью, без наложенного платежа
-                if (!$selectedInternationals && $selectedSumoc && !$selectedSumnp) {
-
-                    $requestParameters['to'] = $selectedTo;
-                    $requestParameters['sumoc'] = $selectedSumoc;
-
-                    $queryParameters[] = ['international', '=', false];
-                    $queryParameters[] = ['sumoc', '=', true];
-                    $queryParameters[] = ['sumnp', '=', false];
-
-                    $tariffs = $company->tariffs()->where($queryParameters)->get();
-                }
-
-                // внутренний, с объявленной ценностью, с наложенным платежём
-                if (!$selectedInternationals && $selectedSumoc && $selectedSumnp) {
-
-                    $requestParameters['to'] = $selectedTo;
-                    $requestParameters['sumoc'] = $selectedSumoc;
-                    $requestParameters['sumnp'] = $selectedSumnp;
-
-                    $queryParameters[] = ['international', '=', false];
-                    $queryParameters[] = ['sumoc', '=', true];
-                    $queryParameters[] = ['sumnp', '=', true];
-
-                    $tariffs = $company->tariffs()->where($queryParameters)->get();
-                }
-
-                // если не найдено тарифов
-                if ($tariffs->count() === 0) {
-                    return response()->json([
-                        'message' => 'для заданных условий нет подходящих тарифов',
-                    ]);
-                }
-
-                $responses = Http::pool(fn(Pool $pool) => $this->pools($pool, $tariffs, $requestParameters));
-
-                dd($this->responsePrepare($responses));
+                $tariffs = $company->tariffs()->where($queryParameters)->get();
             }
+
+            // интернациональный, с объявленной ценностью, без наложенного платежа
+            if ($selectedInternationals && $selectedSumoc && !$selectedSumnp) {
+
+                $requestParameters['country-to'] = $selectedTo;
+                $requestParameters['sumoc'] = $selectedSumoc;
+
+                $queryParameters[] = ['international', '=', true];
+                $queryParameters[] = ['sumoc', '=', true];
+                $queryParameters[] = ['sumnp', '=', false];
+
+                $tariffs = $company->tariffs()->where($queryParameters)->get();
+            }
+
+            // интернациональный, с объявленной ценностью, с наложенным платежём
+            if ($selectedInternationals && $selectedSumoc && $selectedSumnp) {
+
+                $requestParameters['country-to'] = $selectedTo;
+                $requestParameters['sumoc'] = $selectedSumoc;
+                $requestParameters['sumnp'] = $selectedSumnp;
+
+                $queryParameters[] = ['international', '=', true];
+                $queryParameters[] = ['sumoc', '=', true];
+                $queryParameters[] = ['sumnp', '=', true];
+
+                $tariffs = $company->tariffs()->where($queryParameters)->get();
+            }
+
+            // внутренний, без объявленной ценности, без наложенного платежа
+            if (!$selectedInternationals && !$selectedSumoc && !$selectedSumnp) {
+
+                $requestParameters['to'] = $selectedTo;
+
+                $queryParameters[] = ['international', '=', false];
+                $queryParameters[] = ['sumoc', '=', false];
+                $queryParameters[] = ['sumnp', '=', false];
+
+                $tariffs = $company->tariffs()->where($queryParameters)->get();
+            }
+
+            // внутренний, с объявленной ценностью, без наложенного платежа
+            if (!$selectedInternationals && $selectedSumoc && !$selectedSumnp) {
+
+                $requestParameters['to'] = $selectedTo;
+                $requestParameters['sumoc'] = $selectedSumoc;
+
+                $queryParameters[] = ['international', '=', false];
+                $queryParameters[] = ['sumoc', '=', true];
+                $queryParameters[] = ['sumnp', '=', false];
+
+                $tariffs = $company->tariffs()->where($queryParameters)->get();
+            }
+
+            // внутренний, с объявленной ценностью, с наложенным платежём
+            if (!$selectedInternationals && $selectedSumoc && $selectedSumnp) {
+
+                $requestParameters['to'] = $selectedTo;
+                $requestParameters['sumoc'] = $selectedSumoc;
+                $requestParameters['sumnp'] = $selectedSumnp;
+
+                $queryParameters[] = ['international', '=', false];
+                $queryParameters[] = ['sumoc', '=', true];
+                $queryParameters[] = ['sumnp', '=', true];
+
+                $tariffs = $company->tariffs()->where($queryParameters)->get();
+            }
+
+            // если не найдено тарифов
+            if ($tariffs->count() === 0) {
+                return response()->json([
+                    'message' => 'для заданных условий нет подходящих тарифов',
+                ]);
+            }
+
+            $responses = Http::pool(fn(Pool $pool) => $this->pools($pool, $tariffs, $requestParameters));
+
+            return $this->responsePrepare($responses);
         }
     }
 
@@ -152,7 +150,7 @@ final class PochtaCase extends BaseCase
         $responseData = [];
 
         foreach ($responses as $response) {
-
+            
             $response = $response->object();
 
             if (isset($response->delivery)) {
@@ -161,6 +159,11 @@ final class PochtaCase extends BaseCase
             } else {
                 $deadline = 'требует уточнения';
                 $days = 'требует уточнения';
+            }
+
+            // если существуют ошибки, то пропустить тариф
+            if (isset($response->errors)) {
+                continue;
             }
 
             $responseData[] = [
