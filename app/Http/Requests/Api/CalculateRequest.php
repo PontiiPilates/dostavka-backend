@@ -27,8 +27,11 @@ class CalculateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'from' => 'required|integer',
-            'to' => 'required|integer',
+            // ! снижение требований валидации для разработки, после - вернуть
+            // 'from' => 'required|integer', 
+            // 'to' => 'required|integer',
+            'from' => 'required',
+            'to' => 'required',
             'companies' => 'required|array',
             'places' => 'required|array',
             'places.*.weight' => 'required|decimal:0,1',

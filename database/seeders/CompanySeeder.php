@@ -23,5 +23,10 @@ class CompanySeeder extends Seeder
             'name' => CompanyType::Baikal->value,
             'label' => CompanyType::Baikal->label(),
         ]);
+
+        DB::table('companies')->insert([
+            'name' => CompanyType::DPD->value,
+            'label' => CompanyType::DPD->label(),
+        ]);
     }
 }

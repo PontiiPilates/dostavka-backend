@@ -206,17 +206,6 @@ final class PochtaCase extends BaseCase
     }
 
     /**
-     * Проверка: является ли доставка интернациональной.
-     * Это влияет на выбор группы тарифов.
-     */
-    private function isInternational($code): bool
-    {
-        if ($code == 643) return false;
-        return DB::table('countries')->where('code', $code)->exists();
-    }
-
-
-    /**
      * Попытка подобрать упаковку.
      * Это требуется только одному тарифу.
      * Остальные не против принимать значение упаковки.

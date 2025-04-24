@@ -8,12 +8,14 @@ enum  CompanyType: string
 {
     case Pochta = 'pochta';
     case Baikal = 'baikal';
+    case DPD = 'dpd';
 
     public function label()
     {
         return match ($this) {
             self::Pochta => 'Почта России',
             self::Baikal => 'Байкал Сервис',
+            self::DPD => 'DPD',
         };
     }
 }
