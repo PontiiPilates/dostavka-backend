@@ -32,21 +32,21 @@ class CalculateController extends Controller
         return response()->json(['data' => $this->allResponses]);
     }
 
-    private function pochta($request)
+    private function pochta(CalculateRequest $request)
     {
         $this->allResponses[] = [
             CompanyType::Pochta->value => $this->pochta->handle($request)
         ];
     }
 
-    private function baikal($request)
+    private function baikal(CalculateRequest $request)
     {
         $this->allResponses[] = [
             CompanyType::Baikal->value => $this->baikal->handle($request)
         ];
     }
 
-    private function dpd($request)
+    private function dpd(CalculateRequest $request)
     {
         $this->allResponses[] = [
             CompanyType::DPD->value => $this->dpd->handle($request)

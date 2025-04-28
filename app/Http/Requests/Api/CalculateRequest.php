@@ -16,7 +16,7 @@ class CalculateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // ! true - полльзователь может быть не авторизован
+        return true; // ! true - пользователь может быть не авторизован, после разработки вернуть в false
     }
 
     /**
@@ -27,9 +27,7 @@ class CalculateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // ! снижение требований валидации для разработки, после - вернуть
-            // 'from' => 'required|integer', 
-            // 'to' => 'required|integer',
+            // ! снижение требований валидации для разработки, после разработки вернуть обратно
             'from' => 'required',
             'to' => 'required',
             'companies' => 'required|array',
@@ -57,7 +55,7 @@ class CalculateRequest extends FormRequest
     public function  messages()
     {
         return [
-            // обязательно
+            // обязательно для заполнения
             'from.required' => ValidateMessagesType::Required->value,
             'to.required' => ValidateMessagesType::Required->value,
             'companies.required' => ValidateMessagesType::Required->value,
@@ -67,13 +65,13 @@ class CalculateRequest extends FormRequest
             'places.*.width.required' => ValidateMessagesType::Required->value,
             'places.*.height.required' => ValidateMessagesType::Required->value,
             'shipment_date.required' => ValidateMessagesType::Required->value,
-            // массивом
+            // должно быть массивом
             'companies.array' => ValidateMessagesType::ToBeArray->value,
             'places.array' => ValidateMessagesType::ToBeArray->value,
             'regimes.array' => ValidateMessagesType::ToBeArray->value,
-            // датой
+            // должно быть датой
             'shipment_date.date' => ValidateMessagesType::ToBeDate->value,
-            // числом
+            // должно быть числом
             'from.integer' => ValidateMessagesType::ToBeInteger->value,
             'to.integer' => ValidateMessagesType::ToBeInteger->value,
             'places.*.length.integer' => ValidateMessagesType::ToBeInteger->value,
@@ -81,9 +79,9 @@ class CalculateRequest extends FormRequest
             'places.*.height.integer' => ValidateMessagesType::ToBeInteger->value,
             'sumoc.integer' => ValidateMessagesType::ToBeInteger->value,
             'sumnp.integer' => ValidateMessagesType::ToBeInteger->value,
-            // с точкой или без
+            // должно быть с точкой или без
             'places.*.weight.decimal' => ValidateMessagesType::ToBeDecimal->value,
-            // не более sumoc
+            // должно быть не более sumoc
             'sumnp.lte' => ValidateMessagesType::ToBeNoMore->value,
         ];
     }
