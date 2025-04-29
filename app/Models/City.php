@@ -22,5 +22,6 @@ class City extends Model
         'index_max',
         'alpha2',
         'alpha3',
+        'city_id_boxberry',
     ];
 }

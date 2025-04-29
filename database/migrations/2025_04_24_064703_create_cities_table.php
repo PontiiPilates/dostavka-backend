@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('cities', function (Blueprint $table) {
             $table->id();
 
-            $table->bigInteger('city_id');
+            $table->bigInteger('city_id')->nullable();
             $table->char('country_code', 5);
             $table->char('country_name', 100);
             $table->char('country_fullname', 100);
