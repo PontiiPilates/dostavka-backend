@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\UseCases\TK;
 
+use App\Dto\Boxberry\OfferDto;
+use App\Dto\Boxberry\RequestParametersDto;
+use App\Dto\Boxberry\ResponseCollectionDto;
 use App\Enums\Boxberry\BoxberryUrlType;
 use App\Enums\DeliveryMethodsType;
 use App\interfaces\CaseInterface;
@@ -26,8 +29,7 @@ class BoxberryCase extends BaseCase implements CaseInterface
     }
 
     /**
-     * API Boxberry не требовательно к международности, тарифам, местам, режиму доставки, объявленной ценности.
-     * Однако разделение по режиму доставки требуется для обеспечения бизнес-логики приложения.
+     * Возвращает расчет стоимости доставки. 
      */
     public function handle(Request $request)
     {
@@ -46,7 +48,7 @@ class BoxberryCase extends BaseCase implements CaseInterface
     /**
      * Возвращает массив запросов для параллельного выполнения.
      */
-    private function pools($pool, $request): array
+    private function pools(Pool $pool, Request $request): array
     {
         $pools = [];
 
@@ -54,20 +56,17 @@ class BoxberryCase extends BaseCase implements CaseInterface
 
         foreach ($deliveryMethods as $method) {
 
-            $dtoParameters = [
-                'token' => $this->token,
-                'method' => BoxberryUrlType::DeliveryCalculation->value,
-                "SenderCityId" => $this->from->city_id_boxberry,
-                "RecipientCityId" => $this->to->city_id_boxberry,
-                "DeliveryType" => $this->deliveryMethod($method),
-                "OrderSum" => $request->sumoc,
-                "BoxSizes" => $this->places($request->places),
-                "Version" => "2.2"
-            ];
+            $requestParameters = new RequestParametersDto(
+                $this->token,
+                BoxberryUrlType::DeliveryCalculation->value,
+                $this->from->city_id_boxberry,
+                $this->to->city_id_boxberry,
+                $this->deliveryMethod($method),
+                $request->sumoc,
+                $this->places($request->places),
+            );
 
-            // dump($dtoParameters);
-
-            $pools[] = $pool->post($this->url, $dtoParameters);
+            $pools[] = $pool->post($this->url, $requestParameters->toArray());
         }
 
         return $pools;
@@ -88,7 +87,7 @@ class BoxberryCase extends BaseCase implements CaseInterface
     /**
      * Возвращает режим доставки в виде значения, которое может прочитать API.
      */
-    private function deliveryMethod($method): int
+    private function deliveryMethod(string $method): int
     {
         $methods = [
             DeliveryMethodsType::Ss->value => 1,
@@ -101,7 +100,7 @@ class BoxberryCase extends BaseCase implements CaseInterface
     /**
      * Возвращает режим доставки в виде значения, которое требуется для приложения.
      */
-    private function deliveryMethodReverse($method): string
+    private function deliveryMethodReverse(int $method): string
     {
         $methods = [
             1 => DeliveryMethodsType::Ss->value,
@@ -114,7 +113,7 @@ class BoxberryCase extends BaseCase implements CaseInterface
     /**
      * Возвращает массив "мест" в формате, который требуется для API.
      */
-    private function places($places): array
+    private function places(array $places): array
     {
         $data = [];
 
@@ -132,13 +131,10 @@ class BoxberryCase extends BaseCase implements CaseInterface
 
     /**
      * Формирует ответ на основе специфики ответов API Boxberry.
-     * 
-     * Особенность данного API в том, что оно не возвращает ответов с кодом, кроме 200.
-     * Ошибку распознать можно лишь внутри ответа: "error": true.
      */
     private function responseBuilder(array $responses): array
     {
-        $dtoResponse = [];
+        $responseCollection = new ResponseCollectionDto();
 
         foreach ($responses as $key => $response) {
 
@@ -153,14 +149,12 @@ class BoxberryCase extends BaseCase implements CaseInterface
 
                 $mode = $this->deliveryMethodReverse($item->DeliveryTypeId);
 
-                $dtoResponse[$mode][] = [
-                    'tariff' => null,
-                    'cost' => $item->TotalPrice,
-                    'days' => $item->DeliveryPeriod,
-                ];
+                $offerDto = new OfferDto(null, $item->TotalPrice, $item->DeliveryPeriod);
+
+                $responseCollection->setItem($mode, $offerDto->toArray());
             }
         }
 
-        return $dtoResponse;
+        return $responseCollection->toArray();
     }
 }
