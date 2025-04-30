@@ -36,8 +36,8 @@ class CalculateRequest extends FormRequest
             'places.*.length' => 'required|integer',
             'places.*.width' => 'required|integer',
             'places.*.height' => 'required|integer',
-            'regimes' => 'array',
-            'shipment_date' => 'required|date',
+            'delivery_methods' => 'array|nullable',
+            'shipment_date' => 'date',
             'sumoc' => 'integer',
             'sumnp' => 'lte:sumoc|integer',
         ];
@@ -68,7 +68,7 @@ class CalculateRequest extends FormRequest
             // должно быть массивом
             'companies.array' => ValidateMessagesType::ToBeArray->value,
             'places.array' => ValidateMessagesType::ToBeArray->value,
-            'regimes.array' => ValidateMessagesType::ToBeArray->value,
+            'delivery_methods.array' => ValidateMessagesType::ToBeArray->value,
             // должно быть датой
             'shipment_date.date' => ValidateMessagesType::ToBeDate->value,
             // должно быть числом

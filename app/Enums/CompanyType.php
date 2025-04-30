@@ -9,6 +9,7 @@ enum  CompanyType: string
     case Pochta = 'pochta';
     case Baikal = 'baikal';
     case DPD = 'dpd';
+    case Boxberry = 'boxberry';
 
     public function label()
     {
@@ -16,6 +17,7 @@ enum  CompanyType: string
             self::Pochta => 'Почта России',
             self::Baikal => 'Байкал Сервис',
             self::DPD => 'DPD',
+            self::Boxberry => 'Boxberry',
         };
     }
 }

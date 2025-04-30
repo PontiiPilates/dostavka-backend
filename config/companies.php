@@ -14,4 +14,8 @@ return [
         'client_number' => env('DPD_CLIENT_NUMBER'),
         'client_key' => env('DPD_CLIENT_KEY'),
     ],
+    CompanyType::Boxberry->value => [
+        'url' => env('BOXBERRY_URL'),
+        'token' => env('BOXBERRY_TOKEN'),
+    ],
 ];
