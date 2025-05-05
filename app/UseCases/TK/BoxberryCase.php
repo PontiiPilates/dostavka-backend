@@ -37,7 +37,7 @@ class BoxberryCase extends BaseCase implements CaseInterface
             $this->from = $this->moreInfo($request->from);
             $this->to = $this->moreInfo($request->to);
         } catch (\Throwable $th) {
-            return $this->errorResponse("Получение информации о населённм пункте", [$th->getMessage()]);
+            return $this->errorResponse("Получение информации о населённм пункте:", [$th->getMessage()]);
         }
 
         $responses = Http::pool(fn(Pool $pool) => $this->pools($pool, $request));
