@@ -10,6 +10,7 @@ enum  CompanyType: string
     case Baikal = 'baikal';
     case DPD = 'dpd';
     case Boxberry = 'boxberry';
+    case Vozovoz = 'vozovoz';
 
     public function label()
     {
@@ -18,6 +19,7 @@ enum  CompanyType: string
             self::Baikal => 'Байкал Сервис',
             self::DPD => 'DPD',
             self::Boxberry => 'Boxberry',
+            self::Vozovoz => 'Boxberry',
         };
     }
 }
