@@ -23,5 +23,6 @@ class City extends Model
         'alpha2',
         'alpha3',
         'city_id_boxberry',
+        'city_id_vozovoz',
     ];
 }
