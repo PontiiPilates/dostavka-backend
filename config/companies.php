@@ -18,4 +18,8 @@ return [
         'url' => env('BOXBERRY_URL'),
         'token' => env('BOXBERRY_TOKEN'),
     ],
+    CompanyType::Vozovoz->value => [
+        'url' => env('VOZOVOZ_URL'),
+        'token' => env('VOZOVOZ_TOKEN'),
+    ],
 ];
