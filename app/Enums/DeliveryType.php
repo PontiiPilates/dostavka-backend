@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum DeliveryMethodsType: string
+enum DeliveryType: string
 {
     case Ss = 'ss';
     case Sd = 'sd';
