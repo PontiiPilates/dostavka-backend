@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto\Boxberry;
 
-use App\interfaces\DtoInterface;
+use App\Interfaces\DtoInterface;
 
 class OfferDto implements DtoInterface
 {

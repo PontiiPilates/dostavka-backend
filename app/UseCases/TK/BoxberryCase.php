@@ -8,7 +8,7 @@ use App\Dto\Boxberry\OfferDto;
 use App\Dto\Boxberry\RequestParametersDto;
 use App\Dto\Boxberry\ResponseCollectionDto;
 use App\Enums\Boxberry\BoxberryUrlType;
-use App\Enums\DeliveryMethodsType;
+use App\Enums\DeliveryType;
 use App\interfaces\CaseInterface;
 use App\Models\City;
 use Illuminate\Http\Client\Pool;
@@ -31,7 +31,7 @@ class BoxberryCase extends BaseCase implements CaseInterface
     /**
      * Возвращает расчет стоимости доставки. 
      */
-    public function handle(Request $request)
+    public function handle(Request $request): array
     {
         try {
             $this->from = $this->moreInfo($request->from);
@@ -78,7 +78,7 @@ class BoxberryCase extends BaseCase implements CaseInterface
     private function isDeliveryMethodSelected(array|null $methods): array
     {
         if (!$methods) {
-            return [DeliveryMethodsType::Ss->value];
+            return [DeliveryType::Ss->value];
         }
 
         return $methods;
@@ -90,8 +90,8 @@ class BoxberryCase extends BaseCase implements CaseInterface
     private function deliveryMethod(string $method): int
     {
         $methods = [
-            DeliveryMethodsType::Ss->value => 1,
-            DeliveryMethodsType::Dd->value => 2,
+            DeliveryType::Ss->value => 1,
+            DeliveryType::Dd->value => 2,
         ];
 
         return $methods[$method];
@@ -103,8 +103,8 @@ class BoxberryCase extends BaseCase implements CaseInterface
     private function deliveryMethodReverse(int $method): string
     {
         $methods = [
-            1 => DeliveryMethodsType::Ss->value,
-            2 => DeliveryMethodsType::Dd->value,
+            1 => DeliveryType::Ss->value,
+            2 => DeliveryType::Dd->value,
         ];
 
         return $methods[$method];
