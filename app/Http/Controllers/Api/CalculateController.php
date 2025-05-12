@@ -9,6 +9,7 @@ use App\UseCases\TK\BaikalsrCase;
 use App\UseCases\TK\BoxberryCase;
 use App\UseCases\TK\DPDCase;
 use App\UseCases\TK\PochtaCase;
+use App\UseCases\TK\VozovozCase;
 
 class CalculateController extends Controller
 {
@@ -19,6 +20,7 @@ class CalculateController extends Controller
         private BaikalsrCase $baikal,
         private DPDCase $dpd,
         private BoxberryCase $boxberry,
+        private VozovozCase $vozovoz,
     ) {}
 
     public function handle(CalculateRequest $request)
@@ -29,6 +31,7 @@ class CalculateController extends Controller
                 CompanyType::Baikal->value => $this->baikal($request),
                 CompanyType::DPD->value => $this->dpd($request),
                 CompanyType::Boxberry->value => $this->boxberry($request),
+                CompanyType::Vozovoz->value => $this->vozovoz($request),
             };
         }
 
@@ -64,6 +67,13 @@ class CalculateController extends Controller
     {
         $this->allResponses[] = [
             CompanyType::Boxberry->value => $this->boxberry->handle($request)
+        ];
+    }
+
+    private function vozovoz(CalculateRequest $request)
+    {
+        $this->allResponses[] = [
+            CompanyType::Vozovoz->value => $this->vozovoz->handle($request)
         ];
     }
 }
