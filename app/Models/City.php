@@ -24,5 +24,7 @@ class City extends Model
         'alpha3',
         'city_id_boxberry',
         'city_id_vozovoz',
+        'city_code_dellin',
+        'terminal_id_dellin',
     ];
 }

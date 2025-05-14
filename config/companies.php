@@ -22,4 +22,8 @@ return [
         'url' => env('VOZOVOZ_URL'),
         'token' => env('VOZOVOZ_TOKEN'),
     ],
+    CompanyType::Dellin->value => [
+        'url' => env('DELLIN_URL'),
+        'token' => env('DELLIN_TOKEN'),
+    ],
 ];
