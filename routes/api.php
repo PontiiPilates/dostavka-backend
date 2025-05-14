@@ -22,3 +22,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('v1')->group(function () {
     Route::get('/calculate', [CalculateController::class, 'handle'])->name('calculate');
 });
+
+Route::prefix('v1')->group(function () {
+    Route::get('/auth', function () {
+        return 'Test';
+    })->name('auth');
+});
