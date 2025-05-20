@@ -15,8 +15,8 @@ class PostRest implements ClientInterface
         $response = Http::post($url, $parameters);
 
         if ($response->status() != 200) {
-            Log::channel('tk')->error("Ошибка при выполнении запроса: $url", $parameters);
-            throw new Exception("Ошибка при выполнении запроса: $url", 500);
+            Log::channel('tk')->error("Ошибка при выполнении запроса: $url", ["request" => $parameters, "response" => $response->json()]);
+            throw new Exception("Ошибка при выполнении запроса: $url, смотри лог", 500);
         }
 
         return $response->object();
