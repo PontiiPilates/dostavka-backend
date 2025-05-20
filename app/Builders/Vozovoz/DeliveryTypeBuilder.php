@@ -6,7 +6,7 @@ namespace App\Builders\Vozovoz;
 
 use App\Models\City;
 
-final class DeliveryTypeBuilder
+class DeliveryTypeBuilder
 {
     public function sS(City $from, City $to, string $date): array
     {
