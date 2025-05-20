@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CalculateRequest;
 use App\UseCases\TK\BaikalsrCase;
 use App\UseCases\TK\BoxberryCase;
+use App\UseCases\TK\DellinCase;
 use App\UseCases\TK\DPDCase;
 use App\UseCases\TK\PochtaCase;
 use App\UseCases\TK\VozovozCase;
@@ -21,6 +22,7 @@ class CalculateController extends Controller
         private DPDCase $dpd,
         private BoxberryCase $boxberry,
         private VozovozCase $vozovoz,
+        private DellinCase $dellin,
     ) {}
 
     public function handle(CalculateRequest $request)
@@ -32,6 +34,7 @@ class CalculateController extends Controller
                 CompanyType::DPD->value => $this->dpd($request),
                 CompanyType::Boxberry->value => $this->boxberry($request),
                 CompanyType::Vozovoz->value => $this->vozovoz($request),
+                CompanyType::Dellin->value => $this->dellin($request),
             };
         }
 
@@ -74,6 +77,13 @@ class CalculateController extends Controller
     {
         $this->allResponses[] = [
             CompanyType::Vozovoz->value => $this->vozovoz->handle($request)
+        ];
+    }
+
+    private function dellin(CalculateRequest $request)
+    {
+        $this->allResponses[] = [
+            CompanyType::Dellin->value => $this->dellin->handle($request)
         ];
     }
 }

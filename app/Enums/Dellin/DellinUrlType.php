@@ -6,7 +6,7 @@ namespace App\Enums\Dellin;
 
 enum DellinUrlType: string
 {
-    case Calculator = '/v2/calculator.json ';
+    case Calculator = '/v2/calculator.json';
     case Terminals = '/v3/public/terminals.json';
 
     public function label()
