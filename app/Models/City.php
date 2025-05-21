@@ -2,29 +2,28 @@
 
 namespace App\Models;
 
+use App\Models\Tk\TerminalJde;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class City extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'city_id',
-        'country_code',
-        'country_name',
-        'country_fullname',
-        'region_code',
-        'region_name',
-        'city_code',
         'city_name',
-        'index_min',
-        'index_max',
-        'alpha2',
-        'alpha3',
-        'city_id_boxberry',
-        'city_id_vozovoz',
-        'city_code_dellin',
-        'terminal_id_dellin',
+        'country_id'
     ];
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_id', 'id');
+    }
+
+    public function terminalsJde(): HasMany
+    {
+        return $this->hasMany(TerminalJde::class, 'city_id', 'id');
+    }
 }
