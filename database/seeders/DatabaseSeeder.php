@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Database\Seeders\Tk\TerminalsJdeSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CompanySeeder::class,
             TariffPochtaSeeder::class,
+            CountrySeeder::class,
+            TerminalsJdeSeeder::class
         ]);
     }
 }
