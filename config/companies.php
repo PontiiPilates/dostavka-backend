@@ -26,4 +26,9 @@ return [
         'url' => env('DELLIN_URL'),
         'token' => env('DELLIN_TOKEN'),
     ],
+    CompanyType::Jde->value => [
+        'url' => env('JDE_URL'),
+        'token' => env('JDE_TOKEN'),
+        'user' => env('JDE_USER'),
+    ],
 ];
