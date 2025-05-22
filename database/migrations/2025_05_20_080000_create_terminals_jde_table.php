@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('city_name', 100);
             $table->text('terminal_id', 64);
             $table->boolean('acceptance')->default(false)->comment('приём');
-            $table->boolean('issue')->default(false)->comment('отправка');
+            $table->boolean('issue')->default(false)->comment('выдача');
 
             $table->timestamps();
         });
