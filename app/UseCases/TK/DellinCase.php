@@ -5,7 +5,7 @@ namespace App\UseCases\TK;
 use App\Builders\Dellin\QueryBuilder;
 use App\Builders\Dellin\ResponseBuilder;
 use App\Interfaces\CaseInterface;
-use App\Services\Clients\Tk\RestPostPoolClient;
+use App\Services\Clients\Tk\RestPoolClient;
 use Illuminate\Http\Request;
 
 class DellinCase implements CaseInterface
@@ -13,7 +13,7 @@ class DellinCase implements CaseInterface
     public function __construct(
         private QueryBuilder $queryBuilder,
         private ResponseBuilder $responseBuilder,
-        private RestPostPoolClient $client,
+        private RestPoolClient $client,
     ) {}
 
     public function handle(Request $request): array
