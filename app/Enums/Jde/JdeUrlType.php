@@ -8,12 +8,14 @@ enum JdeUrlType: string
 {
     case Calculator = '/calculator/price';
     case Geo = '/geo/search';
+    case Type = '/calculator/PriceTypeListAvailable';
 
     public function label()
     {
         return match ($this) {
             self::Calculator => 'Калькулятор',
             self::Geo => 'Терминалы',
+            self::Type => 'Способы доставки',
         };
     }
 }
