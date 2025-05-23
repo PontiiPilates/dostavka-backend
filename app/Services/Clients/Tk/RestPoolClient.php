@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class RestPostPoolClient
+class RestPoolClient
 {
     public function send(Request $request, QueryPoolBuilderInterface $queryBuilder): array
     {

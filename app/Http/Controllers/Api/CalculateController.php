@@ -9,6 +9,7 @@ use App\UseCases\TK\BaikalsrCase;
 use App\UseCases\TK\BoxberryCase;
 use App\UseCases\TK\DellinCase;
 use App\UseCases\TK\DPDCase;
+use App\UseCases\TK\JdeCase;
 use App\UseCases\TK\PochtaCase;
 use App\UseCases\TK\VozovozCase;
 
@@ -23,6 +24,7 @@ class CalculateController extends Controller
         private BoxberryCase $boxberry,
         private VozovozCase $vozovoz,
         private DellinCase $dellin,
+        private JdeCase $jde,
     ) {}
 
     public function handle(CalculateRequest $request)
@@ -35,6 +37,7 @@ class CalculateController extends Controller
                 CompanyType::Boxberry->value => $this->boxberry($request),
                 CompanyType::Vozovoz->value => $this->vozovoz($request),
                 CompanyType::Dellin->value => $this->dellin($request),
+                CompanyType::Jde->value => $this->jde($request),
             };
         }
 
@@ -84,6 +87,13 @@ class CalculateController extends Controller
     {
         $this->allResponses[] = [
             CompanyType::Dellin->value => $this->dellin->handle($request)
+        ];
+    }
+
+    private function jde(CalculateRequest $request)
+    {
+        $this->allResponses[] = [
+            CompanyType::Jde->value => $this->jde->handle($request)
         ];
     }
 }
