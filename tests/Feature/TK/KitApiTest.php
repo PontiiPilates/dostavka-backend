@@ -13,9 +13,6 @@ class KitApiTest extends TestCase
     private string $url;
     private string $token;
 
-    /**
-     * A basic feature test example.
-     */
     public function test_city(): void
     {
         $this->prepare();
