@@ -31,4 +31,8 @@ return [
         'token' => env('JDE_TOKEN'),
         'user' => env('JDE_USER'),
     ],
+    CompanyType::Kit->value => [
+        'url' => env('KIT_URL'),
+        'token' => env('KIT_TOKEN'),
+    ],
 ];
