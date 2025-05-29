@@ -13,7 +13,7 @@ class KitApiTest extends TestCase
     private string $url;
     private string $token;
 
-    public function test_city(): void
+    public function test_cities(): void
     {
         $this->prepare();
 
@@ -28,23 +28,26 @@ class KitApiTest extends TestCase
         $this->prepare();
 
         $parameters = [
-            "city_pickup_code" => "240000100000", // откуда
-            "city_delivery_code" => "770000000000", // куда
-            "declared_price" => "100", // объявленная стоимость груза
+            "city_pickup_code" => "240000100000", // откуда (Красноярск)
+            "city_delivery_code" => "770000000000", // куда (Москва)
+            "declared_price" => 100, // объявленная стоимость груза
             "places" => [
+                // дшв и объём могут быть использованы одновременно, но приоритет у дшв
                 [
-                    "count_place" => "2", // количество мест в позиции
-                    "height" => "100", // высота см
-                    "width" => "100", // ширина см
-                    "length" => "100", // длина см
-                    "weight" => "100" // вес кг
+                    "count_place" => 1, // количество мест в позиции
+                    "height" => 100, // высота см
+                    "width" => 100, // ширина см
+                    "length" => 100, // длина см
+                    "weight" => 100, // вес кг
                 ],
                 [
-                    "count_place" => "4", // количество мест в позиции
-                    "weight" => "200", // вес кг
-                    "volume" => "4" // объём м3
+                    "count_place" => 1, // количество мест в позиции
+                    "weight" => 50, // вес кг
+                    "volume" => 2 // объём м3
                 ]
             ],
+            "pick_up" => 1, // забор груза
+            "delivery" => 0, // доставка груза
         ];
 
         $response = Http::withToken($this->token)->post($this->url . KitUrlType::Calculate->value, $parameters);
