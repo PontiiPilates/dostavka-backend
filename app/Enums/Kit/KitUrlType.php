@@ -7,7 +7,7 @@ namespace App\Enums\Kit;
 enum KitUrlType: string
 {
     case City = '/1.1/tdd/city/get-list';
-    case Calculate = '/1.0/order/calculate';
+    case Calculate = '/1.1/order/calculate';
     // case Type = '/calculator/PriceTypeListAvailable';
 
     public function label()

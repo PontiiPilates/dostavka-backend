@@ -26,4 +26,9 @@ class City extends Model
     {
         return $this->hasMany(TerminalJde::class, 'city_id', 'id');
     }
+
+    public function tkKitCity(): HasMany
+    {
+        return $this->hasMany(TkKitCity::class, 'city_id', 'id');
+    }
 }
