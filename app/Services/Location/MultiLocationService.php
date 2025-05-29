@@ -35,7 +35,7 @@ class MultiLocationService
         $city = $this->findCity();
 
         if (!$city) {
-            throw new Exception("Некорректное значение места отправления/получения", 404);
+            throw new Exception("Населённого пункта не существует", 404);
         }
 
         return $city;
@@ -51,13 +51,7 @@ class MultiLocationService
      */
     public function specialFromJde(string $location, string $direction): TerminalJde
     {
-        $this->parseLocation($location);
-
-        try {
-            $city = $this->findCity();
-        } catch (\Throwable $th) {
-            throw new Exception("Населённого пункта не существует", 404);
-        }
+        $city = $this->city($location);
 
         try {
             switch ($direction) {
