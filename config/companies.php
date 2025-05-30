@@ -35,4 +35,9 @@ return [
         'url' => env('KIT_URL'),
         'token' => env('KIT_TOKEN'),
     ],
+    CompanyType::Pek->value => [
+        'url' => env('PEK_URL'),
+        'user' => env('PEK_USER'),
+        'password' => env('PEK_PASSWORD'),
+    ],
 ];
