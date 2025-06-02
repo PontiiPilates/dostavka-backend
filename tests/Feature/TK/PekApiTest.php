@@ -14,11 +14,11 @@ class PekApiTest extends TestCase
     private string $user;
     private string $password;
 
-    public function test_cities()
+    public function test_terminals()
     {
         $this->prepare();
 
-        $response = Http::withBasicAuth($this->user, $this->password)->post($this->url . PekUrlType::Cities->value);
+        $response = Http::withBasicAuth($this->user, $this->password)->post($this->url . PekUrlType::Terminals->value);
 
         $this->assertEquals(200, $response->status());
         $this->assertIsArray($response->json());

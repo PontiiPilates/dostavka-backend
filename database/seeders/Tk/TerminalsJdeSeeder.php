@@ -46,6 +46,7 @@ class TerminalsJdeSeeder extends Seeder
     private function save(array $responses): void
     {
         foreach ($responses as $key => $response) {
+
             foreach ($response->object() as $terminal) {
 
                 $countryName = $terminal->contry_name;
