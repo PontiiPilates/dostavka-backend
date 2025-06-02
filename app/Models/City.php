@@ -31,4 +31,9 @@ class City extends Model
     {
         return $this->hasMany(TkKitCity::class, 'city_id', 'id');
     }
+
+    public function tkPek(): HasMany
+    {
+        return $this->hasMany(TkPekTerminal::class, 'city_id', 'id');
+    }
 }

@@ -16,7 +16,9 @@ class DatabaseSeeder extends Seeder
             CompanySeeder::class,
             TariffPochtaSeeder::class,
             CountrySeeder::class,
-            TerminalsJdeSeeder::class
+            TerminalsJdeSeeder::class,
+            TkKitCitySeeder::class,
+            TkPekTerminalSeeder::class,
         ]);
     }
 }
