@@ -11,6 +11,7 @@ use App\UseCases\TK\DellinCase;
 use App\UseCases\TK\DPDCase;
 use App\UseCases\TK\JdeCase;
 use App\UseCases\TK\KitCase;
+use App\UseCases\TK\PekCase;
 use App\UseCases\TK\PochtaCase;
 use App\UseCases\TK\VozovozCase;
 
@@ -27,6 +28,7 @@ class CalculateController extends Controller
         private DellinCase $dellin,
         private JdeCase $jde,
         private KitCase $kit,
+        private PekCase $pek,
     ) {}
 
     public function handle(CalculateRequest $request)
@@ -41,6 +43,7 @@ class CalculateController extends Controller
                 CompanyType::Dellin->value => $this->dellin($request),
                 CompanyType::Jde->value => $this->jde($request),
                 CompanyType::Kit->value => $this->kit($request),
+                CompanyType::Pek->value => $this->pek($request),
             };
         }
 
@@ -104,6 +107,13 @@ class CalculateController extends Controller
     {
         $this->allResponses[] = [
             CompanyType::Kit->value => $this->kit->handle($request)
+        ];
+    }
+
+    private function pek(CalculateRequest $request)
+    {
+        $this->allResponses[] = [
+            CompanyType::Pek->value => $this->pek->handle($request)
         ];
     }
 }
