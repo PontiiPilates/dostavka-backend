@@ -38,6 +38,18 @@ class CalculateTest extends TestCase
         $this->assertArrayNotHasKey('success', $response['data'][0]['jde']);
     }
 
+    public function test_calculate_pek(): void
+    {
+        $parameters = $this->parameters(CompanyType::Pek->value);
+        $url = $this->toUrl($parameters);
+
+        $response = $this->getJson($url);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+        $response->assertJsonStructure($this->responseStructure());
+    }
+
     private function parameters(string $company): array
     {
         return [
@@ -48,7 +60,7 @@ class CalculateTest extends TestCase
             'places[0][length]' => '100',
             'places[0][width]' => '20',
             'places[0][height]' => '10',
-            'places[0][volume]' => '10',
+            'places[0][volume]' => '0.2',
 
             'places[1][weight]' => '20',
             'places[1][volume]' => '0.4',
@@ -61,11 +73,30 @@ class CalculateTest extends TestCase
             'declare_price' => 20000,
             'cash_on_delivery' => 1000,
 
-            'shipment_date' => now()->isoFormat('YYYY-MM-DD'),
+            'shipment_date' => now()->addDays(1)->isoFormat('YYYY-MM-DD'),
         ];
     }
 
-    private function toUrl($parameters)
+    private function responseStructure()
+    {
+        return [
+            "data" => [
+                "*" => [
+                    "pek" => [
+                        "dd" => [
+                            "*" => [
+                                "tariff",
+                                "cost",
+                                "days",
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    private function toUrl(array $parameters): string
     {
         $url = route('calculate');
 
@@ -73,6 +104,7 @@ class CalculateTest extends TestCase
         foreach ($parameters as $key => $parameter) {
             if ($key === $firstKey) {
                 $url .= '?' . $key . '=' . $parameter;
+                continue;
             }
 
             $url .= '&' . $key . '=' . $parameter;
