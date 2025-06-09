@@ -40,4 +40,9 @@ return [
         'user' => env('PEK_USER'),
         'password' => env('PEK_PASSWORD'),
     ],
+    CompanyType::Cdek->value => [
+        'url' => env('CDEK_URL'),
+        'account' => env('CDEK_ACCOUNT'),
+        'secure' => env('CDEK_SECURE_PASSWORD'),
+    ],
 ];
