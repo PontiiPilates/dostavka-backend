@@ -22,4 +22,16 @@ class CdekApiTest extends TestCase
         assertIsString($token->access_token);
         assertIsInt($token->expires_in);
     }
+
+    public function test_cities()
+    {
+        $tokenCdecService = new TokenCdekService();
+        $token = $tokenCdecService->getActualToken();
+
+        $response = Http::withToken($token->token)->get($tokenCdecService->url . CdekUrlType::Cities->value);
+
+        $this->assertEquals(200, $response->status());
+        $this->assertIsArray($response->json());
+        $this->assertArrayNotHasKey('error', $response);
+    }
 }
