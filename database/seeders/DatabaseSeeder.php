@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             TerminalsJdeSeeder::class,
             TkKitCitySeeder::class,
             TkPekTerminalSeeder::class,
+            TerminalCdekSeeder::class
         ]);
     }
 }

@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->foreignId('city_id')->constrained();
             $table->text('city_name', 100);
-            $table->text('terminal_id', 64);
+            $table->int('terminal_id', 64);
 
             $table->timestamps();
         });
