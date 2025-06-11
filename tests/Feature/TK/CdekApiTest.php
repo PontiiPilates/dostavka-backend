@@ -28,7 +28,9 @@ class CdekApiTest extends TestCase
         $tokenCdecService = new TokenCdekService();
         $token = $tokenCdecService->getActualToken();
 
-        $response = Http::withToken($token->token)->get($tokenCdecService->url . CdekUrlType::Cities->value);
+        $response = Http::withToken($token)->get($tokenCdecService->url . CdekUrlType::Cities->value);
+
+        dump($token);
 
         $this->assertEquals(200, $response->status());
         $this->assertIsArray($response->json());
