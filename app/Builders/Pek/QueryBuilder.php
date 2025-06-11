@@ -36,6 +36,14 @@ class QueryBuilder implements QueryPoolBuilderInterface
      */
     public function build(Request $request, Pool $pool): array|null
     {
+        // если пользователь указал наложенный платёж - не следует продолжать выполнение
+        try {
+            $this->checkCashOnDelivery($request->cash_on_delivery);
+        } catch (\Throwable $th) {
+            throw new Exception('Проверка информации о наложенном платеже. ' . $th->getMessage());
+            return [];
+        }
+
         $from = $request->from;
         $to = $request->to;
 
@@ -120,6 +128,16 @@ class QueryBuilder implements QueryPoolBuilderInterface
     }
 
     /**
+     * Проверяет наличие информации о наложенном платеже. Выбрасывает исключение, если она не указана. Допустима работа с нулевым значением.
+     */
+    private function checkCashOnDelivery($cashOnDelivery)
+    {
+        if (isset($cashOnDelivery) && $cashOnDelivery > 0) {
+            throw new Exception('Компания не работает с наложенным платежём, поэтому не сможет участвовать в калькуляции.');
+        }
+    }
+
+    /**
      * Возвращает способ доставки поумолчанию, если ни один не выбран.
      */
     private function isDeliveryTypeUnselected(array|null $methods): array
@@ -169,8 +187,6 @@ class QueryBuilder implements QueryPoolBuilderInterface
             'maxDimension' => (float) $maxDimension, // максимальный габарит грузоместа
         ];
     }
-
-    // Добавить проверку на наложенный платёж
 
     private function checkCargo(array $places, $type)
     {
