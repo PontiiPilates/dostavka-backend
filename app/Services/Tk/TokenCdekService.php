@@ -49,7 +49,7 @@ class TokenCdekService
      * 
      * @return TokenCdek
      */
-    public function getActualToken(): TokenCdek
+    public function getActualToken(): string
     {
         $tokenCdek = TokenCdek::first();
 
@@ -57,9 +57,10 @@ class TokenCdekService
 
         if ($expirationTime <= now()) {
             $this->updateToken($tokenCdek);
+            $tokenCdek = TokenCdek::first();
         }
 
-        return $tokenCdek;
+        return $tokenCdek->token;
     }
 
     private function updateToken(TokenCdek $tokenCdek): bool

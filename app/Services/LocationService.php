@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\City;
+use App\Models\Country;
 use App\Models\Tk\TerminalJde;
 use App\Models\TkPekTerminal;
+use App\Traits\Tk\Cdek\SuggestTerminal;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -20,8 +22,11 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class LocationService
 {
+    use SuggestTerminal;
+
     private string $cityName;
     private string $countryName;
+    private string $countryAlpha2;
 
     /**
      * Возвращает сущность города на основе строки в формате "Населённый пункт, Страна".
@@ -100,6 +105,28 @@ class LocationService
         }
     }
 
+    /**
+     * Возвращает идентификатор терминала.
+     * 
+     * Для СДЕК требуются идентификаторы терминалов.
+     * В случае с перевозкой по России, идентификаторы хранятся в базе данных.
+     * В случае с международной перевозкой, идентификаторы нужно получить в результате запроса.
+     */
+    public function fromCdek(string $location): int
+    {
+        $this->parseLocation($location);
+
+        $terminal = Country::where('name', $this->countryName)->first()->cities()->where('city_name', $this->cityName)->first()->terminalsCdek()->first();
+
+        if ($terminal) {
+            $terminalCode = $terminal->terminal_id;
+        } else {
+            $terminalCode = self::terminalIdByLocation($this->cityName, $this->countryName, $this->countryAlpha2);
+        }
+
+        return (int) $terminalCode;
+    }
+
     private function parseLocation(string $location): void
     {
         $location = str_replace(' ', '', $location);
@@ -107,6 +134,12 @@ class LocationService
 
         $this->cityName = $items[0];
         $this->countryName = $items[1];
+
+        try {
+            $this->countryAlpha2 = Country::where('name', $items[1])->firstOrFail()->alpha2;
+        } catch (\Throwable $th) {
+            throw new Exception("Запрашиваемой страны не существует. {$th->getMessage()}", 404);
+        }
     }
 
     private function findCity(): City

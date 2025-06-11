@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CalculateRequest;
 use App\UseCases\TK\BaikalsrCase;
 use App\UseCases\TK\BoxberryCase;
+use App\UseCases\TK\CdekCase;
 use App\UseCases\TK\DellinCase;
 use App\UseCases\TK\DPDCase;
 use App\UseCases\TK\JdeCase;
@@ -29,6 +30,7 @@ class CalculateController extends Controller
         private JdeCase $jde,
         private KitCase $kit,
         private PekCase $pek,
+        private CdekCase $cdek,
     ) {}
 
     public function handle(CalculateRequest $request)
@@ -44,6 +46,7 @@ class CalculateController extends Controller
                 CompanyType::Jde->value => $this->jde($request),
                 CompanyType::Kit->value => $this->kit($request),
                 CompanyType::Pek->value => $this->pek($request),
+                CompanyType::Cdek->value => $this->cdek($request),
             };
         }
 
@@ -114,6 +117,13 @@ class CalculateController extends Controller
     {
         $this->allResponses[] = [
             CompanyType::Pek->value => $this->pek->handle($request)
+        ];
+    }
+
+    private function cdek(CalculateRequest $request)
+    {
+        $this->allResponses[] = [
+            CompanyType::Cdek->value => $this->cdek->handle($request)
         ];
     }
 }
