@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\Tk;
 
 use App\Enums\Cdek\CdekUrlType;
 use App\Models\City;
