@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use Database\Seeders\Tk\TerminalCdekSeeder;
+use Database\Seeders\Tk\TerminalNrgSeeder;
 use Database\Seeders\Tk\TerminalsJdeSeeder;
 use Illuminate\Database\Seeder;
 
@@ -19,7 +21,8 @@ class DatabaseSeeder extends Seeder
             TerminalsJdeSeeder::class,
             TkKitCitySeeder::class,
             TkPekTerminalSeeder::class,
-            TerminalCdekSeeder::class
+            TerminalCdekSeeder::class,
+            TerminalNrgSeeder::class,
         ]);
     }
 }
