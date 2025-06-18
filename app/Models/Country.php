@@ -20,6 +20,11 @@ class Country extends Model
 
     public function cities(): HasMany
     {
-        return $this->hasMany(City::class, 'country_id', 'id');
+        return $this->hasMany(Location::class, 'country_id', 'id');
+    }
+
+    public function regions(): HasMany
+    {
+        return $this->hasMany(Region::class, 'country_id', 'id');
     }
 }

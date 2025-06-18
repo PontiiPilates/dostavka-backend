@@ -4,12 +4,13 @@ namespace App\Models;
 
 use App\Models\Tk\TerminalCdek;
 use App\Models\Tk\TerminalJde;
+use App\Models\Tk\TerminalNrg;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class City extends Model
+class Location extends Model
 {
     use HasFactory;
 
@@ -41,5 +42,10 @@ class City extends Model
     public function terminalsCdek(): HasMany
     {
         return $this->hasMany(TerminalCdek::class, 'city_id', 'id');
+    }
+
+    public function terminalsNrg(): HasMany
+    {
+        return $this->hasMany(TerminalNrg::class, 'city_id', 'id');
     }
 }

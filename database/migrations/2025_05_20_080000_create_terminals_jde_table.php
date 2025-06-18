@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('terminals_jde', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('city_id')->constrained();
+            $table->foreignId('location_id')->constrained();
             $table->text('city_name', 100);
             $table->text('terminal_id', 64);
             $table->boolean('acceptance')->default(false)->comment('приём');

@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('terminals_nrg', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('city_id')->constrained();
-            $table->text('city_name', 100);
-            $table->bigInteger('terminal_id');
+            // $table->foreignId('parent_id')->constrained();
+
+            $table->bigInteger('identifier');
+            $table->text('name', 100);
+            $table->text('description', 100);
 
             $table->timestamps();
         });

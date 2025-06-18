@@ -43,53 +43,59 @@ class TerminalNrgSeeder extends Seeder
 
             // в некоторых именах населенных пунктов используется указание региона в скобках
             // некоторые скобки указаны слитно, другие - через пробел
-            // if (str_contains($cityName, '(')) {
-            //     $cityName = strstr($cityName, '(', true);
-            //     $cityName = trim($cityName);
-            // }
+            if (str_contains($cityName, '(')) {
+                $cityName = strstr($cityName, '(', true);
+                $cityName = trim($cityName);
+            }
 
             // в некоторых населенных пунктах используется указание страны через запятую
-            // if (str_contains($cityName, ',')) {
-            //     $cityName = strstr($cityName, ',', true);
-            // }
+            if (str_contains($cityName, ',')) {
+                $cityName = strstr($cityName, ',', true);
+            }
 
-            // if ($cityName == 'Санкт-Петербург' || $cityName == 'Москва' || $cityName == 'Севастополь') {
-            //     $this->type = 'город';
-            //     $this->region = 'Город федерального значения';
-            // } else {
-            //     $this->parsingRegion($description);
-            //     $this->normalizeRegion();
-            //     $this->normalizeLocation();
-            // }
+            if ($cityName == 'Санкт-Петербург' || $cityName == 'Москва' || $cityName == 'Севастополь') {
+                $this->type = 'город';
+                $this->region = 'Город федерального значения';
+            } else {
+                $this->parsingRegion($description);
+                $this->normalizeRegion();
+                $this->normalizeLocation();
+            }
 
-            // $country = Country::where('alpha2', $this->dto->countryCodes[$idCountry])->first();
+            $country = Country::where('alpha2', $this->dto->countryCodes[$idCountry])->first();
 
-            // $region = Region::updateOrCreate(
-            //     ['region_name' => $this->region],
-            //     [
-            //         'country_id' => $country->id,
-            //         'region_name' => $this->region
-            //     ]
-            // );
+            $region = Region::updateOrCreate(
+                ['region_name' => $this->region],
+                [
+                    'country_id' => $country->id,
+                    'region_name' => $this->region
+                ]
+            );
 
-            // $location = Location::updateOrCreate(
-            //     [
-            //         'region_id' => $region->id,
-            //         'name' => $cityName,
-            //     ],
-            //     [
-            //         'country_id' => $country->id,
-            //         'region_id' => $region->id,
-            //         'name' => $cityName,
-            //         'type' => $this->type,
-            //     ]
-            // );
+            $location = Location::updateOrCreate(
+                [
+                    'region_id' => $region->id,
+                    'name' => $cityName,
+                ],
+                [
+                    'country_id' => $country->id,
+                    'region_id' => $region->id,
+                    'name' => $cityName,
+                    'type' => $this->type,
+                ]
+            );
 
-            TerminalNrg::create([
-                'identifier' => $city->id,
-                'name' => $city->name,
-                'description' => $city->description,
-            ]);
+            TerminalNrg::updateOrCreate(
+                [
+                    'name' => $cityName,
+                    'identifier' => $city->id,
+                ],
+                [
+                    'location_id' => $location->id,
+                    'name' => $cityName,
+                    'identifier' => $city->id,
+                ]
+            );
         }
     }
 

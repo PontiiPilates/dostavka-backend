@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tk_kit_cities', function (Blueprint $table) {
+        Schema::create('locations', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('location_id')->constrained();
-            $table->text('city_name', 100);
-            $table->text('city_code', 20);
+            $table->foreignId('country_id')->constrained();
+            $table->foreignId('region_id')->constrained();
+
+            $table->string('name', 100);
+            $table->string('type', 100);
 
             $table->timestamps();
         });
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tk_kit_cities');
+        Schema::dropIfExists('locations');
     }
 };
