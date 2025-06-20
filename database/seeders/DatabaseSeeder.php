@@ -20,13 +20,13 @@ class DatabaseSeeder extends Seeder
             // TariffPochtaSeeder::class,
             CountrySeeder::class,
             // RegionSeeder::class,
-            LocationSeeder::class
+            LocationSeeder::class,
             // TerminalsJdeSeeder::class,
             // TkKitCitySeeder::class,
             // TkPekTerminalSeeder::class,
             // TerminalCdekSeeder::class,
             // TerminalNrgSeeder::class,
-            // TerminalNrgModifySeeder::class,
+            TerminalNrgModifySeeder::class,
             // TerritorySeeder::class
         ]);
     }

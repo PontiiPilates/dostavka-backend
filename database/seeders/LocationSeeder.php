@@ -2,16 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Cdek\CdekUrlType;
 use App\Models\Country;
 use App\Models\Location;
 use App\Models\Region;
-use App\Services\Tk\TokenCdekService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 
 class LocationSeeder extends Seeder
 {
@@ -20,7 +15,6 @@ class LocationSeeder extends Seeder
      */
     public function run(): void
     {
-
         $files = [
             'Казахстан',
             'Армения',

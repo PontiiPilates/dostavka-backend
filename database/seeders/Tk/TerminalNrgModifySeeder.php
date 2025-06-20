@@ -61,6 +61,7 @@ class TerminalNrgModifySeeder extends Seeder
             try {
                 $this->checkExists($location);
             } catch (\Throwable $th) {
+
                 $exists = Region::where(function ($q) use ($region) {
                     $explode = explode(',', $region);
                     foreach ($explode as $item) {
@@ -71,6 +72,8 @@ class TerminalNrgModifySeeder extends Seeder
                 if (!$exists) {
                     $this->candidatsToUpdate[] = $location . ': ' . $region;
                 }
+
+                // ! Осталось почти 400 записей, которые возможно найдут свои места, если из них вырезать город, село, пгт и тд.
             }
 
             // dd($country);
