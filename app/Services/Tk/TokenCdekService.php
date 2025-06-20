@@ -53,6 +53,11 @@ class TokenCdekService
     {
         $tokenCdek = TokenCdek::first();
 
+        // на случай, если в базе всё же не оказалось токена
+        if (!$tokenCdek) {
+            $tokenCdek = $this->createToken();
+        }
+
         $expirationTime = $tokenCdek->updated_at->addSeconds($tokenCdek->expires);
 
         if ($expirationTime <= now()) {
@@ -63,11 +68,23 @@ class TokenCdekService
         return $tokenCdek->token;
     }
 
+    private function createToken(): TokenCdek
+    {
+        $this->getNewToken();
+
+        return TokenCdek::create([
+            'token' => $this->access_token,
+            'expires' => $this->expires_in
+        ]);
+    }
+
     private function updateToken(TokenCdek $tokenCdek): bool
     {
+        $this->getNewToken();
+
         return $tokenCdek->update([
-            'token' => $this->getNewToken()->access_token,
-            'expires' => $this->getNewToken()->expires_in
+            'token' => $this->access_token,
+            'expires' => $this->expires_in
         ]);
     }
 }
