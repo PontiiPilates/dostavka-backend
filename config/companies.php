@@ -6,9 +6,6 @@ return [
     CompanyType::Pochta->value => [
         'url' => env('POCHTA_URL'),
     ],
-    CompanyType::Baikal->value => [
-        'uri' => null,
-    ],
     CompanyType::DPD->value => [
         'uri' => env('DPD_URI_PROD'),
         'client_number' => env('DPD_CLIENT_NUMBER'),
@@ -48,5 +45,10 @@ return [
     CompanyType::Nrg->value => [
         'url' => env('NRG_URL'),
         'token' => env('NRG_TOKEN'),
+    ],
+    CompanyType::Baikal->value => [
+        'url' => env('BAIKAL_URL'),
+        'username' => env('BAIKAL_USERNAME'),
+        'password' => env('BAIKAL_PASSWORD'),
     ],
 ];

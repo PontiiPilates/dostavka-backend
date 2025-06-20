@@ -7,7 +7,6 @@ namespace App\Enums;
 enum  CompanyType: string
 {
     case Pochta = 'pochta';
-    case Baikal = 'baikal';
     case DPD = 'dpd';
     case Boxberry = 'boxberry';
     case Vozovoz = 'vozovoz';
@@ -17,12 +16,12 @@ enum  CompanyType: string
     case Pek = 'pek';
     case Cdek = 'cdek';
     case Nrg = 'nrg';
+    case Baikal = 'baikal';
 
     public function label()
     {
         return match ($this) {
             self::Pochta => 'Почта России',
-            self::Baikal => 'Байкал Сервис',
             self::DPD => 'DPD',
             self::Boxberry => 'Boxberry',
             self::Vozovoz => 'Boxberry',
@@ -30,6 +29,7 @@ enum  CompanyType: string
             self::Kit => 'Кит',
             self::Pek => 'ПЭК',
             self::Nrg => 'Энергия',
+            self::Baikal => 'Байкал сервис',
         };
     }
 }
