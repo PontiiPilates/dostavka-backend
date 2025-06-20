@@ -6,7 +6,9 @@ namespace App\Services;
 
 use App\Models\City;
 use App\Models\Country;
+use App\Models\Location;
 use App\Models\Tk\TerminalJde;
+use App\Models\Tk\TerminalNrg;
 use App\Models\TkPekTerminal;
 use App\Traits\Tk\Cdek\SuggestTerminal;
 use Exception;
@@ -34,7 +36,7 @@ class LocationService
      * @param string $location 
      * @return City
      */
-    public function city(string $location): City
+    public function city(string $location): Location
     {
         $this->parseLocation($location);
 
@@ -142,12 +144,56 @@ class LocationService
         }
     }
 
-    private function findCity(): City
+    private function findCity(): Location
     {
-        return City::query()
+        return Location::query()
             ->where('city_name', $this->cityName)
             ->whereHas('country', function (Builder $query) {
                 $query->where('name', $this->countryName);
             })->firstOrFail();
+    }
+
+    /**
+     * В данный момент этот метод представляет собой рабочую заглушку.
+     * Окончательный вариант появится после завершения работы с базой данных.
+     */
+    public function fromNrg($location)
+    {
+        $items = explode(',', $location);
+
+        $primaryName = trim($items[0]);
+        $secondaryName = trim($items[1]);
+
+        // return TerminalNrg::where([
+        //     ['name', '=', $primaryName],
+        //     ['description', '=', $secondaryName],
+        // ])->firstOrFail();
+
+        return TerminalNrg::whereAny(['name', 'description'], 'like', "$primaryName%")->firstOrFail();
+
+        // $searchTerms = [];
+        // foreach ($items as $item) {
+        //     $searchTerms[] = trim($item);
+        // }
+
+        // $results = TerminalNrg::where(function ($q) use ($searchTerms) {
+        //     foreach ($searchTerms as $term) {
+        //         $q->orWhere('name', 'LIKE', "%{$term}%")
+        //             ->orWhere('description', 'LIKE', "%{$term}%");
+        //     }
+        // })->dd();
+
+
+    }
+
+    public function newParser()
+    {
+        // Если город федерального значения, то принадлежность к региону не нужна
+        // Соответственно должен быть список городов федерального значения
+
+        // Возможно список регионов не нужен и для крупных городов, чьи имена уникальные
+        // К таким городам можно присоединять указание страны
+
+        // Но ко всем остальным нужно применять регион
     }
 }

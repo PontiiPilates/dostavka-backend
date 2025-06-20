@@ -12,6 +12,7 @@ use App\UseCases\TK\DellinCase;
 use App\UseCases\TK\DPDCase;
 use App\UseCases\TK\JdeCase;
 use App\UseCases\TK\KitCase;
+use App\UseCases\TK\NrgCase;
 use App\UseCases\TK\PekCase;
 use App\UseCases\TK\PochtaCase;
 use App\UseCases\TK\VozovozCase;
@@ -31,6 +32,7 @@ class CalculateController extends Controller
         private KitCase $kit,
         private PekCase $pek,
         private CdekCase $cdek,
+        private NrgCase $nrg,
     ) {}
 
     public function handle(CalculateRequest $request)
@@ -47,6 +49,7 @@ class CalculateController extends Controller
                 CompanyType::Kit->value => $this->kit($request),
                 CompanyType::Pek->value => $this->pek($request),
                 CompanyType::Cdek->value => $this->cdek($request),
+                CompanyType::Nrg->value => $this->nrg($request),
             };
         }
 
@@ -124,6 +127,13 @@ class CalculateController extends Controller
     {
         $this->allResponses[] = [
             CompanyType::Cdek->value => $this->cdek->handle($request)
+        ];
+    }
+
+    private function nrg(CalculateRequest $request)
+    {
+        $this->allResponses[] = [
+            CompanyType::Nrg->value => $this->nrg->handle($request)
         ];
     }
 }

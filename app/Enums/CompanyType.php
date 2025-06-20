@@ -16,6 +16,7 @@ enum  CompanyType: string
     case Kit = 'kit';
     case Pek = 'pek';
     case Cdek = 'cdek';
+    case Nrg = 'nrg';
 
     public function label()
     {
@@ -28,7 +29,7 @@ enum  CompanyType: string
             self::Dellin => 'Деловые линии',
             self::Kit => 'Кит',
             self::Pek => 'ПЭК',
-            self::Cdek => 'СДЕК',
+            self::Nrg => 'Энергия',
         };
     }
 }

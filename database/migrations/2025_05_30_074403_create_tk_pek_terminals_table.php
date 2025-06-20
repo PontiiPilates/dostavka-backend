@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('tk_pek_terminals', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('city_id')->constrained();
+            $table->foreignId('location_id')->constrained();
             $table->text('city_name', 100);
             $table->text('terminal_id', 64);
             $table->float('max_weight')->default(0)->comment('максимальный вес груза');

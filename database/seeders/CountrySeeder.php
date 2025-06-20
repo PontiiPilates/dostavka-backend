@@ -14,7 +14,7 @@ class CountrySeeder extends Seeder
      */
     public function run(): void
     {
-        $file = Storage::json('assets/countries.json');
+        $file = Storage::json('assets/geo/etalon/countries.json');
 
         foreach ($file as $country) {
 

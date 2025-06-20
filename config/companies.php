@@ -45,4 +45,8 @@ return [
         'account' => env('CDEK_ACCOUNT'),
         'secure' => env('CDEK_SECURE_PASSWORD'),
     ],
+    CompanyType::Nrg->value => [
+        'url' => env('NRG_URL'),
+        'token' => env('NRG_TOKEN'),
+    ],
 ];
