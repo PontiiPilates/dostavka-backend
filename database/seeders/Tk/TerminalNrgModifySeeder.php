@@ -8,6 +8,7 @@ use App\Models\Country;
 use App\Models\Location;
 use App\Models\Region;
 use App\Models\Tk\TerminalNrg;
+use Exception;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Http;
@@ -18,6 +19,8 @@ class TerminalNrgModifySeeder extends Seeder
 {
     private string $region = '';
     private string $type = '';
+
+    private array $candidatsToUpdate = [];
 
     private LocationComparisonsDto $dto;
 
@@ -32,63 +35,90 @@ class TerminalNrgModifySeeder extends Seeder
 
         foreach ($response->object()->cityList as $city) {
 
-            $cityName = $city->name;
-            $idCountry = $city->idCountry;
-            $description = $city->description;
+            $location = $city->name;
+            $countryCode = $city->idCountry;
+            $region = $city->description;
 
             // в некоторых идентификаторах населенных пунктов используется значение -1
-            if ($idCountry < 0) {
+            if ($countryCode < 0) {
                 continue;
             }
 
             // в некоторых именах населенных пунктов используется указание региона в скобках
             // некоторые скобки указаны слитно, другие - через пробел
-            if (str_contains($cityName, '(')) {
-                $cityName = strstr($cityName, '(', true);
-                $cityName = trim($cityName);
-            }
+            // if (str_contains($cityName, '(')) {
+            //     $cityName = strstr($cityName, '(', true);
+            //     $cityName = trim($cityName);
+            // }
 
             // в некоторых населенных пунктах используется указание страны через запятую
-            if (str_contains($cityName, ',')) {
-                $cityName = strstr($cityName, ',', true);
+            // if (str_contains($cityName, ',')) {
+            //     $cityName = strstr($cityName, ',', true);
+            // }
+
+            $country = Country::where('alpha2', $this->dto->countryCodes[$countryCode])->first();
+
+            try {
+                $this->checkExists($location);
+            } catch (\Throwable $th) {
+                $exists = Region::where(function ($q) use ($region) {
+                    $explode = explode(',', $region);
+                    foreach ($explode as $item) {
+                        $q->orWhere('name', 'LIKE', trim($item));
+                    }
+                })->exists();
+
+                if (!$exists) {
+                    $this->candidatsToUpdate[] = $location . ': ' . $region;
+                }
             }
 
-            $country = Country::where('alpha2', $this->dto->countryCodes[$idCountry])->first();
+            // dd($country);
 
-            $region = Region::updateOrCreate(
-                ['name' => $this->region],
-                [
-                    'country_id' => $country->id,
-                    'name' => $description
-                ]
-            );
+            // $region = Region::updateOrCreate(
+            //     ['name' => $this->region],
+            //     [
+            //         'country_id' => $country->id,
+            //         'name' => $description
+            //     ]
+            // );
 
-            $location = Location::updateOrCreate(
-                [
-                    'region_id' => $region->id,
-                    'name' => $cityName,
-                ],
-                [
-                    'country_id' => $country->id,
-                    'region_id' => $region->id,
-                    'name' => $cityName,
-                    'type' => $city->type,
-                ]
-            );
+            // $location = Location::updateOrCreate(
+            //     [
+            //         'region_id' => $region->id,
+            //         'name' => $cityName,
+            //     ],
+            //     [
+            //         'country_id' => $country->id,
+            //         'region_id' => $region->id,
+            //         'name' => $cityName,
+            //         'type' => $city->type,
+            //     ]
+            // );
 
-            TerminalNrg::updateOrCreate(
-                [
-                    'name' => $cityName,
-                    'identifier' => $city->id,
-                ],
-                [
-                    'location_id' => $location->id,
-                    'name' => $cityName,
-                    'identifier' => $city->id,
-                ]
-            );
+            // TerminalNrg::updateOrCreate(
+            //     [
+            //         'name' => $cityName,
+            //         'identifier' => $city->id,
+            //     ],
+            //     [
+            //         'location_id' => $location->id,
+            //         'name' => $cityName,
+            //         'identifier' => $city->id,
+            //     ]
+            // );
         }
+
+        dd('ТК хочет добавить следующие локации', $this->candidatsToUpdate);
     }
+
+    private function checkExists($location)
+    {
+        $exists = Location::where('name', $location)->exists();
+        if (!$exists) throw new Exception('Требуется добавить локацию', 1);
+    }
+
+
 
     /**
      * Выполняет финальную обработку строки региона.
