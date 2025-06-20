@@ -22,6 +22,5 @@ class BaikalApiTest extends TestCase
 
         $this->assertEquals(200, $response->status());
         $this->assertIsArray($response->json());
-        // $this->assertArrayHasKey('cityList', $response->json());
     }
 }
