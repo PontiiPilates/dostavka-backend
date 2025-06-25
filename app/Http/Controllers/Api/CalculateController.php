@@ -23,7 +23,6 @@ class CalculateController extends Controller
 
     public function __construct(
         private PochtaCase $pochta,
-        private BaikalsrCase $baikal,
         private DPDCase $dpd,
         private BoxberryCase $boxberry,
         private VozovozCase $vozovoz,
@@ -33,6 +32,7 @@ class CalculateController extends Controller
         private PekCase $pek,
         private CdekCase $cdek,
         private NrgCase $nrg,
+        private BaikalsrCase $baikal,
     ) {}
 
     public function handle(CalculateRequest $request)
@@ -40,7 +40,6 @@ class CalculateController extends Controller
         foreach ($request->companies as $company) {
             match ($company) {
                 CompanyType::Pochta->value => $this->pochta($request),
-                CompanyType::Baikal->value => $this->baikal($request),
                 CompanyType::DPD->value => $this->dpd($request),
                 CompanyType::Boxberry->value => $this->boxberry($request),
                 CompanyType::Vozovoz->value => $this->vozovoz($request),
@@ -50,6 +49,7 @@ class CalculateController extends Controller
                 CompanyType::Pek->value => $this->pek($request),
                 CompanyType::Cdek->value => $this->cdek($request),
                 CompanyType::Nrg->value => $this->nrg($request),
+                CompanyType::Baikal->value => $this->baikal($request),
             };
         }
 
@@ -64,13 +64,6 @@ class CalculateController extends Controller
     {
         $this->allResponses[] = [
             CompanyType::Pochta->value => $this->pochta->handle($request)
-        ];
-    }
-
-    private function baikal(CalculateRequest $request)
-    {
-        $this->allResponses[] = [
-            CompanyType::Baikal->value => $this->baikal->handle($request)
         ];
     }
 
@@ -134,6 +127,13 @@ class CalculateController extends Controller
     {
         $this->allResponses[] = [
             CompanyType::Nrg->value => $this->nrg->handle($request)
+        ];
+    }
+
+    private function baikal(CalculateRequest $request)
+    {
+        $this->allResponses[] = [
+            CompanyType::Baikal->value => $this->baikal->handle($request)
         ];
     }
 }

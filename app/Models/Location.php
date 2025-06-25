@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Region;
+use App\Models\Tk\TerminalBaikal;
 use App\Models\Tk\TerminalCdek;
 use App\Models\Tk\TerminalJde;
 use App\Models\Tk\TerminalNrg;
@@ -22,6 +24,11 @@ class Location extends Model
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class, 'country_id', 'id');
+    }
+
+    public function region(): BelongsTo
+    {
+        return $this->belongsTo(Region::class, 'region_id', 'id');
     }
 
     public function terminalsJde(): HasMany
@@ -47,5 +54,10 @@ class Location extends Model
     public function terminalsNrg(): HasMany
     {
         return $this->hasMany(TerminalNrg::class, 'city_id', 'id');
+    }
+
+    public function terminalsBaikal(): HasMany
+    {
+        return $this->hasMany(TerminalBaikal::class, 'location_id', 'id');
     }
 }

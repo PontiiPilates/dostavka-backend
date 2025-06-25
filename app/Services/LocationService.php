@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Location;
+use App\Models\Region;
 use App\Models\Tk\TerminalJde;
 use App\Models\Tk\TerminalNrg;
 use App\Models\TkPekTerminal;
@@ -195,5 +196,15 @@ class LocationService
         // К таким городам можно присоединять указание страны
 
         // Но ко всем остальным нужно применять регион
+    }
+
+    public function location($location)
+    {
+        $items = explode(',', $location);
+
+        $place = trim($items[0]);
+        $region = trim($items[1]);
+
+        return Region::where('name', $region)->first()->locations()->where('name', $place)->first();
     }
 }
