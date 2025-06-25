@@ -112,7 +112,7 @@ class TerminalNrgModifySeeder extends Seeder
             // );
         }
 
-        dd('ТК хочет добавить следующие локации', $this->candidatsToUpdate);
+        dump('ТК хочет добавить следующие локации', $this->candidatsToUpdate);
     }
 
     private function checkExists($location)
