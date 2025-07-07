@@ -68,6 +68,12 @@ return [
             'path' => storage_path('logs/tk.log'),
         ],
 
+        // содержит записи ошибок, которые могут возникнуть при совершении транзакции
+        'redis' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/redis.log'),
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

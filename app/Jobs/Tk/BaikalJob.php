@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Jobs\Tk;
+
+use App\Builders\Baikal\QueryBuilder;
+use App\Builders\Baikal\ResponseBuilder;
+use App\Services\Clients\Tk\RestPoolClient;
+use App\Services\Redis\TransactionService;
+use App\Traits\Json;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
+use Throwable;
+
+class BaikalJob implements ShouldQueue
+{
+    use Queueable, Json;
+
+    /** @var int */
+    public $tries = 1;
+
+    private QueryBuilder $queryBuilder;
+    private ResponseBuilder $responseBuilder;
+    private RestPoolClient $client;
+    private TransactionService $transaction;
+
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(
+        private array $request,
+        private string $hash,
+    ) {
+        $this->queryBuilder = new QueryBuilder();
+        $this->responseBuilder = new ResponseBuilder();
+        $this->client = new RestPoolClient();
+        $this->transaction = new TransactionService();
+    }
+
+    /**
+     * Execute the job.
+     */
+    public function handle(): void
+    {
+        $response = [];
+        try {
+            $responses = $this->client->send($this->request, $this->queryBuilder);
+            $response = $this->responseBuilder->build($responses);
+            $this->transaction->addCalculationResult($this->hash, $response);
+        } catch (\Throwable $th) {
+            Log::channel('tk')->error('Не удалось выполнить калькуляцию по ТК Baikal: ', [$th->getMessage()]);
+        }
+    }
+}

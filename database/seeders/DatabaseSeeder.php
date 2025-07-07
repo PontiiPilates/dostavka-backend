@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Database\Seeders\Tk\TerminalBaikalSeeder;
 use Database\Seeders\Tk\TerminalCdekSeeder;
+use Database\Seeders\Tk\TerminalKitSeeder;
 use Database\Seeders\Tk\TerminalNrgModifySeeder;
 use Database\Seeders\Tk\TerminalNrgSeeder;
 use Database\Seeders\Tk\TerminalsJdeSeeder;
@@ -29,7 +30,8 @@ class DatabaseSeeder extends Seeder
             // TerminalNrgSeeder::class,
             TerminalNrgModifySeeder::class,
             // TerritorySeeder::class
-            TerminalBaikalSeeder::class // должен быть последним
+            TerminalBaikalSeeder::class, // должен быть одним из последних
+            TerminalKitSeeder::class, // должен быть одним из последних
         ]);
     }
 }

@@ -5,135 +5,90 @@ namespace App\Http\Controllers\Api;
 use App\Enums\CompanyType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CalculateRequest;
-use App\UseCases\TK\BaikalsrCase;
-use App\UseCases\TK\BoxberryCase;
-use App\UseCases\TK\CdekCase;
-use App\UseCases\TK\DellinCase;
-use App\UseCases\TK\DPDCase;
-use App\UseCases\TK\JdeCase;
-use App\UseCases\TK\KitCase;
-use App\UseCases\TK\NrgCase;
-use App\UseCases\TK\PekCase;
-use App\UseCases\TK\PochtaCase;
-use App\UseCases\TK\VozovozCase;
+use App\Jobs\Tk\BaikalJob;
+use App\Jobs\Tk\BoxberryJob;
+use App\Jobs\Tk\CdekJob;
+use App\Jobs\Tk\DellinJob;
+use App\Jobs\Tk\DpdJob;
+use App\Jobs\Tk\JdeJob;
+use App\Jobs\Tk\KitJob;
+use App\Jobs\Tk\NrgJob;
+use App\Jobs\Tk\PekJob;
+use App\Jobs\Tk\PochtaJob;
+use App\Jobs\Tk\VozovozJob;
+use App\Traits\Hash;
+use App\Traits\Json;
+use Exception;
+use Illuminate\Support\Facades\Redis;
 
 class CalculateController extends Controller
 {
-    private array $allResponses = [];
+    use Json, Hash;
 
-    public function __construct(
-        private PochtaCase $pochta,
-        private DPDCase $dpd,
-        private BoxberryCase $boxberry,
-        private VozovozCase $vozovoz,
-        private DellinCase $dellin,
-        private JdeCase $jde,
-        private KitCase $kit,
-        private PekCase $pek,
-        private CdekCase $cdek,
-        private NrgCase $nrg,
-        private BaikalsrCase $baikal,
-    ) {}
+    private array $allResponses = [];
+    private string $hash;
+
+    public function __construct() {}
 
     public function handle(CalculateRequest $request)
     {
+        $hash = $this->arrayToHash($request->all());
+
+        // ! для отладки: удаление прежней записи, для прохождения проверки
+        // Redis::del($hash);
+
+        // todo: преобразовать структуру в DTO, это уже сложившийся концепт
+        $structure = [
+            'count' => count($request->companies),
+            'request' => $request->all(),
+            'results' => [],
+            'begin' => now(),
+            'complete' => null,
+            'is_complete' => false,
+        ];
+
+        // если результат уже существует, то выполнение завершается с выдачей этого результата
+        try {
+            $this->checkHashExists($hash);
+        } catch (\Throwable $th) {
+            $data = $this->toObject(Redis::get($hash));
+            return $data->results;
+        }
+
+        Redis::setex($hash, config('custom.expire'), $this->toJson($structure));
+
         foreach ($request->companies as $company) {
             match ($company) {
-                CompanyType::Pochta->value => $this->pochta($request),
-                CompanyType::DPD->value => $this->dpd($request),
-                CompanyType::Boxberry->value => $this->boxberry($request),
-                CompanyType::Vozovoz->value => $this->vozovoz($request),
-                CompanyType::Dellin->value => $this->dellin($request),
-                CompanyType::Jde->value => $this->jde($request),
-                CompanyType::Kit->value => $this->kit($request),
-                CompanyType::Pek->value => $this->pek($request),
-                CompanyType::Cdek->value => $this->cdek($request),
-                CompanyType::Nrg->value => $this->nrg($request),
-                CompanyType::Baikal->value => $this->baikal($request),
+                CompanyType::Pochta->value => PochtaJob::dispatch($request->all())->onQueue('l'),
+                CompanyType::DPD->value => DpdJob::dispatch($request->all())->onQueue('h'),
+                CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all())->onQueue('l'),
+                CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all())->onQueue('h'),
+                CompanyType::Dellin->value => DellinJob::dispatch($request->all())->onQueue('l'),
+                CompanyType::Jde->value => JdeJob::dispatch($request->all())->onQueue('h'),
+                CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
+                CompanyType::Pek->value => PekJob::dispatch($request->all())->onQueue('l'),
+                CompanyType::Cdek->value => CdekJob::dispatch($request->all())->onQueue('h'),
+                CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash)->onQueue('l'),
+                CompanyType::Baikal->value => BaikalJob::dispatch($request->all(), $hash)->onQueue('h'),
             };
         }
 
         return response()->json([
             'success' => true,
             'message' => "",
-            'data' => $this->allResponses
+            'data' => [
+                'transaction' => $hash
+            ]
         ]);
     }
 
-    private function pochta(CalculateRequest $request)
+    /**
+     * Проверяет наличие результата калькуляции по данному запросу в Redis.
+     */
+    private function checkHashExists($hash)
     {
-        $this->allResponses[] = [
-            CompanyType::Pochta->value => $this->pochta->handle($request)
-        ];
-    }
-
-    private function dpd(CalculateRequest $request)
-    {
-        $this->allResponses[] = [
-            CompanyType::DPD->value => $this->dpd->handle($request)
-        ];
-    }
-
-    private function boxberry(CalculateRequest $request)
-    {
-        $this->allResponses[] = [
-            CompanyType::Boxberry->value => $this->boxberry->handle($request)
-        ];
-    }
-
-    private function vozovoz(CalculateRequest $request)
-    {
-        $this->allResponses[] = [
-            CompanyType::Vozovoz->value => $this->vozovoz->handle($request)
-        ];
-    }
-
-    private function dellin(CalculateRequest $request)
-    {
-        $this->allResponses[] = [
-            CompanyType::Dellin->value => $this->dellin->handle($request)
-        ];
-    }
-
-    private function jde(CalculateRequest $request)
-    {
-        $this->allResponses[] = [
-            CompanyType::Jde->value => $this->jde->handle($request)
-        ];
-    }
-
-    private function kit(CalculateRequest $request)
-    {
-        $this->allResponses[] = [
-            CompanyType::Kit->value => $this->kit->handle($request)
-        ];
-    }
-
-    private function pek(CalculateRequest $request)
-    {
-        $this->allResponses[] = [
-            CompanyType::Pek->value => $this->pek->handle($request)
-        ];
-    }
-
-    private function cdek(CalculateRequest $request)
-    {
-        $this->allResponses[] = [
-            CompanyType::Cdek->value => $this->cdek->handle($request)
-        ];
-    }
-
-    private function nrg(CalculateRequest $request)
-    {
-        $this->allResponses[] = [
-            CompanyType::Nrg->value => $this->nrg->handle($request)
-        ];
-    }
-
-    private function baikal(CalculateRequest $request)
-    {
-        $this->allResponses[] = [
-            CompanyType::Baikal->value => $this->baikal->handle($request)
-        ];
+        if (Redis::exists($hash)) {
+            throw new Exception("Результат колькуляции по данному запросу уже существует", 302);
+        }
     }
 }

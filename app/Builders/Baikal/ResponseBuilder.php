@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Builders\Baikal;
 
 use App\Enums\Baikal\BaikalUrlType;
+use App\Enums\CompanyType;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -25,7 +26,10 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [];
+        $data = [
+            'company' => CompanyType::Baikal->value,
+            'types' => [],
+        ];
 
         foreach ($responses as $type => $response) {
             $response = $response->object();
@@ -37,7 +41,9 @@ class ResponseBuilder
                 continue;
             }
 
-            $data[$type][] = [
+            // dd($response);
+
+            $data['types'][$type][] = [
                 "tariff" => 'Автоперевозка',
                 "cost" => $response->total,
                 "days" => [
@@ -45,6 +51,15 @@ class ResponseBuilder
                     "to" => $response->transit->int,
                 ]
             ];
+
+            // $data[$type][] = [
+            //     "tariff" => 'Автоперевозка',
+            //     "cost" => $response->total,
+            //     "days" => [
+            //         "from" => $response->transit->int,
+            //         "to" => $response->transit->int,
+            //     ]
+            // ];
         }
 
         return $data;
@@ -53,8 +68,9 @@ class ResponseBuilder
     private function checkResponseError($response)
     {
         if (isset($response->error)) {
-            Log::channel('tk')->error('Ошибка при обработке ответа: ' . $this->url . BaikalUrlType::Calculator->value, [$response->error]);
-            throw new Exception('Ошибка при обработке ответа. Ответ содержит ошибку и будет исключён из итоговой сводки', 500);
+            $message = 'Ошибка при обработке ответа: ' . $this->url . BaikalUrlType::Calculator->value . ': ' . __FILE__;
+            Log::channel('tk')->error($message,  [$response->error]);
+            throw new Exception($message, 500);
         }
     }
 }
