@@ -2,7 +2,7 @@
 
 namespace App\Services\Clients\Tk;
 
-use App\Interfaces\QueryPoolBuilderInterface;
+use App\Interfaces\RequestBuilderInterface;
 use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Http;
@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Log;
 
 class RestPoolClient
 {
-    public function send(array $request, QueryPoolBuilderInterface $queryBuilder): array
+    public function send(array $request, RequestBuilderInterface $requestBuilder): array
     {
-        $responses = Http::pool(fn(Pool $pool) => $queryBuilder->build($request, $pool));
+        $responses = Http::pool(fn(Pool $pool) => $requestBuilder->build($request, $pool));
 
         if (empty($responses)) {
             throw new Exception('Небыло отправлено ни одного запроса. Сработала внутренняя проверка.');

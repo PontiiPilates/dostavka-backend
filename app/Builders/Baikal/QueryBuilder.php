@@ -5,14 +5,14 @@ namespace App\Builders\Baikal;
 use App\Enums\Baikal\BaikalUrlType;
 use App\Enums\DeliveryType;
 use App\Factorys\Baikal\DeliveryTypeFactory;
-use App\Interfaces\QueryPoolBuilderInterface;
+use App\Interfaces\RequestBuilderInterface;
 use App\Services\LocationService;
 use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class QueryBuilder implements QueryPoolBuilderInterface
+class QueryBuilder implements RequestBuilderInterface
 {
     private string $url;
     private string $username;

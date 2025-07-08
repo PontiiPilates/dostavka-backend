@@ -41,8 +41,6 @@ class ResponseBuilder
                 continue;
             }
 
-            // dd($response);
-
             $data['types'][$type][] = [
                 "tariff" => 'Автоперевозка',
                 "cost" => $response->total,
@@ -51,20 +49,14 @@ class ResponseBuilder
                     "to" => $response->transit->int,
                 ]
             ];
-
-            // $data[$type][] = [
-            //     "tariff" => 'Автоперевозка',
-            //     "cost" => $response->total,
-            //     "days" => [
-            //         "from" => $response->transit->int,
-            //         "to" => $response->transit->int,
-            //     ]
-            // ];
         }
 
         return $data;
     }
 
+    /**
+     * Проверяет наличие ошибок запроса.
+     */
     private function checkResponseError($response)
     {
         if (isset($response->error)) {

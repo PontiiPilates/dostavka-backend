@@ -51,8 +51,7 @@ class CalculateController extends Controller
         try {
             $this->checkHashExists($hash);
         } catch (\Throwable $th) {
-            $data = $this->toObject(Redis::get($hash));
-            return $data->results;
+            return response()->json($this->responseStructure($hash));
         }
 
         Redis::setex($hash, config('custom.expire'), $this->toJson($structure));
@@ -73,13 +72,7 @@ class CalculateController extends Controller
             };
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => "",
-            'data' => [
-                'transaction' => $hash
-            ]
-        ]);
+        return response()->json($this->responseStructure($hash));
     }
 
     /**
@@ -90,5 +83,16 @@ class CalculateController extends Controller
         if (Redis::exists($hash)) {
             throw new Exception("Результат колькуляции по данному запросу уже существует", 302);
         }
+    }
+
+    private function responseStructure($hash): array
+    {
+        return [
+            'success' => true,
+            'message' => "",
+            'data' => [
+                'transaction' => $hash
+            ]
+        ];
     }
 }
