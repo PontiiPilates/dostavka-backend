@@ -63,6 +63,7 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 
+        // содержит ошибки, которые возникли при взаимодействии с API транспортных компаний
         'tk' => [
             'driver' => 'single',
             'path' => storage_path('logs/tk.log'),
@@ -72,6 +73,12 @@ return [
         'redis' => [
             'driver' => 'single',
             'path' => storage_path('logs/redis.log'),
+        ],
+
+        // содержит запросы, отправляемые приложением (для мониторинга)
+        'requests' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/requests.log'),
         ],
 
         'daily' => [

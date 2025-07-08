@@ -1,18 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Builders\Baikal;
 
+use App\Builders\BaseBuilder;
 use App\Enums\Baikal\BaikalUrlType;
-use App\Enums\DeliveryType;
 use App\Factorys\Baikal\DeliveryTypeFactory;
 use App\Interfaces\RequestBuilderInterface;
 use App\Services\LocationService;
-use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class QueryBuilder implements RequestBuilderInterface
+class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 {
     private string $url;
     private string $username;
@@ -48,7 +49,7 @@ class QueryBuilder implements RequestBuilderInterface
             return [];
         }
 
-        // если не обнаружен город, то нет смысла продолжать выполнение
+        // если не обнаружен город - не следует продолжать выполнение
         try {
             $fromTerminal = $this->locationService->location($request->from)->terminalsBaikal()->first()->identifier;
             $toTerminal = $this->locationService->location($request->to)->terminalsBaikal()->first()->identifier;
@@ -56,8 +57,8 @@ class QueryBuilder implements RequestBuilderInterface
             return [];
         }
 
-        // если не выбран способ доставки, то применяется способ поумолчанию
-        $deliveryTypes = $this->checkDeliveryType($request->delivery_type);
+        // если не выбран способ доставки - применяется способ поумолчанию
+        $deliveryTypes = $this->checkDeliveryType($request);
         foreach ($deliveryTypes as $type) {
 
             $deliveryType = DeliveryTypeFactory::make($type, $fromTerminal, $toTerminal);
@@ -88,32 +89,10 @@ class QueryBuilder implements RequestBuilderInterface
             $template = $deliveryType;
             $template["Cargo"] = ["CargoList" => $cargoList];
 
-            Log::channel('tk')->info("Отправка запроса: " . $this->url . BaikalUrlType::Calculator->value, $template);
+            Log::channel('requests')->info("Отправка запроса: " . $this->url . BaikalUrlType::Calculator->value, $template);
             $pools[] = $pool->as($type)->withBasicAuth($this->username, '')->get($this->url . BaikalUrlType::Calculator->value, $template);
         }
 
         return $pools;
-    }
-
-    /**
-     * Проверяет наличие информации о наложенном платеже. Выбрасывает исключение, если она не указана. Допустима работа с нулевым значением.
-     */
-    private function checkCashOnDelivery($request)
-    {
-        if (isset($request->cash_on_delivery) && $request->cash_on_delivery > 0) {
-            throw new Exception('Компания не работает с наложенным платежём, поэтому не сможет участвовать в калькуляции.', 200);
-        }
-    }
-
-    /**
-     * Проверяет способ доставки. Возвращает способ доставки поумолчанию, если ни один не выбран.
-     */
-    private function checkDeliveryType(array|null $methods): array
-    {
-        if (!$methods) {
-            return [DeliveryType::Ss->value];
-        }
-
-        return $methods;
     }
 }

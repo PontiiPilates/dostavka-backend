@@ -4,11 +4,21 @@ declare(strict_types=1);
 
 namespace App\Builders\Kit;
 
+use App\Builders\BaseBuilder;
+use App\Enums\CompanyType;
+use App\Enums\Kit\KitUrlType;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
-class ResponseBuilder
+class ResponseBuilder extends BaseBuilder
 {
+    private string $url;
+
+    public function __construct()
+    {
+        $this->url = config('companies.baikal.url');
+    }
+
     /**
      * Обеспечивает сборку требуемой структуры ответа.
      * 
@@ -17,27 +27,29 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [];
-        foreach ($responses as $key => $response) {
+        $data = [
+            'company' => CompanyType::Kit->value,
+            'types' => [],
+        ];
 
+        foreach ($responses as $type => $response) {
             $response = $response->object();
 
-            // если ответ содержит ошибку, то происходит переход к обработке следующего ответа
+            // реакция на наличие ошибки в ответе
             try {
-                $this->checkError($response);
+                $this->checkResponseError($response);
             } catch (\Throwable $th) {
                 continue;
             }
 
             foreach ($response[0] as $item) {
 
-                $data[$key][] = [
-                    'tariff' => $item->name,
-                    'cost' => $item->cost,
-                    'days' => [
-                        'from' => $item->time,
-                        'to' => $item->time,
-                        'date' => now()->addDays($item->time)->isoFormat('YYYY-MM-DD'),
+                $data['types'][$type][] = [
+                    "tariff" => $item->name,
+                    "cost" => $item->cost,
+                    "days" => [
+                        "from" => $item->time,
+                        "to" => $item->time,
                     ]
                 ];
             }
@@ -47,13 +59,17 @@ class ResponseBuilder
     }
 
     /**
-     * Проверка наличия ошибок в ответе.
+     * Проверка наличия ошибки в ответе: выбрасывает исключение и логирует данные при обнаружении ошибки в ответе.
+     * 
+     * @var $response
+     * @return void
      */
-    private function checkError($response): void
+    private function checkResponseError($response): void
     {
         if (isset($response->validate)) {
-            Log::channel('tk')->error('Ошибка при выполнении запроса', [$response->validate]);
-            throw new Exception('Ошибка при выполнении запроса, смотри лог', 500);
+            $message = 'Ошибка при обработке ответа: ' . $this->url . KitUrlType::Calculate->value . ': ' . __FILE__;
+            Log::channel('tk')->error($message,  [$response->validate]);
+            throw new Exception($message, 500);
         }
     }
 }

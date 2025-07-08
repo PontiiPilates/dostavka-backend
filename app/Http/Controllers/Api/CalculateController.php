@@ -35,7 +35,7 @@ class CalculateController extends Controller
         $hash = $this->arrayToHash($request->all());
 
         // ! для отладки: удаление прежней записи, для прохождения проверки
-        // Redis::del($hash);
+        Redis::del($hash);
 
         // todo: преобразовать структуру в DTO, это уже сложившийся концепт
         $structure = [

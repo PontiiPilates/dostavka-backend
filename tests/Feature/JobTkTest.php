@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Jobs\Tk\BaikalJob;
+use App\Jobs\Tk\KitJob;
 use App\Traits\Hash;
 use App\Traits\Json;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,7 +26,7 @@ class JobTkTest extends TestCase
     /**
      * A basic feature test example.
      */
-    public function test_baikal(): void
+    public function test_all_tk(): void
     {
         $hash = $this->arrayToHash($this->request());
 
@@ -45,31 +46,16 @@ class JobTkTest extends TestCase
         Redis::setex($hash, config('custom.expire'), $this->toJson($structure));
 
         BaikalJob::dispatch($this->request(), $hash);
+        KitJob::dispatch($this->request(), $hash);
 
         $data = $this->toArray(Redis::get($hash));
 
         assertNotEmpty($data);
         assertArrayHasKey('results', $data);
         assertArrayHasKey('baikal', $data['results']);
-    }
-
-    private function responseStructure()
-    {
-        return [
-            "data" => [
-                "*" => [
-                    "pek" => [
-                        "dd" => [
-                            "*" => [
-                                "tariff",
-                                "cost",
-                                "days",
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ];
+        assertArrayHasKey('ss', $data['results']['baikal']);
+        assertArrayHasKey('kit', $data['results']);
+        assertArrayHasKey('ss', $data['results']['kit']);
     }
 
     private function request(): array

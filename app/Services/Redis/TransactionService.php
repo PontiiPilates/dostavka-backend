@@ -22,8 +22,8 @@ class TransactionService
         $data = $this->toObject($predis->get($hash));
 
         try {
-            $predis->multi();                                               // начало транзакции
-            $data->results = (array) $data->results;                        // чтобы сохранить свойство объекта как массив
+            $predis->multi();                                                       // начало транзакции
+            $data->results = (array) $data->results;                                // чтобы сохранить свойство объекта как массив
 
             $data->results[$calculation->company] = $calculation->types;
 
@@ -33,8 +33,8 @@ class TransactionService
                 $data->is_complete = true;
             }
 
-            $predis->set($hash, $this->toJson($data));
-            $predis->exec();                                                // окончание транзакции
+            $predis->setex($hash, config('custom.expire'), $this->toJson($data));
+            $predis->exec();                                                        // окончание транзакции
         } catch (Exception $e) {
             $predis->discard();
             Log::channel('redis')->warning('Транзакция отклонена', [$e->getMessage()]);
