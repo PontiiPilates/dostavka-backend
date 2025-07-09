@@ -205,17 +205,12 @@ class LocationService
         $place = trim($items[0]);
         $region = trim($items[1]);
 
-        $territory = Region::where('name', $region)->first()->locations()->where('name', $place)->first();
-
-        $this->checkLocation($territory);
-
-        return $territory;
-    }
-
-    private function checkLocation($location)
-    {
-        if (!$location) {
+        try {
+            $territory = Region::where('name', $region)->first()->locations()->where('name', $place)->first();
+        } catch (\Throwable $th) {
             throw new Exception("Не удалось получить информацию о населённом пункте", 500);
         }
+
+        return $territory;
     }
 }

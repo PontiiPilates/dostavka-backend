@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Builders\Baikal;
+namespace App\Builders\Boxberry;
 
 use App\Builders\BaseBuilder;
-use App\Enums\Baikal\BaikalUrlType;
+use App\Enums\Boxberry\BoxberryUrlType;
 use App\Enums\CompanyType;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +16,7 @@ class ResponseBuilder extends BaseBuilder
 
     public function __construct()
     {
-        $this->url = config('companies.baikal.url');
+        $this->url = config('companies.boxberry.url');
     }
 
     /**
@@ -28,7 +28,7 @@ class ResponseBuilder extends BaseBuilder
     public function build(array $responses): array
     {
         $data = [
-            'company' => CompanyType::Baikal->value,
+            'company' => CompanyType::Boxberry->value,
             'types' => [],
         ];
 
@@ -42,14 +42,16 @@ class ResponseBuilder extends BaseBuilder
                 continue;
             }
 
-            $data['types'][$type][] = [
-                "tariff" => 'Автоперевозка',
-                "cost" => $response->total,
-                "days" => [
-                    "from" => $response->transit->int,
-                    "to" => $response->transit->int,
-                ]
-            ];
+            foreach ($response->result->DeliveryCosts as $item) {
+                $data['types'][$type][] = [
+                    "tariff" => 'Посылка',
+                    "cost" => $item->TotalPrice,
+                    "days" => [
+                        "from" => $item->DeliveryPeriod,
+                        "to" => $item->DeliveryPeriod,
+                    ]
+                ];
+            }
         }
 
         return $data;
@@ -58,14 +60,14 @@ class ResponseBuilder extends BaseBuilder
     /**
      * Проверка наличия ошибки в ответе: выбрасывает исключение и логирует данные при обнаружении ошибки в ответе.
      * 
-     * @var object $response
+     * @var $response
      * @return void
      */
-    private function checkResponseError(object $response): void
+    private function checkResponseError($response): void
     {
-        if (isset($response->error)) {
-            $message = 'Ошибка при обработке ответа: ' . $this->url . BaikalUrlType::Calculator->value . ': ' . __FILE__;
-            Log::channel('tk')->error($message,  [$response->error]);
+        if ($response->error != false) {
+            $message = 'Ошибка при обработке ответа: ' . $this->url . ': ' . BoxberryUrlType::DeliveryCalculation->value . ': ' . __FILE__;
+            Log::channel('tk')->error($message,  [$response->message]);
             throw new Exception($message, 500);
         }
     }

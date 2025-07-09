@@ -2,8 +2,8 @@
 
 namespace App\Jobs\Tk;
 
-use App\Builders\Kit\QueryBuilder;
-use App\Builders\Kit\ResponseBuilder;
+use App\Builders\Boxberry\QueryBuilder;
+use App\Builders\Boxberry\ResponseBuilder;
 use App\Enums\CompanyType;
 use App\Services\Clients\Tk\RestPoolClient;
 use App\Services\Redis\TransactionService;
@@ -12,7 +12,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class KitJob implements ShouldQueue
+class BoxberryJob implements ShouldQueue
 {
     use Queueable;
 
@@ -48,7 +48,7 @@ class KitJob implements ShouldQueue
             $response = $this->responseBuilder->build($responses);
             $this->transaction->addCalculationResult($this->hash, $response);
         } catch (\Throwable $th) {
-            $message = 'Не удалось выполнить калькуляцию по ТК ' . CompanyType::Kit->value . ': ';
+            $message = 'Не удалось выполнить калькуляцию по ТК ' . CompanyType::Boxberry->value . ': ';
             Log::channel('tk')->warning($message, [$th->getMessage() . ': ' . $th->getFile() . ': ' . $th->getLine()]);
         }
     }

@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Models\Region;
 use App\Models\Tk\TerminalBaikal;
+use App\Models\Tk\TerminalBoxberry;
 use App\Models\Tk\TerminalCdek;
 use App\Models\Tk\TerminalJde;
+use App\Models\Tk\TerminalKit;
 use App\Models\Tk\TerminalNrg;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -59,5 +61,15 @@ class Location extends Model
     public function terminalsBaikal(): HasMany
     {
         return $this->hasMany(TerminalBaikal::class, 'location_id', 'id');
+    }
+
+    public function terminalsKit(): HasMany
+    {
+        return $this->hasMany(TerminalKit::class, 'location_id', 'id');
+    }
+
+    public function terminalsBoxberry(): HasMany
+    {
+        return $this->hasMany(TerminalBoxberry::class, 'location_id', 'id');
     }
 }

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Jobs\Tk\BaikalJob;
+use App\Jobs\Tk\BoxberryJob;
 use App\Jobs\Tk\KitJob;
 use App\Traits\Hash;
 use App\Traits\Json;
@@ -46,14 +47,21 @@ class JobTkTest extends TestCase
         Redis::setex($hash, config('custom.expire'), $this->toJson($structure));
 
         BaikalJob::dispatch($this->request(), $hash);
+        BoxberryJob::dispatch($this->request(), $hash);
         KitJob::dispatch($this->request(), $hash);
 
         $data = $this->toArray(Redis::get($hash));
 
         assertNotEmpty($data);
+
         assertArrayHasKey('results', $data);
+
         assertArrayHasKey('baikal', $data['results']);
         assertArrayHasKey('ss', $data['results']['baikal']);
+
+        assertArrayHasKey('boxberry', $data['results']);
+        assertArrayHasKey('ss', $data['results']['boxberry']);
+
         assertArrayHasKey('kit', $data['results']);
         assertArrayHasKey('ss', $data['results']['kit']);
     }

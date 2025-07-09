@@ -7,5 +7,5 @@ namespace App\Enums\Boxberry;
 enum BoxberryUrlType: string
 {
     case DeliveryCalculation = 'DeliveryCalculation';
-    case ListCities = 'ListCities';
+    case ListCitiesFull = 'ListCitiesFull';
 }

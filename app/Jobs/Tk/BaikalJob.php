@@ -4,6 +4,7 @@ namespace App\Jobs\Tk;
 
 use App\Builders\Baikal\QueryBuilder;
 use App\Builders\Baikal\ResponseBuilder;
+use App\Enums\CompanyType;
 use App\Services\Clients\Tk\RestPoolClient;
 use App\Services\Redis\TransactionService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -47,7 +48,8 @@ class BaikalJob implements ShouldQueue
             $response = $this->responseBuilder->build($responses);
             $this->transaction->addCalculationResult($this->hash, $response);
         } catch (\Throwable $th) {
-            Log::channel('tk')->error('Не удалось выполнить калькуляцию по ТК Baikal: ', [$th->getMessage()]);
+            $message = 'Не удалось выполнить калькуляцию по ТК ' . CompanyType::Baikal->value . ': ';
+            Log::channel('tk')->warning($message, [$th->getMessage() . ': ' . $th->getFile() . ': ' . $th->getLine()]);
         }
     }
 }

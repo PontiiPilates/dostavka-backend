@@ -58,17 +58,17 @@ class CalculateController extends Controller
 
         foreach ($request->companies as $company) {
             match ($company) {
-                CompanyType::Pochta->value => PochtaJob::dispatch($request->all())->onQueue('l'),
-                CompanyType::DPD->value => DpdJob::dispatch($request->all())->onQueue('h'),
-                CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all())->onQueue('l'),
-                CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all())->onQueue('h'),
-                CompanyType::Dellin->value => DellinJob::dispatch($request->all())->onQueue('l'),
-                CompanyType::Jde->value => JdeJob::dispatch($request->all())->onQueue('h'),
-                CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
-                CompanyType::Pek->value => PekJob::dispatch($request->all())->onQueue('l'),
-                CompanyType::Cdek->value => CdekJob::dispatch($request->all())->onQueue('h'),
-                CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash)->onQueue('l'),
                 CompanyType::Baikal->value => BaikalJob::dispatch($request->all(), $hash)->onQueue('h'),
+                CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all(), $hash)->onQueue('l'),
+                CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash)->onQueue('l'),
+                CompanyType::DPD->value => DpdJob::dispatch($request->all(), $hash)->onQueue('h'),
+                CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash)->onQueue('h'),
+                CompanyType::Dellin->value => DellinJob::dispatch($request->all(), $hash)->onQueue('l'),
+                CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash)->onQueue('h'),
+                CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
+                CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash)->onQueue('l'),
+                CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash)->onQueue('h'),
+                CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash)->onQueue('l'),
             };
         }
 

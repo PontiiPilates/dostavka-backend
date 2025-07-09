@@ -35,7 +35,7 @@ class ResponseBuilder extends BaseBuilder
         foreach ($responses as $type => $response) {
             $response = $response->object();
 
-            // реакция на наличие ошибки в ответе
+            // при наличии ошибки в ответе
             try {
                 $this->checkResponseError($response);
             } catch (\Throwable $th) {
@@ -66,7 +66,13 @@ class ResponseBuilder extends BaseBuilder
      */
     private function checkResponseError($response): void
     {
-        if (isset($response->validate)) {
+        if (gettype($response) == 'string') {
+            $message = 'Ошибка при обработке ответа: ' . $this->url . KitUrlType::Calculate->value . ': ' . __FILE__;
+            Log::channel('tk')->error($message,  [$response]);
+            throw new Exception($message, 500);
+        }
+
+        if (isset($response->validate) || gettype($response) == 'string') {
             $message = 'Ошибка при обработке ответа: ' . $this->url . KitUrlType::Calculate->value . ': ' . __FILE__;
             Log::channel('tk')->error($message,  [$response->validate]);
             throw new Exception($message, 500);

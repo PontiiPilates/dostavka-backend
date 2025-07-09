@@ -10,7 +10,6 @@ use App\Factorys\Baikal\DeliveryTypeFactory;
 use App\Interfaces\RequestBuilderInterface;
 use App\Services\LocationService;
 use Illuminate\Http\Client\Pool;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
@@ -25,64 +24,86 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
         $this->url = config('companies.baikal.url');
         $this->username = config('companies.baikal.username');
         $this->locationService = new LocationService();
+
+        // выявленные ограничения
+        $this->limitWeight = (float) 20000;             // кг
+        $this->limitVolume = (float) 72;                // м3
+        $this->limitInsurance = (float) 10000000000000; // руб
     }
 
     /**
      * Обеспечивает сборку запросов для ассинхронной отправки.
      * 
+     * @param array $request
      * @param Pool $pool
-     * @param Request $request
      * 
      * @return array
      */
     public function build(array $request, Pool $pool): array
     {
+        Log::channel('requests')->info("Пользовательский ввод: ", $request);
+
         $request = (object) $request;
 
-        $places = $request->places;
-        $insurancePrice = $request->insurance ?? 0;
-
-        // если пользователь указал наложенный платёж - не следует продолжать выполнение
+        // проверка наложенного платежа
         try {
             $this->checkCashOnDelivery($request);
         } catch (\Throwable $th) {
-            return [];
+            throw $th;
         }
 
-        // если не обнаружен город - не следует продолжать выполнение
+        // проверка объявленной ценности
+        try {
+            parent::checkDeclarePrice($request);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+
+        // проверка корректности получения идентификатора населённого пункта
         try {
             $fromTerminal = $this->locationService->location($request->from)->terminalsBaikal()->first()->identifier;
             $toTerminal = $this->locationService->location($request->to)->terminalsBaikal()->first()->identifier;
         } catch (\Throwable $th) {
-            return [];
+            throw $th;
         }
 
-        // если не выбран способ доставки - применяется способ поумолчанию
+        // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
         $deliveryTypes = $this->checkDeliveryType($request);
+
         foreach ($deliveryTypes as $type) {
 
             $deliveryType = DeliveryTypeFactory::make($type, $fromTerminal, $toTerminal);
 
             $cargoList = [];
-            foreach ($places as $place) {
-                $place = (object) $place;
-                $weight = $place->weight;
-                $length = $place->length / 100;
-                $width = $place->width / 100;
-                $height = $place->height / 100;
+            foreach ($request->places as $place) {
 
-                $volume = $length * $width * $height;
+                $place = (object) $place;
+
+                $gabarits = (object) [
+                    'weight' => (float) $place->weight,                                                             // кг
+                    'length' => (float) $place->length / 100,                                                       // м
+                    'width' => (float) $place->width / 100,                                                         // м
+                    'height' => (float) $place->height / 100,                                                       // м
+                    'volume' => (float) ($place->length / 100) * ($place->width / 100) * ($place->height / 100),    // м3
+                ];
+
+                // проверка габаритов
+                try {
+                    parent::checkGabarits($gabarits);
+                } catch (\Throwable $th) {
+                    throw $th;
+                }
 
                 $cargoList[] = [
-                    "Weight" => (float) $weight,                    // вес груза, кг
-                    "Length" => (float) $length,                    // длина груза, м
-                    "Width" => (float) $width,                      // ширина груза, м
-                    "Height" => (float) $height,                    // высота груза, м
-                    "Volume" => (float) $volume,                    // объем груза, м3
-                    "Units" => 1,                                   // количество мест
-                    "Oversized" => 1,                               // габарит (0 - габарит, 1 – негабарит)
-                    "EstimatedCost" => (float) $insurancePrice,     // оценочная стоимость груза, руб
-                    'Services' => [],                               // массив id услуг, из справочника
+                    "Weight" => $gabarits->weight,                          // вес груза, кг
+                    "Length" => $gabarits->length,                          // длина груза, м
+                    "Width" => $gabarits->width,                            // ширина груза, м
+                    "Height" => $gabarits->height,                          // высота груза, м
+                    "Volume" => $gabarits->volume,                          // объем груза, м3
+                    "Units" => 1,                                           // количество мест
+                    "Oversized" => 1,                                       // габарит (0 - габарит, 1 – негабарит)
+                    "EstimatedCost" => (float) ($request->insurance ?? 0),  // оценочная стоимость груза, руб
+                    'Services' => [],                                       // массив id услуг, из справочника
                 ];
             }
 
