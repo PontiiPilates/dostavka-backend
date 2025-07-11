@@ -2,74 +2,97 @@
 
 namespace App\Builders\Cdek;
 
+use App\Builders\BaseBuilder;
 use App\Enums\Cdek\CdekUrlType;
-use App\Interfaces\QueryPoolBuilderInterface;
+use App\Interfaces\RequestBuilderInterface;
 use App\Services\LocationService;
 use App\Services\Tk\TokenCdekService;
-use Exception;
 use Illuminate\Http\Client\Pool;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class QueryBuilder implements QueryPoolBuilderInterface
+class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 {
     private string $url;
     private string $token;
 
-    public function __construct(
-        private LocationService $locationService,
-        private TokenCdekService $tokenCdecService,
-    ) {
+    private LocationService $locationService;
+    private TokenCdekService $tokenCdecService;
+
+    public function __construct()
+    {
+        $this->tokenCdecService = new TokenCdekService();
+        $this->locationService = new LocationService();
+
         $this->url = config('companies.cdek.url') . CdekUrlType::TariffList->value;
-        $this->token = $tokenCdecService->getActualToken();
+        $this->token = $this->tokenCdecService->getActualToken();
+
+        // выявленные ограничения
+        $this->limitWeight = (int) 99900000;            // гр
+        $this->limitLength = (int) 1000;                // см
+        $this->limitWidth = (int) 1000;                 // см
+        $this->limitHeight = (int) 1000;                // см
+        $this->limitInsurance = (float) 1000000000000;  // руб
     }
 
     /**
      * Обеспечивает сборку пула запросов для ассинхронной отправки.
      * 
-     * @param Request $request
+     * @param array $request
+     * @param Pool $pool
+     * 
      * @return array
      */
-    public function build(Request $request, Pool $pool): array|null
+    public function build(array $request, Pool $pool): array
     {
-        // если не обнаружен город, то нет смысла продолжать выполнение
+        $request = (object) $request;
+
+        // проверка наложенного платежа
         try {
-            $fromTerminal = $this->locationService->fromCdek($request->from);
-            $toTerminal = $this->locationService->fromCdek($request->to);
+            parent::checkCashOnDelivery($request);
         } catch (\Throwable $th) {
-            throw new Exception("Не удалось получить информацию о населённом пункте. " . $th->getMessage(), 500);
+            throw $th;
         }
 
-        // если пользователь указал наложенный платёж - не следует продолжать выполнение
+        // проверка объявленной ценности
         try {
-            $this->checkCashOnDelivery($request->cash_on_delivery);
+            parent::checkDeclarePrice($request);
         } catch (\Throwable $th) {
-            throw new Exception('Проверка информации о наложенном платеже. ' . $th->getMessage());
-            return [];
+            throw $th;
+        }
+
+        // проверка корректности получения идентификатора населённого пункта
+        try {
+            $fromTerminal = $this->locationService->location($request->from)->terminalsCdek()->first()->identifier;
+            $toTerminal = $this->locationService->location($request->to)->terminalsCdek()->first()->identifier;
+        } catch (\Throwable $th) {
+            throw $th;
         }
 
         $places = [];
         foreach ($request->places as $place) {
 
-            $weight = isset($place['weight'])
-                ? (int) ($place['weight'] * 1000)
-                : null;
-            $length = isset($place['length'])
-                ? (int) $place['length']
-                : null;
-            $width = isset($place['width'])
-                ? (int) $place['width']
-                : null;
-            $height = isset($place['height'])
-                ? (int) $place['height']
-                : null;
+            $place = (object) $place;
 
-            $places[] = array_filter([
-                'weight' => $weight ?? null, // вес, грамм
-                'length' => $length ?? null, // длина, см
-                'width' => $width ?? null, // ширина, см
-                'height' => $height ?? null, // высота, см
-            ]);
+            $gabarits = (object) [
+                'weight' => (int) $place->weight * 1000,    // вес, грамм
+                'length' => (int) $place->length,           // длина, см
+                'width' => (int) $place->width,             // ширина, см
+                'height' => (int) $place->height,           // высота, см
+            ];
+
+            // проверка габаритов
+            try {
+                parent::checkGabarits($gabarits);
+            } catch (\Throwable $th) {
+                throw $th;
+            }
+
+            $places[] = [
+                "weight" => $gabarits->weight,
+                "length" => $gabarits->length,
+                "width" => $gabarits->width,
+                "height" => $gabarits->height,
+            ];
         }
 
         $template = [
@@ -84,26 +107,15 @@ class QueryBuilder implements QueryPoolBuilderInterface
             "services" => [
                 [
                     "code" => "INSURANCE",
-                    "parameter" => (string) $request->insurance
+                    "parameter" => (string) ($request->insurance ?? 0)
                 ]
             ],
             "packages" => (array) $places,
         ];
 
-        Log::channel('tk')->info("Отправка запроса: " . $this->url . CdekUrlType::TariffList->value, $template);
-
+        Log::channel('requests')->info("Отправка запроса: " . $this->url . CdekUrlType::TariffList->value, $template);
         $pools[] = $pool->withToken($this->token)->post($this->url, $template);
 
         return $pools;
-    }
-
-    /**
-     * Проверяет наличие информации о наложенном платеже. Выбрасывает исключение, если она не указана. Допустима работа с нулевым значением.
-     */
-    private function checkCashOnDelivery($cashOnDelivery)
-    {
-        if (isset($cashOnDelivery) && $cashOnDelivery > 0) {
-            throw new Exception('Компания не работает с наложенным платежём, поэтому не сможет участвовать в калькуляции.');
-        }
     }
 }

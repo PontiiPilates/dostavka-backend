@@ -26,10 +26,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
         $this->locationService = new LocationService();
 
         // выявленные ограничения
-        $this->limitWeight = (int) 999000;               // гр
-        $this->limitLength = (int) 2000000000;        // см
-        $this->limitWidth = (int) 2000000000;         // см
-        $this->limitHeight = (int) 2000000000;        // см
+        $this->limitWeight = (int) 999000;              // гр
+        $this->limitLength = (int) 2000000000;          // см
+        $this->limitWidth = (int) 2000000000;           // см
+        $this->limitHeight = (int) 2000000000;          // см
         $this->limitInsurance = (float) 10000000;       // руб
         $this->limitCashOnDelivery = (float) 10000000;  // руб
     }
@@ -44,8 +44,6 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
      */
     public function build(array $request, Pool $pool): array
     {
-        Log::channel('requests')->info("Пользовательский ввод: ", $request);
-
         $request = (object) $request;
 
         // проверка наложенного платежа

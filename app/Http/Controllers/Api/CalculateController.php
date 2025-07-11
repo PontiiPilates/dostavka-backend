@@ -19,6 +19,7 @@ use App\Jobs\Tk\VozovozJob;
 use App\Traits\Hash;
 use App\Traits\Json;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 class CalculateController extends Controller
@@ -32,6 +33,8 @@ class CalculateController extends Controller
 
     public function handle(CalculateRequest $request)
     {
+        Log::channel('requests')->info("Пользовательский ввод: ", $request->all());
+
         $hash = $this->arrayToHash($request->all());
 
         // ! для отладки: удаление прежней записи, для прохождения проверки
@@ -60,6 +63,7 @@ class CalculateController extends Controller
             match ($company) {
                 CompanyType::Baikal->value => BaikalJob::dispatch($request->all(), $hash)->onQueue('h'),
                 CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all(), $hash)->onQueue('l'),
+                CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash)->onQueue('h'),
                 CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash)->onQueue('l'),
                 CompanyType::DPD->value => DpdJob::dispatch($request->all(), $hash)->onQueue('h'),
                 CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash)->onQueue('h'),
@@ -67,7 +71,6 @@ class CalculateController extends Controller
                 CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash)->onQueue('h'),
                 CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
                 CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash)->onQueue('l'),
-                CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash)->onQueue('h'),
                 CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash)->onQueue('l'),
             };
         }

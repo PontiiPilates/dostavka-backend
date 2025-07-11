@@ -5,12 +5,21 @@ declare(strict_types=1);
 namespace App\Builders\Cdek;
 
 use App\Enums\Cdek\CdekDeliveryType;
+use App\Enums\Cdek\CdekUrlType;
+use App\Enums\CompanyType;
 use App\Enums\DeliveryType;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
 class ResponseBuilder
 {
+    private string $url;
+
+    public function __construct()
+    {
+        $this->url = config('companies.boxberry.url');
+    }
+
     /**
      * Обеспечивает сборку требуемой структуры ответа.
      * 
@@ -19,21 +28,17 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [];
-        foreach ($responses as $key => $response) {
+        $data = [
+            'company' => CompanyType::Cdek->value,
+            'types' => [],
+        ];
 
+        foreach ($responses as $response) {
             $response = $response->object();
 
-            // если ответ ничего не содержит, то происходит переход к обработке следующего ответа
+            // при наличии ошибки в ответе
             try {
-                $this->checkEmpty($response);
-            } catch (\Throwable $th) {
-                continue;
-            }
-
-            // если ответ содержит ошибку, то происходит переход к обработке следующего ответа
-            try {
-                $this->checkError($response);
+                $this->checkResponseError($response);
             } catch (\Throwable $th) {
                 continue;
             }
@@ -52,16 +57,14 @@ class ResponseBuilder
             ];
 
             foreach ($response->tariff_codes as $tariff) {
-
                 $type = $types[$tariff->delivery_mode];
 
-                $data[$type][] = [
-                    'tariff' => $tariff->tariff_name,
-                    'cost' => $tariff->delivery_sum,
-                    'days' => [
-                        'from' => $tariff->calendar_min,
-                        'to' => $tariff->calendar_max,
-                        'date' => now()->addDays($tariff->calendar_max)->isoFormat('YYYY-MM-DD'),
+                $data['types'][$type][] = [
+                    "tariff" => $tariff->tariff_name,
+                    "cost" => $tariff->delivery_sum,
+                    "days" => [
+                        "from" => $tariff->calendar_min,
+                        "to" => $tariff->calendar_max,
                     ]
                 ];
             }
@@ -73,19 +76,18 @@ class ResponseBuilder
     /**
      * Проверка наличия ошибок в ответе.
      */
-    private function checkError($response): void
-    {
-        if (isset($response->requests[0]->errors)) {
-            Log::channel('tk')->error('Ошибка при обработке ответа', [$response->requests[0]->errors]);
-            throw new Exception('Ошибка при обработке ответа, смотри лог', 500);
-        }
-    }
-
-    private function checkEmpty($response)
+    private function checkResponseError($response): void
     {
         if (empty($response->tariff_codes)) {
-            Log::channel('tk')->error('Ошибка при обработке ответа. Нет тарифов для груза с такими параметрами.');
-            throw new Exception('Ошибка при обработке ответа. Нет тарифов для груза с такими параметрами.', 500);
+            $message = 'Ошибка при обработке ответа: (обнаружена при отсутствии тарифов для груза с такими параметрами)' . $this->url . ': ' . CdekUrlType::TariffList->value . ': ' . __FILE__;
+            Log::channel('tk')->error($message);
+            throw new Exception($message, 500);
+        }
+
+        if (isset($response->requests[0]->errors)) {
+            $message = 'Ошибка при обработке ответа: ' . $this->url . ': ' . CdekUrlType::TariffList->value . ': ' . __FILE__;
+            Log::channel('tk')->error($message, [$response->requests[0]->errors]);
+            throw new Exception($message, 500);
         }
     }
 }

@@ -3,16 +3,17 @@
 namespace Database\Seeders\Tk;
 
 use App\Enums\Cdek\CdekUrlType;
-use App\Models\City;
-use App\Models\Country;
+use App\Models\Location;
+use App\Models\Tk\TerminalCdek;
 use App\Services\Tk\TokenCdekService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class TerminalCdekSeeder extends Seeder
 {
+    private array $candidatsToUpdate = [];
+
     /**
      * Run the database seeds.
      */
@@ -21,24 +22,31 @@ class TerminalCdekSeeder extends Seeder
         $tokenCdecService = new TokenCdekService();
         $token = $tokenCdecService->getActualToken();
 
-        $response = Http::withToken($token->token)->get($tokenCdecService->url . CdekUrlType::Cities->value);
+        $response = Http::withToken($token)->get($tokenCdecService->url . CdekUrlType::Cities->value);
 
-        foreach ($response->object() as $city) {
+        // этот список очень чистый он должен быть выше прочих
+        foreach ($response->object() as $place) {
 
-            $country = Country::where('alpha2', $city->country_code)->first();
+            $location = Location::query()
+                ->where('name', $place->city)
+                ->whereHas('country', function ($query) use ($place) {
+                    $query->where('alpha2', $place->country_code);
+                })->first();
 
-            $modelCity = City::updateOrCreate([
-                'city_name' => $city->city,
-                'country_id' => $country->id
-            ]);
+            // если локация не обнаружена, то она попадает в список кандидатов на парсинг
+            if (!$location) {
+                $this->candidatsToUpdate[] = $place->city . ': ' . ($place->region ?? '') . ', ' . ($place->sub_region ?? '');
+                continue;
+            }
 
-            DB::table('terminals_cdek')->insert([
-                'city_id' => $modelCity->id,
-                'city_name' => $modelCity->city_name,
-                'terminal_id' => $city->code,
-                'created_at' => now(),
-                'updated_at' => now(),
+            TerminalCdek::create([
+                'location_id' => $location->id,
+                'identifier' => $place->code,
+                'name' => $place->city,
+                'dirty' => $place->city . ': ' . ($place->region ?? '') . ', ' . ($place->sub_region ?? ''),
             ]);
         }
+
+        dump('Следующие локации остались не добавленными: ', $this->candidatsToUpdate);
     }
 }

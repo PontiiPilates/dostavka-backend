@@ -24,10 +24,10 @@ class DatabaseSeeder extends Seeder
             CountrySeeder::class,
             // RegionSeeder::class,
             LocationSeeder::class,
+            TerminalCdekSeeder::class, // очень хороший список населённых пунктов
             // TerminalsJdeSeeder::class,
             // TkKitCitySeeder::class,
             // TkPekTerminalSeeder::class,
-            // TerminalCdekSeeder::class,
             // TerminalNrgSeeder::class,
             TerminalNrgModifySeeder::class,
             // TerritorySeeder::class

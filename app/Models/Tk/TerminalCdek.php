@@ -2,7 +2,7 @@
 
 namespace App\Models\Tk;
 
-use App\Models\City;
+use App\Models\Location;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,8 +13,8 @@ class TerminalCdek extends Model
 
     protected $table = 'terminals_cdek';
 
-    public function city(): BelongsTo
+    public function location(): BelongsTo
     {
-        return $this->belongsTo(City::class, 'city_id', 'id');
+        return $this->belongsTo(Location::class, 'location_id', 'id');
     }
 }

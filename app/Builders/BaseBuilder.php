@@ -19,7 +19,6 @@ class BaseBuilder
     protected $limitInsurance;
     protected $limitCashOnDelivery;
 
-
     /**
      * Проверка способа доставки: возвращает способ доставки поумолчанию если ни один не выбран.
      * 

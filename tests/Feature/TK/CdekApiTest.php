@@ -19,6 +19,8 @@ class CdekApiTest extends TestCase
         $tokenCdecService = new TokenCdekService();
         $token = $tokenCdecService->getNewToken();
 
+        dump($token->access_token);
+
         assertIsString($token->access_token);
         assertIsInt($token->expires_in);
     }

@@ -42,8 +42,6 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
      */
     public function build(array $request, Pool $pool): array
     {
-        Log::channel('requests')->info("Пользовательский ввод: ", $request);
-
         $request = (object) $request;
 
         // проверка наложенного платежа
