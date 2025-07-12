@@ -9,15 +9,26 @@ use Exception;
 
 class BaseBuilder
 {
+    // стандартные ограничения
     protected $limitWeight;
-
     protected $limitLength;
     protected $limitWidth;
     protected $limitHeight;
     protected $limitVolume;
-
     protected $limitInsurance;
     protected $limitCashOnDelivery;
+
+    // ограничения малогабаритного груза
+    protected $smalllimitLength;
+    protected $smallLimitWidth;
+    protected $smallLimitHeight;
+    protected $smallLimitVolume;
+    protected $smallLimitQuantity;
+
+    // ограничения для негабаритного груза
+    protected $мaxLimitlength;
+    protected $мaxLimitWidth;
+    protected $мaxLimitHeight;
 
     /**
      * Проверка способа доставки: возвращает способ доставки поумолчанию если ни один не выбран.
@@ -74,10 +85,10 @@ class BaseBuilder
     /**
      * Проверка габаритов: выбрасывает исключение, если габариты превышают допустимые.
      */
-    protected function checkGabarits(object $place)
+    protected function checkGabarits(object $gabarits)
     {
         // обработка случая, когда тк не использует параметр объёма
-        $currentVolume = $place->volume ?? 0;
+        $currentVolume = $gabarits->volume ?? 0;
         $limitVolume = $this->limitVolume ?? 0;
 
         // обработка случая, когда у тк не определены пространственные ограничения
@@ -86,20 +97,68 @@ class BaseBuilder
         $limitHeight = $this->limitHeight ?? 999999;
 
         // ! для отладки
-        // dump("$place->weight > $this->limitWeight
-        // $place->length > $limitLength
-        // $place->width > $limitWidth
-        // $place->height > $limitHeight
-        // $currentVolume > $limitVolume");
+        // dump("
+        // $gabarits->weight > $this->limitWeight
+        // $gabarits->length > $limitLength
+        // $gabarits->width > $limitWidth
+        // $gabarits->height > $limitHeight
+        // $currentVolume > $limitVolume
+        // ");
 
         if (
-            $place->weight > $this->limitWeight
-            || $place->length > $limitLength
-            || $place->width > $limitWidth
-            || $place->height > $limitHeight
+            $gabarits->weight > $this->limitWeight
+            || $gabarits->length > $limitLength
+            || $gabarits->width > $limitWidth
+            || $gabarits->height > $limitHeight
             || $currentVolume > $limitVolume
         ) {
             throw new Exception("Габариты превышают допустимые. Компания не сможет участвовать в калькуляции.", 200);
+        }
+    }
+
+    /**
+     * Проверка габаритов малогабаритного груза: выбрасывает исключение, если габариты превышают допустимые.
+     */
+    protected function checkSmallGabarits(object $gabarits)
+    {
+        // ! для отладки
+        // dump("
+        //     $gabarits->length > $this->smalllimitLength
+        //     || $gabarits->width > $this->smallLimitWidth
+        //     || $gabarits->height > $this->smallLimitHeight
+        //     || $gabarits->totalVolume > $this->smallLimitVolume
+        //     || $gabarits->quantity > $this->smallLimitQuantity
+        // ");
+
+        if (
+            $gabarits->length > $this->smalllimitLength
+            || $gabarits->width > $this->smallLimitWidth
+            || $gabarits->height > $this->smallLimitHeight
+            || $gabarits->totalVolume > $this->smallLimitVolume
+            || $gabarits->quantity > $this->smallLimitQuantity
+        ) {
+            throw new Exception("Габариты превышают параметры малогабаритного груза. Будет применён стандартный тариф.", 200);
+        }
+    }
+
+    /**
+     * Проверка габаритов негабаритного груза: выбрасывает исключение, если габариты превышают допустимые.
+     */
+    protected function checkNonGabarits(object $gabarits)
+    {
+        // ! для отладки
+        // dump("
+        //     $gabarits->length > $this->мaxLimitlength
+        //     || $gabarits->width > $this->мaxLimitWidth
+        //     || $gabarits->height > $this->мaxLimitHeight
+        // ");
+
+        if (
+            $gabarits->length > $this->мaxLimitlength
+            || $gabarits->width > $this->мaxLimitWidth
+            || $gabarits->height > $this->мaxLimitHeight
+        ) {
+            throw new Exception("Габариты превышают параметры малогабаритного груза. Будет применён стандартный тариф.", 200);
         }
     }
 }

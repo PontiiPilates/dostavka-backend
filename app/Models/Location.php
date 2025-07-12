@@ -6,6 +6,7 @@ use App\Models\Region;
 use App\Models\Tk\TerminalBaikal;
 use App\Models\Tk\TerminalBoxberry;
 use App\Models\Tk\TerminalCdek;
+use App\Models\Tk\TerminalDellin;
 use App\Models\Tk\TerminalJde;
 use App\Models\Tk\TerminalKit;
 use App\Models\Tk\TerminalNrg;
@@ -71,5 +72,10 @@ class Location extends Model
     public function terminalsCdek(): HasMany
     {
         return $this->hasMany(TerminalCdek::class, 'location_id', 'id');
+    }
+
+    public function terminalsDellin(): HasMany
+    {
+        return $this->hasMany(TerminalDellin::class, 'location_id', 'id');
     }
 }

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Builders\Dellin;
 
-use App\Models\City;
+use App\Models\Tk\TerminalDellin;
 
 class DeliveryTypeBuilder
 {
-    public function sS(City $from, City $to, string $date, string $tariff): array
+    public function sS(TerminalDellin $from, TerminalDellin $to, string $date, string $tariff): array
     {
         return [
             "deliveryType" => [
@@ -17,15 +17,15 @@ class DeliveryTypeBuilder
             "derival" => [
                 "produceDate" => $date,
                 "variant" => "terminal",
-                "terminalID" => $from->terminal_id_dellin
+                "terminalID" => $from->terminal_id
             ],
             "arrival" => [
                 "variant" => "terminal",
-                "terminalID" => $to->terminal_id_dellin
+                "terminalID" => $to->terminal_id
             ],
         ];
     }
-    public function sD(City $from, City $to, string $date, string $tariff): array
+    public function sD(TerminalDellin $from, TerminalDellin $to, string $date, string $tariff): array
     {
         return [
             "deliveryType" => [
@@ -34,12 +34,12 @@ class DeliveryTypeBuilder
             "derival" => [
                 "produceDate" => $date,
                 "variant" => "terminal",
-                "terminalID" => $from->terminal_id_dellin
+                "terminalID" => $from->terminal_id
             ],
             "arrival" => [
                 "variant" => "address",
                 "address" => [
-                    "search" => $to->city_code_dellin
+                    "search" => $to->city_id
                 ],
                 "time" => [
                     "worktimeEnd" => "19:30",
@@ -51,7 +51,7 @@ class DeliveryTypeBuilder
             ],
         ];
     }
-    public function dS(City $from, City $to, string $date, string $tariff): array
+    public function dS(TerminalDellin $from, TerminalDellin $to, string $date, string $tariff): array
     {
         return [
             "deliveryType" => [
@@ -61,7 +61,7 @@ class DeliveryTypeBuilder
                 "produceDate" => $date,
                 "variant" => "address",
                 "address" => [
-                    "search" => $from->city_code_dellin
+                    "search" => $from->city_id
                 ],
                 "time" => [
                     "worktimeEnd" => "19:30",
@@ -73,11 +73,11 @@ class DeliveryTypeBuilder
             ],
             "arrival" => [
                 "variant" => "terminal",
-                "terminalID" => $to->terminal_id_dellin
+                "terminalID" => $to->terminal_id
             ],
         ];
     }
-    public function dD(City $from, City $to, string $date, string $tariff): array
+    public function dD(TerminalDellin $from, TerminalDellin $to, string $date, string $tariff): array
     {
         return [
             "deliveryType" => [
@@ -87,7 +87,7 @@ class DeliveryTypeBuilder
                 "produceDate" => $date,
                 "variant" => "address",
                 "address" => [
-                    "search" => $from->city_code_dellin
+                    "search" => $from->city_id
                 ],
                 "time" => [
                     "worktimeEnd" => "19:30",
@@ -100,7 +100,7 @@ class DeliveryTypeBuilder
             "arrival" => [
                 "variant" => "address",
                 "address" => [
-                    "search" => $to->city_code_dellin
+                    "search" => $to->city_id
                 ],
                 "time" => [
                     "worktimeEnd" => "19:30",

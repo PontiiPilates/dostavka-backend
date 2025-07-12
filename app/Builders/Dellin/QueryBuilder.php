@@ -2,66 +2,115 @@
 
 namespace App\Builders\Dellin;
 
+use App\Builders\BaseBuilder;
 use App\Enums\DeliveryType;
 use App\Enums\Dellin\DellinTariffType;
 use App\Enums\Dellin\DellinUrlType;
 use App\Factorys\Dellin\DeliveryTypeFactory;
-use App\Interfaces\QueryPoolBuilderInterface;
-use App\Services\Location\LocationParserService;
+use App\Interfaces\RequestBuilderInterface;
+use App\Services\LocationService;
 use Exception;
 use Illuminate\Http\Client\Pool;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
-class QueryBuilder implements QueryPoolBuilderInterface
+class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 {
     private string $url;
     private string $token;
 
-    public function __construct(
-        private LocationParserService $locationParser,
-    ) {
+    private LocationService $locationService;
+
+    public function __construct()
+    {
+        $this->locationService = new LocationService();
+
         $this->url = config('companies.dellin.url');
         $this->token = config('companies.dellin.token');
+
+        // выявленные ограничения
+        $this->limitWeight = 799;           // кг
+        $this->limitLength = 6;             // м
+        $this->limitWidth = 2.3;            // м
+        $this->limitHeight = 2.25;          // м
+
+
+        // ограничения для малогабаритного груза
+        $this->smalllimitLength = 0.54;     // м
+        $this->smallLimitWidth = 0.39;      // м
+        $this->smallLimitHeight = 0.39;     // м
+        $this->smallLimitVolume = 0.1;      // м3
+        $this->smallLimitQuantity = 1;      // шт
+
+        // ограничения для негабаритного груза
+        $this->мaxLimitlength = 1.3;        // м
+        $this->мaxLimitWidth = 1.0;         // м
+        $this->мaxLimitHeight = 0.8;        // м
     }
 
     /**
      * Обеспечивает сборку запросов для ассинхронной отправки.
      * 
+     * @param array $request
      * @param Pool $pool
-     * @param Request $request
      * 
      * @return array
      */
-    public function build(Request $request, Pool $pool): array|null
+    public function build(array $request, Pool $pool): array
     {
-        // если не обнаружен город, то нет смысла продолжать выполнение
+        $request = (object) $request;
+
+        // проверка наложенного платежа
         try {
-            $from = $this->locationParser->moreAboutCity($request->from);
-            $to = $this->locationParser->moreAboutCity($request->to);
+            parent::checkCashOnDelivery($request);
         } catch (\Throwable $th) {
-            throw new Exception("Не удалось получить информацию о населённом пункте. " . $th->getMessage(), 500);
-            return null;
+            throw $th;
+        }
+
+        // проверка объявленной ценности
+        try {
+            parent::checkDeclarePrice($request);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+
+        // проверка корректности получения идентификатора населённого пункта
+        try {
+            $from = $this->locationService->location($request->from)->terminalsDellin()->first();
+            $to = $this->locationService->location($request->to)->terminalsDellin()->first();
+        } catch (\Throwable $th) {
+            throw $th;
         }
 
         $places = collect($request->places);
         $quantity = $places->count();
-        $weight = $places->max('weight');
-        $length = $places->max('length') / 100;
-        $width = $places->max('width') / 100;
-        $height = $places->max('height') / 100;
-        $totalVolume = round(($length * $width * $height), 2);
-        $totalWeight = $weight * $quantity;
-        $statedValue = $request->sumoc;
-        $shipmentDate = $request->shipment_date;
+        $maxWeight = $places->max('weight');                            // вес, кг
+        $maxLength = $places->max('length') / 100;                      // длина, м
+        $maxWidth = $places->max('width') / 100;                        // ширина, м
+        $maxHeight = $places->max('height') / 100;                      // высота, м
+        $totalVolume = round(($maxLength * $maxWidth * $maxHeight), 3); // итоговый объём, м3
+        $totalWeight = $maxWeight * $quantity;                          // итоговый вес, кг
 
-        // если не выбран способ доставки, то применяется способ поумолчанию
-        $deliveryTypes = $this->isDeliveryTypeUnselected($request->delivery_type);
+        // значение объёма не должно быть ниже минимально допустимого
+        $totalVolume = $totalVolume < 0.001 ? 0.001 : $totalVolume;
 
-        // если параметры груза превышают все допустимые габариты, то нет смысла продолжать выполнение
+        $gabarits = (object) [
+            'quantity' => (int) $quantity,
+            'weight' =>  (float) $maxWeight,
+            'length' => (float) $maxLength,
+            'width' => (float) $maxWidth,
+            'height' => (float) $maxHeight,
+            'totalVolume' => (float) $totalVolume,
+            'totalWeight' => (float) $totalWeight,
+        ];
+
+        // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
+        $deliveryTypes = parent::checkDeliveryType($request);
+
+        // проверка габаритов
         try {
-            $this->isOverCriticalSize($length, $width, $height);
+            parent::checkGabarits($gabarits);
         } catch (\Throwable $th) {
-            return null;
+            throw $th;
         }
 
         foreach ($deliveryTypes as $type) {
@@ -69,7 +118,15 @@ class QueryBuilder implements QueryPoolBuilderInterface
             // к небольшим параметрам груза можно подобрать соответствующий тариф
             // к остальным параметрам применяются остальные тарифы
             try {
-                $this->isNotSmall($type, $length, $width, $height, $totalVolume, $quantity);
+
+                // если способ доставки не от двери до двери, то будут применены обычные тарифы
+                if ($type != DeliveryType::Dd->value) {
+                    throw new Exception("Тариф для малогабаритных грузов действует только в режиме доставки от двери до двери.", 200);
+                }
+
+                // проверка габаритов
+                parent::checkSmallGabarits($gabarits);
+
                 $tariffs = [
                     DellinTariffType::Small->value,
                 ];
@@ -82,98 +139,46 @@ class QueryBuilder implements QueryPoolBuilderInterface
             }
 
             foreach ($tariffs as $tariff) {
-                $delivery = DeliveryTypeFactory::make($type, $from, $to, $shipmentDate, $tariff);
 
-                // если груз негабаритный, то требуется дополнительно оуказать его параметры
+                $delivery = DeliveryTypeFactory::make($type, $from, $to, $request->shipment_date, $tariff);
+
+                // если груз негабаритный - требуется указание дополнительных прараметров
                 try {
-                    $this->isNonGabarit($length, $width, $height);
+                    parent::checkNonGabarits($gabarits);
                 } catch (\Throwable $th) {
-                    $oversizeWeight = $totalWeight;
-                    $oversizeVolume = $totalVolume;
+                    $oversizeWeight = $gabarits->totalWeight;
+                    $oversizeVolume = $gabarits->totalVolume;
                 }
 
                 $template = [
                     "appkey" => $this->token,
                     "delivery" => $delivery,
                     "cargo" => array_filter([
-                        "quantity" => (int) $quantity, // количество грузовых мест
-                        "length" => (float) $length, // длина самого длинного грузового места (м.)
-                        "width" => (float) $width, // ширина самого широкого грузового места (м.)
-                        "height" => (float) $height, // высота самого высокого грузового места (м.)
-                        "weight" => (float) $weight, // вес самого тяжелого грузового места (кг.)
-                        "totalVolume" => (float) $totalVolume, // общий объём груза (м3.)
-                        "totalWeight" => (float) $totalWeight, // общий вес  груза (кг.)
+                        "quantity" => $gabarits->quantity,                          // количество грузовых мест
+                        "length" => $gabarits->length,                              // длина самого длинного грузового места, м
+                        "width" => $gabarits->width,                                // ширина самого широкого грузового места, м
+                        "height" => $gabarits->height,                              // высота самого высокого грузового места, м
+                        "weight" => $gabarits->weight,                              // вес самого тяжелого грузового места, кг
+                        "totalVolume" => $gabarits->totalVolume,                    // общий объём груза, м3
+                        "totalWeight" => $gabarits->totalWeight,                    // общий вес  груза, кг
                         "oversizedWeight" => $oversizeWeight ?? null,
                         "oversizedVolume" => $oversizeVolume ?? null,
                         "insurance" => [
-                            "statedValue" => (float) $statedValue, // объявленная стоимость груза
-                            "term" => false // страховка груза
+                            "statedValue" => (float) ($request->insurance ?? 0),    // объявленная стоимость груза
+                            "term" => false                                         // страховка груза
                         ]
                     ]),
                     "payment" => [
                         "type" => "cash",
-                        "paymentCity" => "7700000000000000000000000" // один из группы обязателен
+                        "paymentCity" => "7700000000000000000000000"                // один из группы обязателен
                     ]
                 ];
 
+                Log::channel('requests')->info("Отправка запроса: " . $this->url, $template);
                 $pools[] = $pool->as($type . ":$tariff")->post($this->url . DellinUrlType::Calculator->value, $template);
             }
         }
 
         return $pools;
-    }
-
-    /**
-     * Возвращает способ доставки поумолчанию, если ни один не выбран.
-     */
-    private function isDeliveryTypeUnselected(array|null $methods): array
-    {
-        if (!$methods) {
-            return [DeliveryType::Ss->value];
-        }
-
-        return $methods;
-    }
-
-    private function isNonGabarit($length, $width, $height)
-    {
-        // м
-        $gabaritMaxlength = 1.3;
-        $gabaritMaxWidth = 1.0;
-        $gabaritMaxHeight = 0.8;
-
-        if ($length > $gabaritMaxlength || $width > $gabaritMaxWidth || $height > $gabaritMaxHeight) {
-            throw new Exception("Негабаритный груз");
-        }
-    }
-
-    private function isOverCriticalSize($length, $width, $height)
-    {
-        // м
-        $nonGabaritMaxlength = 6;
-        $nonGabaritMaxWidth = 2.3;
-        $nonGabaritMaxHeight = 2.25;
-
-        if ($length > $nonGabaritMaxlength || $width > $nonGabaritMaxWidth || $height > $nonGabaritMaxHeight) {
-            throw new Exception("Параметры груза превышают допустимые габариты");
-        }
-    }
-
-    private function isNotSmall($type, $length, $width, $height, $totalVolume, $quantity)
-    {
-        if ($type != DeliveryType::Dd->value) {
-            throw new Exception("Тариф не может быть применён к данному способу доставки");
-        }
-
-        // м
-        $smallMaxlength = 0.54;
-        $smallMaxWidth = 0.39;
-        $smallMaxHeight = 0.39;
-        $smallTotalVolume = 0.1;
-        $smallQuantity = 1;
-
-        if ($length > $smallMaxlength || $width > $smallMaxWidth || $height > $smallMaxHeight || $totalVolume > $smallTotalVolume || $quantity > $smallQuantity) {
-            throw new Exception("Параметры груза превышают малогабаритные требования");
-        }
     }
 }

@@ -4,11 +4,11 @@ namespace App\Factorys\Dellin;
 
 use App\Builders\Dellin\DeliveryTypeBuilder;
 use App\Enums\DeliveryType;
-use App\Models\City;
+use App\Models\Tk\TerminalDellin;
 
 class DeliveryTypeFactory
 {
-    public static function make(string $type, City $from, City $to, string $date, string $tariff): array
+    public static function make(string $type, TerminalDellin $from, TerminalDellin $to, string $date, string $tariff): array
     {
         $builder = new DeliveryTypeBuilder();
 
