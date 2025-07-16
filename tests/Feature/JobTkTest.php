@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Jobs\Tk\BaikalJob;
 use App\Jobs\Tk\BoxberryJob;
 use App\Jobs\Tk\CdekJob;
+use App\Jobs\Tk\DellinJob;
+use App\Jobs\Tk\DpdJob;
 use App\Jobs\Tk\KitJob;
 use App\Traits\Hash;
 use App\Traits\Json;
@@ -50,6 +52,8 @@ class JobTkTest extends TestCase
         BaikalJob::dispatch($this->request(), $hash);
         BoxberryJob::dispatch($this->request(), $hash);
         CdekJob::dispatch($this->request(), $hash);
+        DellinJob::dispatch($this->request(), $hash);
+        DpdJob::dispatch($this->request(), $hash);
         KitJob::dispatch($this->request(), $hash);
 
         $data = $this->toArray(Redis::get($hash));
@@ -66,6 +70,12 @@ class JobTkTest extends TestCase
 
         assertArrayHasKey('cdek', $data['results']);
         assertArrayHasKey('ss', $data['results']['cdek']);
+
+        assertArrayHasKey('dellin', $data['results']);
+        assertArrayHasKey('ss', $data['results']['dellin']);
+
+        assertArrayHasKey('dpd', $data['results']);
+        assertArrayHasKey('ss', $data['results']['dpd']);
 
         assertArrayHasKey('kit', $data['results']);
         assertArrayHasKey('ss', $data['results']['kit']);
@@ -94,6 +104,10 @@ class JobTkTest extends TestCase
             ],
             "companies" => [
                 0 => "baikal",
+                1 => "boxberry",
+                2 => "cdek",
+                3 => "dellin",
+                4 => "dpd",
             ],
             "delivery_type" => [
                 0 => "ss",

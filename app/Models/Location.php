@@ -7,6 +7,7 @@ use App\Models\Tk\TerminalBaikal;
 use App\Models\Tk\TerminalBoxberry;
 use App\Models\Tk\TerminalCdek;
 use App\Models\Tk\TerminalDellin;
+use App\Models\Tk\TerminalDpd;
 use App\Models\Tk\TerminalJde;
 use App\Models\Tk\TerminalKit;
 use App\Models\Tk\TerminalNrg;
@@ -77,5 +78,10 @@ class Location extends Model
     public function terminalsDellin(): HasMany
     {
         return $this->hasMany(TerminalDellin::class, 'location_id', 'id');
+    }
+
+    public function terminalsDpd(): HasMany
+    {
+        return $this->hasMany(TerminalDpd::class, 'location_id', 'id');
     }
 }
