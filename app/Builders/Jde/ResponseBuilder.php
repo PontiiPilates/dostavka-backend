@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Builders\Jde;
 
+use App\Enums\CompanyType;
 use App\Enums\Jde\JdeTariffType;
+use App\Enums\Jde\JdeUrlType;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -18,7 +20,10 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [];
+        $data = [
+            'company' => CompanyType::Jde->value,
+            'types' => [],
+        ];
 
         foreach ($responses as $key => $response) {
             $response = $response->object();
@@ -27,8 +32,9 @@ class ResponseBuilder
             $type = $multiKey[0];
             $tariff = $multiKey[1];
 
+            // при наличии ошибки в ответе
             try {
-                $this->isError($response);
+                $this->checkResponseError($response);
             } catch (\Throwable $th) {
                 continue;
             }
@@ -41,13 +47,12 @@ class ResponseBuilder
                 // JdeTariffType::Courier->value =>  JdeTariffType::Courier->label(), // не обслуживается
             ];
 
-            $data[$type][] = [
+            $data['types'][$type][] = [
                 "tariff" => $tariffs[$tariff],
                 "cost" => $response->price,
                 "days" => [
                     "from" => $response->mindays,
                     "to" => $response->maxdays,
-                    "date" => '',
                 ]
             ];
         }
@@ -55,17 +60,21 @@ class ResponseBuilder
         return $data;
     }
 
-    private function isError($response)
+    private function checkResponseError($response)
     {
+        $url = config('companies.jde.url') . JdeUrlType::Calculator->value;
+
         if (isset($response->error)) {
-            Log::channel('tk')->error('Ошибка при выполнении запроса', [$response->error]);
-            throw new Exception('Ошибка при выполнении запроса, смотри лог', 500);
+            $message = 'Ошибка при обработке ответа: ' . $url;
+            Log::channel('tk')->error($message, [$response->error]);
+            throw new Exception($message, 500);
         }
 
         foreach ($response->services as $service) {
             if (isset($service->error)) {
-                Log::channel('tk')->error('Ошибка при выполнении запроса', [$response->services[0]->error]);
-                throw new Exception('Ошибка при выполнении запроса, смотри лог', 500);
+                $message = 'Ошибка при обработке ответа: ' . $url;
+                Log::channel('tk')->error($message, [$response->services[0]->error]);
+                throw new Exception($message, 500);
             }
         }
     }

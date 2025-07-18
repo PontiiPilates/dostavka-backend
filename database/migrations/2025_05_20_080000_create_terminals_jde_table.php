@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('location_id')->constrained();
-            $table->text('city_name', 100);
-            $table->text('terminal_id', 64);
-            $table->boolean('acceptance')->default(false)->comment('приём');
-            $table->boolean('issue')->default(false)->comment('выдача');
+
+            $table->char('identifier', 50)->comment('идентификатор локации');
+            $table->text('name', 100)->comment('название локации');
+            $table->text('dirty', 300)->nullable()->comment('данные о регионе локации');
+            $table->boolean('acceptance')->default(false)->comment('терминал работает на приём');
+            $table->boolean('issue')->default(false)->comment('терминал работает на выдачу');
 
             $table->timestamps();
         });

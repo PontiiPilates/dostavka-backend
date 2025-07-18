@@ -38,7 +38,7 @@ class BaseBuilder
      */
     protected function checkDeliveryType(object $request): array
     {
-        if (!$request->delivery_type) {
+        if (!isset($request->delivery_type)) {
             return [DeliveryType::Ss->value];
         }
 
@@ -90,6 +90,11 @@ class BaseBuilder
         // обработка случая, когда тк не использует параметр объёма
         $currentVolume = $gabarits->volume ?? 0;
         $limitVolume = $this->limitVolume ?? 0;
+
+        // обработка слечая, когда компания использует общий объём посылки (jde)
+        if (!$currentVolume) {
+            $currentVolume = $gabarits->totalVolume ?? 0;
+        }
 
         // обработка случая, когда у тк не определены пространственные ограничения
         $limitLength = $this->limitLength ?? 999999;

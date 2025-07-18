@@ -35,11 +35,6 @@ class Location extends Model
         return $this->belongsTo(Region::class, 'region_id', 'id');
     }
 
-    public function terminalsJde(): HasMany
-    {
-        return $this->hasMany(TerminalJde::class, 'city_id', 'id');
-    }
-
     public function tkKitCity(): HasMany
     {
         return $this->hasMany(TkKitCity::class, 'city_id', 'id');
@@ -83,5 +78,10 @@ class Location extends Model
     public function terminalsDpd(): HasMany
     {
         return $this->hasMany(TerminalDpd::class, 'location_id', 'id');
+    }
+
+    public function terminalsJde(): HasMany
+    {
+        return $this->hasMany(TerminalJde::class, 'location_id', 'id');
     }
 }

@@ -2,29 +2,38 @@
 
 namespace App\Builders\Jde;
 
+use App\Builders\BaseBuilder;
 use App\Enums\DeliveryType;
 use App\Enums\Jde\JdeTariffType;
 use App\Enums\Jde\JdeUrlType;
-use App\Interfaces\QueryPoolBuilderInterface;
-use App\Services\Location\LocationParserService;
-use App\Services\Location\MultiLocationService;
-use Exception;
+use App\Interfaces\RequestBuilderInterface;
+use App\Services\LocationService;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Request;
 
-class QueryBuilder implements QueryPoolBuilderInterface
+class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 {
     private string $url;
-    // private string $user;
     // private string $token;
+    // private string $user;
 
-    public function __construct(
-        private LocationParserService $locationParser,
-        private MultiLocationService $multiLocation,
-    ) {
+    private LocationService $locationService;
+
+    public function __construct()
+    {
+        $this->locationService = new LocationService();
+
         $this->url = config('companies.jde.url') . JdeUrlType::Calculator->value;
-        // $this->user = config('companies.jde.user'); // не требуется
-        // $this->token = config('companies.jde.token'); // не требуется
+        // $this->token = config('companies.jde.token');
+        // $this->user = config('companies.jde.user');
+
+        // выявленные ограничения
+        $this->limitWeight = 100000;            // кг
+        $this->limitLength = 250000;            // м
+        $this->limitWidth = 10000;              // м
+        $this->limitHeight = 10000;             // м
+        $this->limitVolume = 250;               // м3
+        $this->limitInsurance = 999999999999;   // руб
     }
 
     /**
@@ -33,57 +42,88 @@ class QueryBuilder implements QueryPoolBuilderInterface
      * @param Request $request
      * @return array
      */
-    public function build(Request $request, Pool $pool): array|null
+    public function build(array $request, Pool $pool): array
     {
-        // если возникли проблемы с определением пунтктов приёма/выдачи - не следует продолжать выполнение
+        $request = (object) $request;
+
+        // проверка наложенного платежа
         try {
-            $from = $this->multiLocation->specialFromJde($request->from, 'from')->terminal_id;
-            $to = $this->multiLocation->specialFromJde($request->to, 'to')->terminal_id;
+            parent::checkCashOnDelivery($request);
         } catch (\Throwable $th) {
-            throw new Exception($th->getMessage(), 500);
-            return [];
+            throw $th;
+        }
+
+        // проверка объявленной ценности
+        try {
+            parent::checkDeclarePrice($request);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+
+        // проверка корректности получения идентификатора населённого пункта
+        try {
+            $from = $this->locationService->location($request->from)->terminalsJde()->first();
+            $to = $this->locationService->location($request->to)->terminalsJde()->first();
+        } catch (\Throwable $th) {
+            throw $th;
         }
 
         $places = collect($request->places);
-        $quantity = $places->count();
-        $weight = $places->max('weight');
-        $length = $places->max('length') / 100;
-        $width = $places->max('width') / 100;
-        $height = $places->max('height') / 100;
-        $totalVolume = round(($length * $width * $height), 2);
-        $totalWeight = $weight * $quantity;
-        $insValue = $request->sumoc;
+        $maxLength = $places->max('length') / 100;                      // длина, м
+        $maxWidth = $places->max('width') / 100;                        // ширина, м
+        $maxHeight = $places->max('height') / 100;                      // высота, м
+        $totalVolume = round(($maxLength * $maxWidth * $maxHeight), 3); // итоговый объём, м3
+        $totalWeight = $places->sum('weight');                          // итоговый вес, кг
 
-        // если не выбран способ доставки, то применяется способ поумолчанию
-        $deliveryTypes = $this->isDeliveryTypeUnselected($request->delivery_type);
+        // значение объёма не должно быть ниже минимально допустимого
+        $totalVolume = $totalVolume < 0.000001 ? 0.000001 : $totalVolume;
+
+        $gabarits = (object) [
+            'weight' =>  (float) $totalWeight,
+            'length' => (float) $maxLength,
+            'width' => (float) $maxWidth,
+            'height' => (float) $maxHeight,
+            'totalVolume' => (float) $totalVolume,
+            'totalWeight' => (float) $totalWeight,
+        ];
+
+        // проверка габаритов
+        try {
+            parent::checkGabarits($gabarits);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+
+        // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
+        $deliveryTypes = parent::checkDeliveryType($request);
 
         foreach ($deliveryTypes as $type) {
 
             $tariffs = [
                 JdeTariffType::Combined->value,
-                // JdeTariffType::Express->value, // не обслуживается
-                // JdeTariffType::Individual->value, // не обслуживается
-                // JdeTariffType::Internet->value, // не обслуживается
-                // JdeTariffType::Courier->value, // не обслуживается
+                // JdeTariffType::Express->value,       // не обслуживается
+                // JdeTariffType::Individual->value,    // не обслуживается
+                // JdeTariffType::Internet->value,      // не обслуживается
+                // JdeTariffType::Courier->value,       // не обслуживается
             ];
 
             foreach ($tariffs as $tariff) {
 
                 $template = [
-                    'from' => $from,
-                    'to' => $to,
-                    'weight' => $totalWeight,
-                    'length' => $length,
-                    'width' => $width,
-                    'height' => $height,
-                    'volume' => $totalVolume,
-                    'quantity' => $quantity,
+                    'from' => $from->identifier,
+                    'to' => $to->identifier,
+                    'weight' => $gabarits->totalWeight,                                                         // вес груза, кг
+                    'length' => $gabarits->length,                                                              // длина самого габаритного места, м
+                    'width' => $gabarits->width,                                                                // ширина самого габаритного места, м
+                    'height' => $gabarits->height,                                                              // высота самого габаритного места, м
+                    'volume' =>  $gabarits->totalVolume,                                                        // объём груза, м3
+                    'quantity' => 1,                                                                            // количество мест (всегда 1, поскольку параметры макс. от всех мест)
                     'type' => $tariff,
-                    'pickup' => $type == DeliveryType::Ds->value || $type == DeliveryType::Dd->value ? 1 : 0,
-                    'delivery' => $type == DeliveryType::Sd->value || $type == DeliveryType::Dd->value ? 1 : 0,
-                    'insValue' => $insValue,
-                    // 'user' => $this->user, // не требуется
-                    // 'token' => $this->token // не требуется
+                    'pickup' => $type == DeliveryType::Ds->value || $type == DeliveryType::Dd->value ? 1 : 0,   // забор груза 1 - да / 0 - нет
+                    'delivery' => $type == DeliveryType::Sd->value || $type == DeliveryType::Dd->value ? 1 : 0, // доставка груза 1 - да / 0 - нет
+                    'insValue' => $request->insurance ?? 0,                                                     // объявленная ценность
+                    // 'user' => $this->user,                                                                   // не требуется
+                    // 'token' => $this->token                                                                  // не требуется
                 ];
 
                 $pools[] = $pool->as($type . ":$tariff")->get($this->url, $template);
@@ -91,17 +131,5 @@ class QueryBuilder implements QueryPoolBuilderInterface
         }
 
         return $pools;
-    }
-
-    /**
-     * Возвращает способ доставки поумолчанию, если ни один не выбран.
-     */
-    private function isDeliveryTypeUnselected(array|null $methods): array
-    {
-        if (!$methods) {
-            return [DeliveryType::Ss->value];
-        }
-
-        return $methods;
     }
 }

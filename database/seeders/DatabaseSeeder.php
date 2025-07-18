@@ -9,6 +9,7 @@ use Database\Seeders\Tk\TerminalDellinSeeder;
 use Database\Seeders\Tk\TerminalDpdSeeder;
 use Database\Seeders\Tk\TerminalKitSeeder;
 use Database\Seeders\Tk\TerminalNrgModifySeeder;
+use Database\Seeders\Tk\TerminalsJdeSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -32,6 +33,7 @@ class DatabaseSeeder extends Seeder
             TerminalBoxberrySeeder::class, // список лучше чем Байкал и Кит (остаток 466, в таблице 276)
             TerminalBaikalSeeder::class, // должен быть одним из последних (остаток 12, в таблице 158)
             TerminalKitSeeder::class, // должен быть одним из последних (остаток 27400, в таблице 348)
+            TerminalsJdeSeeder::class // 
         ]);
     }
 }

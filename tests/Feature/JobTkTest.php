@@ -7,6 +7,7 @@ use App\Jobs\Tk\BoxberryJob;
 use App\Jobs\Tk\CdekJob;
 use App\Jobs\Tk\DellinJob;
 use App\Jobs\Tk\DpdJob;
+use App\Jobs\Tk\JdeJob;
 use App\Jobs\Tk\KitJob;
 use App\Traits\Hash;
 use App\Traits\Json;
@@ -30,7 +31,7 @@ class JobTkTest extends TestCase
     /**
      * A basic feature test example.
      */
-    public function test_all_tk(): void
+    public function test_allTk(): void
     {
         $hash = $this->arrayToHash($this->request());
 
@@ -54,9 +55,12 @@ class JobTkTest extends TestCase
         CdekJob::dispatch($this->request(), $hash);
         DellinJob::dispatch($this->request(), $hash);
         DpdJob::dispatch($this->request(), $hash);
+        JdeJob::dispatch($this->request(), $hash);
         KitJob::dispatch($this->request(), $hash);
 
         $data = $this->toArray(Redis::get($hash));
+
+        dump("Хэш результата: $hash");
 
         assertNotEmpty($data);
 
@@ -76,6 +80,9 @@ class JobTkTest extends TestCase
 
         assertArrayHasKey('dpd', $data['results']);
         assertArrayHasKey('ss', $data['results']['dpd']);
+
+        assertArrayHasKey('jde', $data['results']);
+        assertArrayHasKey('ss', $data['results']['jde']);
 
         assertArrayHasKey('kit', $data['results']);
         assertArrayHasKey('ss', $data['results']['kit']);
@@ -108,6 +115,7 @@ class JobTkTest extends TestCase
                 2 => "cdek",
                 3 => "dellin",
                 4 => "dpd",
+                5 => "jde",
             ],
             "delivery_type" => [
                 0 => "ss",

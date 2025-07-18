@@ -3,8 +3,7 @@
 namespace Database\Seeders\Tk;
 
 use App\Enums\Jde\JdeUrlType;
-use App\Models\City;
-use App\Models\Country;
+use App\Models\Location;
 use App\Models\Tk\TerminalJde;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\Client\Pool;
@@ -12,6 +11,8 @@ use Illuminate\Support\Facades\Http;
 
 class TerminalsJdeSeeder extends Seeder
 {
+    private array $candidatsToUpdate = [];
+
     /**
      * Run the database seeds.
      */
@@ -49,33 +50,36 @@ class TerminalsJdeSeeder extends Seeder
 
             foreach ($response->object() as $terminal) {
 
-                $countryName = $terminal->contry_name;
-                $cityName = $terminal->city;
-                $terminalId = $terminal->code;
+                $location = Location::query()
+                    ->where('name', $terminal->city)
+                    ->whereHas('country', function ($query) use ($terminal) {
+                        $query->where('name', $terminal->contry_name);
+                    })->first();
 
-                $country = Country::where('name', $countryName)->first();
-
-                $city = City::updateOrCreate([
-                    'city_name' => $cityName,
-                    'country_id' => $country->id
-                ]);
+                // если локация не обнаружена, то она попадает в список кандидатов на парсинг
+                if (!$location) {
+                    $this->candidatsToUpdate[] = $terminal->city . ': ' . $terminal->addr;
+                    continue;
+                }
 
                 switch ($key) {
                     case 1:
                         TerminalJde::create([
-                            'city_id' => $city->id,
-                            'city_name' => $cityName,
-                            'terminal_id' => $terminalId,
+                            'location_id' => $location->id,
+                            'identifier' => $terminal->code,
+                            'name' => $terminal->city,
+                            'dirty' => $terminal->addr,
                             'acceptance' => true,
                         ]);
                         break;
                     case 2:
                         TerminalJde::updateOrCreate(
-                            ['terminal_id' => $terminalId],
+                            ['identifier' => $terminal->code],
                             [
-                                'city_id' => $city->id,
-                                'city_name' => $cityName,
-                                'terminal_id' => $terminalId,
+                                'location_id' => $location->id,
+                                'identifier' => $terminal->code,
+                                'name' => $terminal->city,
+                                'dirty' => $terminal->addr,
                                 'issue' => true,
                             ]
                         );
@@ -83,5 +87,7 @@ class TerminalsJdeSeeder extends Seeder
                 }
             }
         }
+
+        dump('Следующие локации остались не добавленными: ', $this->candidatsToUpdate);
     }
 }

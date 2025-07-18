@@ -65,13 +65,13 @@ class CalculateController extends Controller
                 CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all(), $hash)->onQueue('l'),
                 CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash)->onQueue('h'),
                 CompanyType::Dellin->value => DellinJob::dispatch($request->all(), $hash)->onQueue('l'),
-                CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash)->onQueue('l'),
                 CompanyType::DPD->value => DpdJob::dispatch($request->all(), $hash)->onQueue('h'),
-                CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash)->onQueue('h'),
                 CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash)->onQueue('h'),
                 CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
-                CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash)->onQueue('l'),
                 CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash)->onQueue('l'),
+                CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash)->onQueue('l'),
+                CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash)->onQueue('l'),
+                CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash)->onQueue('h'),
             };
         }
 
