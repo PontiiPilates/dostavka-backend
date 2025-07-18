@@ -32,7 +32,8 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
         $this->limitLength = 6;             // м
         $this->limitWidth = 2.3;            // м
         $this->limitHeight = 2.25;          // м
-
+        $this->limitVolume = 80;            // м
+        $this->limitInsurance = 300000000;  // руб
 
         // ограничения для малогабаритного груза
         $this->smalllimitLength = 0.54;     // м
@@ -82,20 +83,17 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
         }
 
         $places = collect($request->places);
-        $quantity = $places->count();
-        $maxWeight = $places->max('weight');                            // вес, кг
         $maxLength = $places->max('length') / 100;                      // длина, м
         $maxWidth = $places->max('width') / 100;                        // ширина, м
         $maxHeight = $places->max('height') / 100;                      // высота, м
         $totalVolume = round(($maxLength * $maxWidth * $maxHeight), 3); // итоговый объём, м3
-        $totalWeight = $maxWeight * $quantity;                          // итоговый вес, кг
+        $totalWeight = $places->sum('weight');                          // итоговый вес, кг
 
         // значение объёма не должно быть ниже минимально допустимого
         $totalVolume = $totalVolume < 0.001 ? 0.001 : $totalVolume;
 
         $gabarits = (object) [
-            'quantity' => (int) $quantity,
-            'weight' =>  (float) $maxWeight,
+            'weight' =>  (float) $totalWeight,
             'length' => (float) $maxLength,
             'width' => (float) $maxWidth,
             'height' => (float) $maxHeight,
@@ -103,15 +101,15 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
             'totalWeight' => (float) $totalWeight,
         ];
 
-        // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
-        $deliveryTypes = parent::checkDeliveryType($request);
-
         // проверка габаритов
         try {
             parent::checkGabarits($gabarits);
         } catch (\Throwable $th) {
             throw $th;
         }
+
+        // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
+        $deliveryTypes = parent::checkDeliveryType($request);
 
         foreach ($deliveryTypes as $type) {
 
@@ -154,7 +152,7 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
                     "appkey" => $this->token,
                     "delivery" => $delivery,
                     "cargo" => array_filter([
-                        "quantity" => $gabarits->quantity,                          // количество грузовых мест
+                        "quantity" => 1,                                            // количество мест (всегда 1, поскольку параметры макс. от всех мест)
                         "length" => $gabarits->length,                              // длина самого длинного грузового места, м
                         "width" => $gabarits->width,                                // ширина самого широкого грузового места, м
                         "height" => $gabarits->height,                              // высота самого высокого грузового места, м
