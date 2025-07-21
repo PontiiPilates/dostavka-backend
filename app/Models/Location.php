@@ -45,11 +45,6 @@ class Location extends Model
         return $this->hasMany(TkPekTerminal::class, 'city_id', 'id');
     }
 
-    public function terminalsNrg(): HasMany
-    {
-        return $this->hasMany(TerminalNrg::class, 'city_id', 'id');
-    }
-
     public function terminalsBaikal(): HasMany
     {
         return $this->hasMany(TerminalBaikal::class, 'location_id', 'id');
@@ -83,5 +78,10 @@ class Location extends Model
     public function terminalsJde(): HasMany
     {
         return $this->hasMany(TerminalJde::class, 'location_id', 'id');
+    }
+
+    public function terminalsNrg(): HasMany
+    {
+        return $this->hasMany(TerminalNrg::class, 'location_id', 'id');
     }
 }

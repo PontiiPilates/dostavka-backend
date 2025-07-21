@@ -2,27 +2,34 @@
 
 namespace App\Builders\Nrg;
 
-use App\Enums\DeliveryType;
+use App\Builders\BaseBuilder;
 use App\Enums\Nrg\NrgUrlType;
-use App\Enums\Pek\PekTariffType;
-use App\Enums\Pek\PekUrlType;
-use App\Interfaces\QueryPoolBuilderInterface;
+use App\Interfaces\RequestBuilderInterface;
 use App\Services\LocationService;
-use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class QueryBuilder implements QueryPoolBuilderInterface
+class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 {
     private string $url;
     private string $token;
 
-    public function __construct(
-        private LocationService $locationService,
-    ) {
-        $this->url = config('companies.nrg.url');
+    private LocationService $locationService;
+
+    public function __construct()
+    {
+        $this->url = config('companies.nrg.url') . NrgUrlType::Price->value;
         $this->token = config('companies.nrg.token');
+
+        $this->locationService = new LocationService();
+
+        // выявленные ограничения
+        $this->limitWeight = (float) 999999999999;      // кг
+        $this->limitLength = (float) 999999999999;      // см
+        $this->limitWidth = (float) 999999999999;       // см
+        $this->limitHeight = (float) 999999999999;      // см
+        $this->limitInsurance = (float) 999999999999;   // руб
     }
 
     /**
@@ -33,85 +40,85 @@ class QueryBuilder implements QueryPoolBuilderInterface
      * 
      * @return array
      */
-    public function build(Request $request, Pool $pool): array|null
+    public function build(array $request, Pool $pool): array
     {
-        // если пользователь указал наложенный платёж - не следует продолжать выполнение
+        $request = (object) $request;
+
+        // проверка наложенного платежа (не работает с нп)
         try {
-            $this->checkCashOnDelivery($request->cash_on_delivery);
+            parent::checkCashOnDelivery($request);
         } catch (\Throwable $th) {
-            throw new Exception('Проверка информации о наложенном платеже. ' . $th->getMessage());
-            return [];
+            throw $th;
         }
 
-        $from = $request->from;
-        $to = $request->to;
-
-        // если не обнаружен город, то нет смысла продолжать выполнение
+        // проверка объявленной ценности
         try {
-            $fromTerminal = $this->locationService->fromNrg($from);
-            $toTerminal = $this->locationService->fromNrg($to);
+            parent::checkDeclarePrice($request);
         } catch (\Throwable $th) {
-            throw new Exception("Не удалось получить информацию о населённом пункте. " . $th->getMessage(), 500);
+            throw $th;
         }
 
-        $places = $request->places;
-        $insurancePrice = $request->insurance;
+        // проверка корректности получения идентификатора населённого пункта
+        try {
+            $from = $this->locationService->location($request->from)->terminalsNrg()->first();
+            $to = $this->locationService->location($request->to)->terminalsNrg()->first();
+        } catch (\Throwable $th) {
+            throw $th;
+        }
 
-        // если не выбран способ доставки, то применяется способ поумолчанию
-        $deliveryTypes = $this->chechDeliveryType($request->delivery_type);
+        // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
+        $deliveryTypes = $this->checkDeliveryType($request);
 
         foreach ($deliveryTypes as $type) {
 
             $items = [];
-            foreach ($places as $place) {
+            foreach ($request->places as $place) {
+
+                $place = (object) $place;
+
+                // данная тк не реагирует на объём, api расчитывает его самостоятельно
+                // поэтому его здесь нет
+                // также тк допускает отсутствие параметров двш
+                $gabarits = (object) [
+                    'weight' => $place->weight,                                         // вес, кг
+                    'length' => isset($place->length) ? $place->length / 100 : null,    // длина, м
+                    'width' => isset($place->width) ? $place->width / 100 : null,       // ширина, м
+                    'height' => isset($place->height) ? $place->height / 100 : null,    // высота, м
+                ];
+
+                // проверка габаритов
+                try {
+                    parent::checkGabarits($gabarits);
+                } catch (\Throwable $th) {
+                    throw $th;
+                }
+
+                // допускается отсутствие параметров дшв
                 $items[] = array_filter([
-                    'weight' => (float) $place['weight'] ?? null,
-                    'length' => (float) isset($place['length']) ? $place['length'] / 100 : null,
-                    'width' => (float) isset($place['width']) ? $place['width'] / 100 : null,
-                    'height' => (float) isset($place['height']) ? $place['height'] / 100 : null,
-                    'volume' => (float) $place['volume'] ?? null
+                    'weight' => (float) $gabarits->weight ?? null,
+                    'length' => (float) $gabarits->length ?? null,
+                    'width' => (float) $gabarits->width ?? null,
+                    'height' => (float) $gabarits->height ?? null,
                 ]);
             }
 
             $template = [
-                "idCityFrom" => $fromTerminal->identifier,
-                "idCityTo" => $toTerminal->identifier,
-                "cover" => 0, // 1 - конверт, 0 - нет
-                "idCurrency" => 0, // валюта
-                "items" => $items, // позиции груза
-                "declaredCargoPrice" => $insurancePrice ?  (float) $insurancePrice : 0, // объявленная ценность
-                "idClient" => 0
+                "idCityFrom" => (int) $from->identifier,
+                "idCityTo" => (int) $to->identifier,
+                "cover" => 0,                                               // 1 - конверт, 0 - нет
+                "idCurrency" => 0,                                          // валюта
+                "items" => (array) $items,                                  // позиции груза
+                "declaredCargoPrice" => (float) isset($request->insurance)  // объявленная ценность
+                    ? $request->insurance
+                    : 0,
+                "idClient" => 0,
             ];
 
-            // dd($template);
+            Log::channel('tk')->info("Отправка запроса: " . $this->url, $template);
 
-            Log::channel('tk')->info("Отправка запроса: " . $this->url . NrgUrlType::Price->value, $template);
-
-            $pools[] = $pool->as($type)->withHeaders(['NrgApi-DevToken' => $this->token])->post($this->url . NrgUrlType::Price->value, $template);
+            $pools[] = $pool->as($type)->withHeaders(['NrgApi-DevToken' => $this->token])->post($this->url, $template);
         }
 
         return $pools;
-    }
-
-    /**
-     * Проверяет наличие информации о наложенном платеже. Выбрасывает исключение, если она не указана. Допустима работа с нулевым значением.
-     */
-    private function checkCashOnDelivery($cashOnDelivery)
-    {
-        if (isset($cashOnDelivery) && $cashOnDelivery > 0) {
-            throw new Exception('Компания не работает с наложенным платежём, поэтому не сможет участвовать в калькуляции.');
-        }
-    }
-
-    /**
-     * Проверяет способ доставки. Возвращает способ доставки поумолчанию, если ни один не выбран.
-     */
-    private function chechDeliveryType(array|null $methods): array
-    {
-        if (!$methods) {
-            return [DeliveryType::Ss->value];
-        }
-
-        return $methods;
     }
 }

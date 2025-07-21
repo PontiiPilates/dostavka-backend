@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Builders\Nrg;
 
+use App\Enums\CompanyType;
 use App\Enums\DeliveryType;
 use App\Enums\Nrg\NrgUrlType;
-use App\Enums\Pek\PekTariffType;
-use App\Enums\Pek\PekUrlType;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -21,7 +20,7 @@ class ResponseBuilder
 
     public function __construct()
     {
-        $this->url = config('companies.nrg.url');
+        $this->url = config('companies.nrg.url') . NrgUrlType::Price->value;
     }
 
     /**
@@ -32,22 +31,30 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [];
+        $data = [
+            'company' => CompanyType::Nrg->value,
+            'types' => [],
+        ];
 
         foreach ($responses as $type => $response) {
+
             $response = $response->object();
 
-
-            // реакция на наличие ошибок запроса
+            // реакция на наличие ошибки запроса
             try {
                 $this->checkResponseError($response);
             } catch (\Throwable $th) {
                 continue;
             }
 
-            dd($response);
-
             foreach ($response->transfer as $tariff) {
+
+                // реакция на наличие ошибки тарифа
+                try {
+                    $this->checkTariffError($tariff);
+                } catch (\Throwable $th) {
+                    continue;
+                }
 
                 // стоимость по тарифу
                 $cost = $tariff->price;
@@ -73,7 +80,7 @@ class ResponseBuilder
 
                 $this->parseDate($tariff->interval);
 
-                $data[$type][] = [
+                $data['types'][$type][] = [
                     "tariff" => $tariff->type,
                     "cost" => $cost,
                     "days" => [
@@ -81,10 +88,6 @@ class ResponseBuilder
                         "to" => $this->daysTo ?? null,
                     ]
                 ];
-
-                // if (condition) {
-                //     # code...
-                // }
             }
         }
 
@@ -93,8 +96,8 @@ class ResponseBuilder
 
     private function checkTariffError($tariff)
     {
-        if ($tariff->hasError === true) {
-            Log::channel('tk')->error('Ошибка при обработке ответа: ' . $this->url . NrgUrlType::Price->value, [$tariff->errorMessage]);
+        if (isset($tariff->hasError) && $tariff->hasError === true) {
+            Log::channel('tk')->error('Ошибка при обработке ответа: ' . $this->url, [$tariff->errorMessage]);
             throw new Exception("Ошибка при обработке ответа. Тариф содержит ошибку и будет исключён из итоговой сводки.", 500);
         }
     }
@@ -102,7 +105,7 @@ class ResponseBuilder
     private function checkResponseError($response)
     {
         if (isset($response->code) && isset($response->message)) {
-            Log::channel('tk')->error('Ошибка при обработке ответа: ' . $this->url . NrgUrlType::Price->value, [$response->extraInfo]);
+            Log::channel('tk')->error('Ошибка при обработке ответа: ' . $this->url, [$response->extraInfo]);
             throw new Exception('Ошибка при обработке ответа. Ответ содержит ошибку и будет исключён из итоговой сводки', 500);
         }
     }
