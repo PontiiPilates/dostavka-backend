@@ -11,6 +11,7 @@ use Database\Seeders\Tk\TerminalJdeSeeder;
 use Database\Seeders\Tk\TerminalKitSeeder;
 use Database\Seeders\Tk\TerminalNrgModifySeeder;
 use Database\Seeders\Tk\TerminalNrgSeeder;
+use Database\Seeders\Tk\TerminalPekSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -29,7 +30,7 @@ class DatabaseSeeder extends Seeder
 
             TerminalCdekSeeder::class, // очень хороший список населённых пунктов (остаток 638, в таблице 316)
             TerminalDpdSeeder::class, // ёмкий список, но есть свои особенности (остаток 6322, в таблице 390)
-            TerminalNrgModifySeeder::class, // (остаток 392, в таблице 0)
+            TerminalPekSeeder::class, // (остаток 146, в таблице 709)
             TerminalDellinSeeder::class, // короткий список городов со неприятным уровнем вложенности терминалов (остаток 36, в таблице 182)
             TerminalBoxberrySeeder::class, // список лучше чем Байкал и Кит (остаток 466, в таблице 276)
             TerminalBaikalSeeder::class, // должен быть одним из последних (остаток 12, в таблице 158)

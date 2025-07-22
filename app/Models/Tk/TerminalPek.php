@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class TerminalJde extends Model
+class TerminalPek extends Model
 {
     use HasFactory;
 
-    protected $table = 'terminals_jde';
+    protected $table = 'terminals_pek';
 
     public function location(): BelongsTo
     {

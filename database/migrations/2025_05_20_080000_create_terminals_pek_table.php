@@ -11,12 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tk_pek_terminals', function (Blueprint $table) {
+        Schema::create('terminals_pek', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('location_id')->constrained();
-            $table->text('city_name', 100);
-            $table->text('terminal_id', 64);
+
+            $table->char('identifier', 50)->comment('идентификатор локации');
+            $table->text('name', 100)->comment('название локации');
+            $table->text('dirty', 300)->nullable()->comment('данные о регионе локации');
+
             $table->float('max_weight')->default(0)->comment('максимальный вес груза');
             $table->float('max_volume')->default(0)->comment('максимально допустимый объем груза');
             $table->float('max_weight_per_place')->default(0)->comment('максимально допустимый вес грузоместа');
@@ -31,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tk_pek_terminals');
+        Schema::dropIfExists('terminals_pek');
     }
 };

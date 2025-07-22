@@ -30,6 +30,20 @@ class BaseBuilder
     protected $мaxLimitWidth;
     protected $мaxLimitHeight;
 
+    // ограничения для авто-тарифа (pek)
+    protected $autoLimitWeight;
+    protected $autoLimitLength;
+    protected $autoLimitWidth;
+    protected $autoLimitHeight;
+    protected $autoLimitVolume;
+
+    // ограничения для авиа-тарифа (pek)
+    protected $aviaLimitWeight;
+    protected $aviaLimitLength;
+    protected $aviaLimitWidth;
+    protected $aviaLimitHeight;
+    protected $aviaLimitVolume;
+
     /**
      * Проверка способа доставки: возвращает способ доставки поумолчанию если ни один не выбран.
      * 
@@ -164,6 +178,72 @@ class BaseBuilder
             || $gabarits->height > $this->мaxLimitHeight
         ) {
             throw new Exception("Габариты превышают параметры малогабаритного груза. Будет применён стандартный тариф.", 200);
+        }
+    }
+
+    /**
+     * Проверка габаритов автомобильного груза: выбрасывает исключение, если габариты превышают допустимые.
+     */
+    protected function checkAutoGabarits(object $gabarits)
+    {
+        // обработка случая, когда переданы только параметры дшв
+        $currentVolume = isset($gabarits->volume)
+            ? $gabarits->volume
+            : $gabarits->length * $gabarits->width * $gabarits->height;
+
+        // обработка случая, когда передан только параметр объёма
+        $currentLength = isset($gabarits->length) ? $gabarits->length : 0;
+        $currentWidth = isset($gabarits->width) ? $gabarits->width : 0;
+        $currentHeight = isset($gabarits->height) ? $gabarits->height : 0;
+
+        // ! для отладки
+        // dump("$gabarits->weight > $this->autoLimitWeight");
+        // dump("$currentLength > $this->autoLimitLength");
+        // dump("$currentWidth > $this->autoLimitWidth");
+        // dump("$currentHeight > $this->autoLimitHeight");
+        // dump("$currentVolume > $this->autoLimitVolume");
+
+        if (
+            $gabarits->weight > $this->autoLimitWeight
+            || $currentLength > $this->autoLimitLength
+            || $currentWidth > $this->autoLimitWidth
+            || $currentHeight > $this->autoLimitHeight
+            || $currentVolume > $this->autoLimitVolume
+        ) {
+            throw new Exception("Габариты превышают параметры авто-перевозимого груза. Авто тарифы будут исключены из расчётов.", 200);
+        }
+    }
+
+    /**
+     * Проверка габаритов авиационного груза: выбрасывает исключение, если габариты превышают допустимые.
+     */
+    protected function checkAviaGabarits(object $gabarits)
+    {
+        // обработка случая, когда переданы только параметры дшв
+        $currentVolume = isset($gabarits->volume)
+            ? $gabarits->volume
+            : $gabarits->length * $gabarits->width * $gabarits->height;
+
+        // обработка случая, когда передан только параметр объёма
+        $currentLength = isset($gabarits->length) ? $gabarits->length : 0;
+        $currentWidth = isset($gabarits->width) ? $gabarits->width : 0;
+        $currentHeight = isset($gabarits->height) ? $gabarits->height : 0;
+
+        // ! для отладки
+        // dump("$gabarits->weight > $this->aviaLimitWeight");
+        // dump("$currentLength > $this->aviaLimitLength");
+        // dump("$currentWidth > $this->aviaLimitWidth");
+        // dump("$currentHeight > $this->aviaLimitHeight");
+        // dump("$currentVolume > $this->aviaLimitVolume");
+
+        if (
+            $gabarits->weight > $this->aviaLimitWeight
+            || $currentLength > $this->aviaLimitLength
+            || $currentWidth > $this->aviaLimitWidth
+            || $currentHeight > $this->aviaLimitHeight
+            || $currentVolume > $this->aviaLimitVolume
+        ) {
+            throw new Exception("Габариты превышают параметры авиа-перевозимого груза. Авиа-тарифы будут исключены из расчётов.", 200);
         }
     }
 }

@@ -10,6 +10,7 @@ use App\Jobs\Tk\DpdJob;
 use App\Jobs\Tk\JdeJob;
 use App\Jobs\Tk\KitJob;
 use App\Jobs\Tk\NrgJob;
+use App\Jobs\Tk\PekJob;
 use App\Traits\Hash;
 use App\Traits\Json;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -59,6 +60,7 @@ class JobTkTest extends TestCase
         JdeJob::dispatch($this->request(), $hash);
         KitJob::dispatch($this->request(), $hash);
         NrgJob::dispatch($this->request(), $hash);
+        PekJob::dispatch($this->request(), $hash);
 
         $data = $this->toArray(Redis::get($hash));
 
@@ -91,6 +93,9 @@ class JobTkTest extends TestCase
 
         assertArrayHasKey('nrg', $data['results']);
         assertArrayHasKey('ss', $data['results']['nrg']);
+
+        assertArrayHasKey('pek', $data['results']);
+        assertArrayHasKey('ss', $data['results']['pek']);
     }
 
     private function request(): array
@@ -121,6 +126,7 @@ class JobTkTest extends TestCase
                 3 => "dellin",
                 4 => "dpd",
                 5 => "jde",
+                6 => "pek",
             ],
             "delivery_type" => [
                 0 => "ss",

@@ -11,6 +11,7 @@ use App\Models\Tk\TerminalDpd;
 use App\Models\Tk\TerminalJde;
 use App\Models\Tk\TerminalKit;
 use App\Models\Tk\TerminalNrg;
+use App\Models\Tk\TerminalPek;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,16 +34,6 @@ class Location extends Model
     public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class, 'region_id', 'id');
-    }
-
-    public function tkKitCity(): HasMany
-    {
-        return $this->hasMany(TkKitCity::class, 'city_id', 'id');
-    }
-
-    public function tkPek(): HasMany
-    {
-        return $this->hasMany(TkPekTerminal::class, 'city_id', 'id');
     }
 
     public function terminalsBaikal(): HasMany
@@ -83,5 +74,10 @@ class Location extends Model
     public function terminalsNrg(): HasMany
     {
         return $this->hasMany(TerminalNrg::class, 'location_id', 'id');
+    }
+
+    public function terminalsPek(): HasMany
+    {
+        return $this->hasMany(TerminalPek::class, 'location_id', 'id');
     }
 }

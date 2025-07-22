@@ -2,28 +2,49 @@
 
 namespace App\Builders\Pek;
 
+use App\Builders\BaseBuilder;
 use App\Enums\DeliveryType;
 use App\Enums\Pek\PekTariffType;
 use App\Enums\Pek\PekUrlType;
-use App\Interfaces\QueryPoolBuilderInterface;
+use App\Interfaces\RequestBuilderInterface;
 use App\Services\LocationService;
 use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class QueryBuilder implements QueryPoolBuilderInterface
+class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 {
     private string $url;
     private string $user;
     private string $password;
 
-    public function __construct(
-        private LocationService $locationService,
-    ) {
-        $this->url = config('companies.pek.url');
+    private LocationService $locationService;
+
+    public function __construct()
+    {
+        $this->url = config('companies.pek.url') . PekUrlType::Calculate->value;
         $this->user = config('companies.pek.user');
         $this->password = config('companies.pek.password');
+
+        $this->locationService = new LocationService();
+
+        // выявленные ограничения
+        $this->limitInsurance = (float) 999999999999;   // руб
+
+        // ограничения для авто-тарифа
+        $this->autoLimitWeight = 20000; // кг
+        $this->autoLimitLength = 13.4;  // м
+        $this->autoLimitWidth = 2.42;   // м
+        $this->autoLimitHeight = 2.45;  // м
+        $this->autoLimitVolume = 80;    // м3
+
+        // ограничения для авиа-тарифа
+        $this->aviaLimitWeight = 80;    // кг
+        $this->aviaLimitLength = 2;     // м
+        $this->aviaLimitWidth = 1;      // м
+        $this->aviaLimitHeight = 0.8;   // м
+        $this->aviaLimitVolume = 1.6;   // м3
     }
 
     /**
@@ -34,192 +55,121 @@ class QueryBuilder implements QueryPoolBuilderInterface
      * 
      * @return array
      */
-    public function build(Request $request, Pool $pool): array|null
+    public function build(array $request, Pool $pool): array
     {
-        // если пользователь указал наложенный платёж - не следует продолжать выполнение
+        $request = (object) $request;
+
+        // проверка наложенного платежа (не работает с нп)
         try {
-            $this->checkCashOnDelivery($request->cash_on_delivery);
+            parent::checkCashOnDelivery($request);
         } catch (\Throwable $th) {
-            throw new Exception('Проверка информации о наложенном платеже. ' . $th->getMessage());
-            return [];
+            throw $th;
         }
 
-        $from = $request->from;
-        $to = $request->to;
-
-        $constraints = $this->constraints($request);
-
-        // если не обнаружен город, то нет смысла продолжать выполнение
+        // проверка объявленной ценности
         try {
-            $fromTerminal = $this->locationService->tkPek($from, $constraints);
-            $toTerminal = $this->locationService->tkPek($to, $constraints);
+            parent::checkDeclarePrice($request);
         } catch (\Throwable $th) {
-            throw new Exception("Не удалось получить информацию о населённом пункте. " . $th->getMessage(), 500);
+            throw $th;
         }
 
-        $fromCity = mb_ucfirst(mb_strtolower($fromTerminal->city->city_name));
-        $toCity = mb_ucfirst(mb_strtolower($toTerminal->city->city_name));
-        $fromCountry = mb_ucfirst(mb_strtolower($fromTerminal->city->country->name));
-        $toCountry = mb_ucfirst(mb_strtolower($toTerminal->city->country->name));
-
-        $places = $request->places;
-        $shipmentDate = $request->shipment_date;
-        $insurancePrice = $request->sumoc;
-
-        // если не выбран способ доставки, то применяется способ поумолчанию
-        $deliveryTypes = $this->isDeliveryTypeUnselected($request->delivery_type);
+        // проверка корректности получения идентификатора населённого пункта
+        try {
+            $from = $this->locationService->location($request->from)->terminalsPek()->first();
+            $to = $this->locationService->location($request->to)->terminalsPek()->first();
+        } catch (\Throwable $th) {
+            throw $th;
+        }
 
         $tariffs = collect([]);
+        $gabarits = $this->gabarits($request);
 
+        // проверка габаритов для авиа-тарифа
         try {
-            $this->checkCargo($places, 'avia');
-            $tariffs->push(
-                PekTariffType::AviaExpress->value
-            );
+            parent::checkAviaGabarits($gabarits);
+            $tariffs->push(PekTariffType::AviaExpress->value);
         } catch (\Throwable $th) {
-            // авиа-тарифы не будут принимать участие в калькуляции
+            // если параметры больше, то авиа-тариф не будет принимать участие в калькуляции
         }
 
-        // если габариты превышают любые допустимые, то нет смысла продолжать выполнение
+        // проверка габаритов для авто-тарифов
         try {
-            $this->checkCargo($places, 'auto');
+            parent::checkAutoGabarits($gabarits);
             $tariffs->push(
                 PekTariffType::Auto->value,
                 PekTariffType::AutoDts->value,
-                PekTariffType::AutoEasyWay->value
+                // PekTariffType::AutoExpress->value, // не обслуживается
+                PekTariffType::AutoEasyWay->value,
             );
         } catch (\Throwable $th) {
             throw new Exception("Параметры груза превышают допустимые габариты.", 500);
         }
 
+        // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
+        $deliveryTypes = parent::checkDeliveryType($request);
+
         foreach ($deliveryTypes as $type) {
 
             $cargos = [];
-            foreach ($places as $place) {
-                $cargos[] = array_filter([
-                    'weight' => (float) $place['weight'] ?? null,
-                    'length' => (float) isset($place['length']) ? $place['length'] / 100 : null,
-                    'width' => (float) isset($place['width']) ? $place['width'] / 100 : null,
-                    'height' => (float) isset($place['height']) ? $place['height'] / 100 : null,
-                    'volume' => (float) $place['volume'] ?? null
+            foreach ($request->places as $place) {
+
+                $place = (object) $place;
+
+                // тк допускает возможность отсутствия параметров дшв либо объёма
+                $gabarits = (object) array_filter([
+                    'weight' => (float) $place->weight,
+                    'length' => isset($place->length) ? $place->length / 100 : null,
+                    'width' => isset($place->width) ? $place->width / 100 : null,
+                    'height' => isset($place->height) ? $place->height / 100 : null,
+                    'volume' => isset($place->volume) ? (float) $place->volume : null,
                 ]);
+
+                $cargos[] = (array) $gabarits;
             }
 
             $template = [
                 "types" => $tariffs->toArray(),
-                "senderWarehouseId" => $fromTerminal->terminal_id,
-                "receiverWarehouseId" => $toTerminal->terminal_id,
-                "plannedDateTime" => $shipmentDate . 'T00:00:00',
-                "isInsurance" => $insurancePrice ? true : false,
-                "isInsurancePrice" => $insurancePrice ?  $insurancePrice : 0.0,
+                "senderWarehouseId" => $from->identifier,
+                "receiverWarehouseId" => $to->identifier,
+                "plannedDateTime" => $request->shipment_date . 'T00:00:00',
+                "isInsurance" => isset($request->insurance) ? true : false,
+                "isInsurancePrice" => isset($request->insurance) ?  $request->insurance : 0.0,
                 'isPickUp' => $type == DeliveryType::Ds->value || $type == DeliveryType::Dd->value ? true : false,
                 'isDelivery' => $type == DeliveryType::Sd->value || $type == DeliveryType::Dd->value ? true : false,
-                "pickup" => ["address" => "$fromCountry, $fromCity"],
-                "delivery" => ["address" => "$toCountry, $toCity"],
+                "pickup" => ["address" => mb_ucfirst(mb_strtolower($from->location->country->name)) . ', ' . $from->name],
+                "delivery" => ["address" => mb_ucfirst(mb_strtolower($to->location->country->name)) . ', ' . $to->name],
                 "cargos" => $cargos,
             ];
 
-            Log::channel('tk')->info("Отправка запроса: " . $this->url . PekUrlType::Calculate->value, $template);
+            // dd($template);
 
-            $pools[] = $pool->as($type)->withBasicAuth($this->user, $this->password)->post($this->url . PekUrlType::Calculate->value, $template);
+            Log::channel('tk')->info("Отправка запроса: " . $this->url, $template);
+            $pools[] = $pool->as($type)->withBasicAuth($this->user, $this->password)->post($this->url, $template);
         }
 
         return $pools;
     }
 
     /**
-     * Проверяет наличие информации о наложенном платеже. Выбрасывает исключение, если она не указана. Допустима работа с нулевым значением.
+     * Возвращает преобразованные параметры груза для последующей проверке на ограничения.
+     * 
+     * Допускается отсутствие дшв либо объёма.
+     * Параметры включают в себя максимальные агрегированные значения всего груза.
+     * Данная тк использует в качестве единиц измерения: килограмм, метр, кубический метр.
+     * 
+     * @param object $request
+     * @return object
      */
-    private function checkCashOnDelivery($cashOnDelivery)
+    private function gabarits(object $request): object
     {
-        if (isset($cashOnDelivery) && $cashOnDelivery > 0) {
-            throw new Exception('Компания не работает с наложенным платежём, поэтому не сможет участвовать в калькуляции.');
-        }
-    }
-
-    /**
-     * Возвращает способ доставки поумолчанию, если ни один не выбран.
-     */
-    private function isDeliveryTypeUnselected(array|null $methods): array
-    {
-        if (!$methods) {
-            return [DeliveryType::Ss->value];
-        }
-
-        return $methods;
-    }
-
-    private function constraints(Request $request)
-    {
-        $totalWeight = 0;
-        $totalVolume = 0;
-        $maxWeightPerPlace = 0;
-        $maxDimension = collect([]);
-
-        foreach ($request->places as $place) {
-
-            $totalWeight += $place['weight'];
-
-            if ($place['weight'] > $maxWeightPerPlace) {
-                $maxWeightPerPlace = $place['weight'];
-            }
-
-            $maxDimension->push(collect([
-                $place['length'] ?? 0,
-                $place['width'] ?? 0,
-                $place['height'] ?? 0
-            ])->max());
-        }
-
         $places = collect($request->places);
 
-        $maxLength = $places->max('length') / 100;
-        $maxWidth = $places->max('width') / 100;
-        $maxHeight = $places->max('height') / 100;
-        $maxDimension =  $maxDimension->max() / 100;
-
-        $totalVolume = round(($maxLength * $maxWidth * $maxHeight), 2);
-
-        return [
-            'maxWeight' => (float) $totalWeight, // максимальный вес груза
-            'maxVolume' => (float) $totalVolume, // максимальный объём груза
-            'maxWeightPerPlace' => (float) $maxWeightPerPlace, // максимальный вес грузоместа
-            'maxDimension' => (float) $maxDimension, // максимальный габарит грузоместа
-        ];
-    }
-
-    private function checkCargo(array $places, $type)
-    {
-        switch ($type) {
-            case 'auto':
-                $maxWeight = 20000;
-                $maxLength = 13.4;
-                $maxWidth = 2.42;
-                $maxHeight = 2.45;
-                break;
-            case 'avia':
-                $maxWeight = 80;
-                $maxLength = 2;
-                $maxWidth = 1;
-                $maxHeight = 0.8;
-                break;
-        }
-
-        foreach ($places as $place) {
-
-            $transmittedWeight = $place['weight'];
-            $transmittedLength = isset($place['length']) ? $place['length'] / 100 : 0;
-            $transmittedWidth = isset($place['width']) ? $place['width'] / 100 : 0;
-            $transmittedHeight = isset($place['height']) ? $place['height'] / 100 : 0;
-
-            if (
-                $transmittedWeight > $maxWeight
-                || $transmittedLength > $maxLength
-                || $transmittedWidth > $maxWidth
-                || $transmittedHeight > $maxHeight
-            ) {
-                throw new Exception("Параметры груза превышают допустимые габариты", 500);
-            }
-        }
+        return (object) array_filter([
+            'weight' => $places->sum('weight'),                                         // итоговый вес, кг
+            'length' => $places->max('length') ? $places->max('length') / 100 : null,   // длина, м
+            'width' => $places->max('width') ? $places->max('width') / 100 : null,      // ширина, м
+            'height' => $places->max('height') ? $places->max('height') / 100 : null,   // высота, м
+            'volume' => $places->sum('volume') ? $places->sum('volume') : null,         // итоговый объём, м3
+        ]);
     }
 }

@@ -67,7 +67,7 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
         }
 
         // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
-        $deliveryTypes = $this->checkDeliveryType($request);
+        $deliveryTypes = parent::checkDeliveryType($request);
 
         foreach ($deliveryTypes as $type) {
 
