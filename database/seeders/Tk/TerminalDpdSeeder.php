@@ -150,6 +150,21 @@ class TerminalDpdSeeder extends Seeder
                 'name' => $city->cityName,
                 'dirty' => $city->abbreviation . '. ' . $city->cityName . ': ' . $city->regionName . ', ' . $city->regionCode,
             ]);
+
+            $indexMin = null;
+            $indexMax = null;
+
+            if (isset($city->indexMin) && !empty($city->indexMin)) {
+                $indexMin = $city->indexMin;
+            }
+            if (isset($city->indexMax) && !empty($city->indexMax)) {
+                $indexMax = $city->indexMax;
+            }
+
+            $location->update([
+                'index_min' => $indexMin,
+                'index_max' => $indexMax,
+            ]);
         }
 
         dump('Следующие локации остались не добавленными: ', $this->candidatsToUpdate);

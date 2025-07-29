@@ -38,6 +38,8 @@ class XmlParser
                 'cityCode' => $xpath->evaluate('string(cityCode)', $return),
                 'cityName' => $xpath->evaluate('string(cityName)', $return),
                 'abbreviation' => $xpath->evaluate('string(abbreviation)', $return),
+                'indexMin' => $xpath->evaluate('string(indexMin)', $return),
+                'indexMax' => $xpath->evaluate('string(indexMax)', $return),
             ];
 
             $cities->push($city);
