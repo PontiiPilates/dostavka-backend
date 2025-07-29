@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Builders;
 
 use App\Enums\DeliveryType;
+use App\Models\Location;
 use Exception;
 
 class BaseBuilder
@@ -94,6 +95,21 @@ class BaseBuilder
         if ($currentinsurance > $limitinsurance) {
             throw new Exception('Сумма объявленной ценности больше установленной. Компания не сможет участвовать в калькуляции.', 200);
         }
+    }
+
+    /**
+     * Возвращает true если отправление является международным и false если нет.
+     * 
+     * @param Location $location
+     * @return bool
+     */
+    protected function checkInternational(Location $location): bool
+    {
+        if ($location->region->country->code == 643) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

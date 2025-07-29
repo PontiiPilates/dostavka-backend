@@ -23,7 +23,9 @@ class Location extends Model
 
     protected $fillable = [
         'city_name',
-        'country_id'
+        'country_id',
+        'index_min',
+        'index_max',
     ];
 
     public function country(): BelongsTo

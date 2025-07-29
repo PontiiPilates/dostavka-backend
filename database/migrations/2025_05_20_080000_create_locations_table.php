@@ -20,6 +20,9 @@ return new class extends Migration
             $table->string('name', 100);
             $table->string('type', 100);
 
+            $table->integer('index_min')->nullable()->comment('начальный почтовый индекс');
+            $table->integer('index_max')->nullable()->comment('конечный почтовый индекс');
+
             $table->timestamps();
         });
     }

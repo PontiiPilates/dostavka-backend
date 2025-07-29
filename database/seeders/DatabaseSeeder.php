@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use Database\Seeders\Tk\TariffPochtaSeeder;
 use Database\Seeders\Tk\TerminalBaikalSeeder;
 use Database\Seeders\Tk\TerminalBoxberrySeeder;
 use Database\Seeders\Tk\TerminalCdekSeeder;
@@ -9,7 +10,6 @@ use Database\Seeders\Tk\TerminalDellinSeeder;
 use Database\Seeders\Tk\TerminalDpdSeeder;
 use Database\Seeders\Tk\TerminalJdeSeeder;
 use Database\Seeders\Tk\TerminalKitSeeder;
-use Database\Seeders\Tk\TerminalNrgModifySeeder;
 use Database\Seeders\Tk\TerminalNrgSeeder;
 use Database\Seeders\Tk\TerminalPekSeeder;
 use Illuminate\Database\Seeder;
@@ -28,8 +28,10 @@ class DatabaseSeeder extends Seeder
             // RegionSeeder::class, // засев таблицы выполняет LocationSeeder, необходимо разделить функционал
             LocationSeeder::class,
 
-            TerminalCdekSeeder::class, // очень хороший список населённых пунктов (остаток 638, в таблице 316)
-            TerminalDpdSeeder::class, // ёмкий список, но есть свои особенности (остаток 6322, в таблице 390)
+            TariffPochtaSeeder::class,
+
+            TerminalDpdSeeder::class, // ёмкий список, но есть свои особенности (остаток 6322, в таблице 390) | первый в формировании списка индексов
+            TerminalCdekSeeder::class, // очень хороший список населённых пунктов (остаток 638, в таблице 316) | второй в формировании списка индексов
             TerminalPekSeeder::class, // (остаток 146, в таблице 709)
             TerminalDellinSeeder::class, // короткий список городов со неприятным уровнем вложенности терминалов (остаток 36, в таблице 182)
             TerminalBoxberrySeeder::class, // список лучше чем Байкал и Кит (остаток 466, в таблице 276)

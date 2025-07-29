@@ -14,15 +14,23 @@ return new class extends Migration
         Schema::create('tariffs_pochta', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('companies_id')->constrained()->comment('транспортная компания');
-            $table->char('name', 100)->comment('систменое имя тарифа');
-            $table->char('label', 200)->comment('название тарифа');
-            $table->char('number', 200)->comment('внешний идентификатор тарифа');
-            $table->boolean('sumoc')->nullable()->comment('признак объявленной ценности');
-            $table->boolean('sumnp')->nullable()->comment('признак наложенного платежа');
-            $table->boolean('international')->nullable()->comment('признак международной доставки');
+            $table->integer('object')->comment('идентификатор тарифа');
+            $table->char('name', 200)->comment('название тарифа');
+
+            $table->boolean('sumoc')->default(false)->comment('с объявленной ценностью');
+            $table->boolean('sumnp')->default(false)->comment('с наложенным платежом');
+
+            $table->integer('min_weight')->default(0)->comment('идентификатор тарифа');
+            $table->integer('max_weight')->default(1000000000)->comment('идентификатор тарифа');
+
+            $table->boolean('country_to')->default(false)->comment('международное отправление');
+
+            $table->boolean('ss')->default(false)->comment('склад-склад');
+            $table->boolean('sd')->default(false)->comment('склад-дверь');
+            $table->boolean('ds')->default(false)->comment('дверь-дверь');
+            $table->boolean('dd')->default(false)->comment('дверь-склад');
+
             $table->boolean('available')->default(true)->comment('признак участия тарифа в калькуляции');
-            $table->integer('const_weight')->default(999999)->comment('ограничение веса (гр)');
 
             $table->timestamps();
         });
