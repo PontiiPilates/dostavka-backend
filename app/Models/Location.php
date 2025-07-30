@@ -12,6 +12,7 @@ use App\Models\Tk\TerminalJde;
 use App\Models\Tk\TerminalKit;
 use App\Models\Tk\TerminalNrg;
 use App\Models\Tk\TerminalPek;
+use App\Models\Tk\TerminalVozovoz;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -81,5 +82,10 @@ class Location extends Model
     public function terminalsPek(): HasMany
     {
         return $this->hasMany(TerminalPek::class, 'location_id', 'id');
+    }
+
+    public function terminalsVozovoz(): HasMany
+    {
+        return $this->hasMany(TerminalVozovoz::class, 'location_id', 'id');
     }
 }

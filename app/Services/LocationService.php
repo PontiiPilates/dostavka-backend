@@ -198,7 +198,7 @@ class LocationService
         // Но ко всем остальным нужно применять регион
     }
 
-    public function location($location)
+    public function location($location): Location
     {
         $items = explode(',', $location);
 

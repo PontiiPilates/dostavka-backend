@@ -2,88 +2,125 @@
 
 namespace App\Builders\Vozovoz;
 
-use App\Enums\DeliveryType;
+use App\Builders\BaseBuilder;
 use App\Enums\Vozovoz\VozovozUrlType;
 use App\Factorys\Vozovoz\DeliveryTypeFactory;
-use App\Services\Location\LocationParserService;
-use Exception;
+use App\Interfaces\RequestBuilderInterface;
+use App\Services\LocationService;
 use Illuminate\Http\Client\Pool;
-use Illuminate\Http\Request;
 
-class QueryBuilder
+class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 {
     private string $url;
-    private string $token;
 
-    public function __construct(
-        private LocationParserService $locationParser,
-    ) {
-        $this->url = config('companies.vozovoz.url');
-        $this->token = config('companies.vozovoz.token');
+    private LocationService $locationService;
+
+    public function __construct()
+    {
+        $this->locationService = new LocationService();
+
+        $this->url = config('companies.vozovoz.url') . '?token=' . config('companies.vozovoz.token');
+
+        // выявленные ограничения
+        $this->limitWeight = (float) 19999;         // кг
+        $this->limitLength = (float) 12.89;         // м
+        $this->limitWidth = (float) 2.39;           // м
+        $this->limitHeight = (float) 2.39;          // м
+        $this->limitVolume = (float) 79.9;          // м3
+        $this->limitInsurance = (float) 99999999;   // руб
     }
 
     /**
      * Обеспечивает сборку запросов для ассинхронной отправки.
      * 
+     * @param array $request
      * @param Pool $pool
-     * @param Request $request
      * 
      * @return array
      */
-    public function build(Pool $pool, Request $request): array
+    public function build(array $request, Pool $pool): array
     {
+        $request = (object) $request;
+
+        // проверка наложенного платежа
         try {
-            $from = $this->locationParser->moreAboutCity($request->from);
-            $to = $this->locationParser->moreAboutCity($request->to);
+            $this->checkCashOnDelivery($request);
         } catch (\Throwable $th) {
-            throw new Exception("Не удалось получить информацию о населённом пункте. " . $th->getMessage(), 500);
+            throw $th;
         }
 
-        $deliveryTypes = $this->isDeliveryTypeUnselected($request->delivery_type);
-        $shipmentDate = $request->shipment_date;
-        $places = $request->places;
-        $url = $this->url . '?' . "token=$this->token";
+        // проверка объявленной ценности
+        try {
+            parent::checkDeclarePrice($request);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+
+        // проверка корректности получения идентификатора населённого пункта
+        try {
+            $from = $this->locationService->location($request->from)->terminalsVozovoz()->first()->identifier;
+            $to = $this->locationService->location($request->to)->terminalsVozovoz()->first()->identifier;
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+
+        $places = collect($request->places);
+        $maxLength = $places->max('length') * 0.01;     // длина, м
+        $maxWidth = $places->max('width') * 0.01;       // ширина, м
+        $maxHeight = $places->max('height') * 0.01;     // высота, м
+        $maxWeight = $places->max('weight');            // вес, кг
+        $totalVolume = $places->sum('volume');          // итоговый объём, м3
+        $totalWeight = $places->sum('weight');          // итоговый вес, кг
+        $quantity = $places->count();                   // общее количество мест
+
+        $gabarits = (object) [
+            'weight' => $totalWeight,
+            'length' => $maxLength,
+            'width' => $maxWidth,
+            'height' => $maxHeight,
+            'totalVolume' => $totalVolume,
+            'totalWeight' => $totalWeight,
+            'quantity' => $quantity,
+        ];
+
+        // проверка габаритов
+        try {
+            parent::checkGabarits($gabarits);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+
+        // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
+        $deliveryTypes = parent::checkDeliveryType($request);
 
         foreach ($deliveryTypes as $type) {
-            $gateway = DeliveryTypeFactory::make($type, $from, $to, $shipmentDate);
-
-            $wizard = [];
-            foreach ($places as $place) {
-                $wizard[] = [
-                    "length" => (float) $place["length"] * 0.01,
-                    "width" => (float) $place["width"] * 0.01,
-                    "height" => (float) $place["height"] * 0.01,
-                    "quantity" => (int) 1,
-                    "weight" => (float) $place["weight"],
-                ];
-            }
+            $gateway = DeliveryTypeFactory::make($type, $from, $to, $request->shipment_date);
 
             $template = [
                 'object' => VozovozUrlType::Price->value,
                 'action' => 'get',
                 'params' => [
-                    "cargo" => [
-                        "wizard" => $wizard
-                    ],
-                    "gateway" => $gateway
+                    'cargo' => array_filter([
+                        'dimension' => [
+                            'max' => [
+                                'weight' => (float) $maxWeight,
+                                'length' => (float) $maxLength,
+                                'width' => (float) $maxWidth,
+                                'height' => (float) $maxHeight,
+                            ],
+                            'quantity' => (int) $gabarits->quantity,
+                            'volume' => (float) $gabarits->totalVolume,
+                            'weight' => (float) $gabarits->totalWeight,
+                        ],
+                        'insurance' => isset($request->insurance) ? (float) $request->insurance : null,
+                    ]),
+                    'gateway' => $gateway
                 ]
             ];
 
-            $pools[] = $pool->as($type)->post($url, $template);
+            $pools[] = $pool->as($type)->post($this->url, $template);
         }
 
         return $pools;
-    }
-
-    /**
-     * Возвращает способ доставки поумолчанию, если ни один не выбран.
-     */
-    private function isDeliveryTypeUnselected(array|null $methods): array
-    {
-        if (!$methods) {
-            return [DeliveryType::Ss->value];
-        }
-
-        return $methods;
     }
 }

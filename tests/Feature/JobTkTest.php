@@ -12,6 +12,7 @@ use App\Jobs\Tk\KitJob;
 use App\Jobs\Tk\NrgJob;
 use App\Jobs\Tk\PekJob;
 use App\Jobs\Tk\PochtaJob;
+use App\Jobs\Tk\VozovozJob;
 use App\Traits\Hash;
 use App\Traits\Json;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,6 +64,7 @@ class JobTkTest extends TestCase
         NrgJob::dispatch($this->request(), $hash);
         PekJob::dispatch($this->request(), $hash);
         PochtaJob::dispatch($this->request(), $hash);
+        VozovozJob::dispatch($this->request(), $hash);
 
         $data = $this->toArray(Redis::get($hash));
 
@@ -101,6 +103,9 @@ class JobTkTest extends TestCase
 
         assertArrayHasKey('pochta', $data['results']);
         assertArrayHasKey('ss', $data['results']['pochta']);
+
+        assertArrayHasKey('vozovoz', $data['results']);
+        assertArrayHasKey('ss', $data['results']['vozovoz']);
     }
 
     private function request(): array
