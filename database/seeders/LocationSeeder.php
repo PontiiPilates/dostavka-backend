@@ -26,7 +26,7 @@ class LocationSeeder extends Seeder
 
         foreach ($files as $country) {
 
-            $file = file("storage/app/assets/geo/etalon/regions/$country.txt");
+            $file = file("storage/app/assets/geo/etalon/locations/$country.txt");
             $collection = collect($file);
             $chunks = $collection->chunk(2);
 
@@ -58,7 +58,7 @@ class LocationSeeder extends Seeder
                     'country_id' => $countryModel->id,
                     'region_id' => $region->id,
                     'name' => $city,
-                    'type' => 'город'
+                    'type' => 'г'
                 ]);
             }
         }
