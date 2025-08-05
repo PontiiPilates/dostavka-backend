@@ -19,22 +19,19 @@ class TerminalDpdSeeder extends Seeder
         // зато есть код самого региона
         // что касается списка, то он вполне ёмкий и системмный
 
-        // города с доставкой наложенным платежом
-        $dataCitiesCashPay = Storage::json(DpdFileType::CitiesCashPay->value);
+        $dataCitiesCashPay = Storage::json(DpdFileType::CitiesCashPay->value); // города с доставкой наложенным платежом
+        $dataParcelShops = Storage::json(DpdFileType::ParcelShops->value); // пункты выдачи с информацией об ограничениях
+        $dataTerminalsSelfDelivery2 = Storage::json(DpdFileType::TerminalsSelfDelivery2->value); // пункты выдачи без ограничений по габаритам
 
-        // пункты выдачи с информацией об ограничениях
-        $dataParcelShops = Storage::json(DpdFileType::ParcelShops->value);
-
-        // пункты выдачи без ограничений по габаритам
-        $dataTerminalsSelfDelivery2 = Storage::json(DpdFileType::TerminalsSelfDelivery2->value);
-
-        // засев данными
         $this->seeding($dataCitiesCashPay);
+        // $this->seeding($dataParcelShops);
+        // $this->seeding($dataTerminalsSelfDelivery2);
     }
 
     private function seeding($data): void
     {
-        $count = 0;
+        $countLocation = 0;
+        $countTerminal = 0;
         foreach ($data['return'] as $city) {
             $city = (object) $city;
 
@@ -59,7 +56,8 @@ class TerminalDpdSeeder extends Seeder
                 $location = $this->createLocation($city, $regionCode);
                 $this->createTerminal($city, $regionCode, $location);
 
-                $count++;
+                $countLocation++;
+                $countTerminal++;
                 continue;
             }
 
@@ -71,9 +69,15 @@ class TerminalDpdSeeder extends Seeder
                 'index_max' => isset($city->indexMax) && !empty($city->indexMax) ? $city->indexMax : null,
             ]);
 
-            $count++;
+            $countTerminal++;
         }
-        dump("Успешно обработано $count записей");
+
+        // в рамках метода dataCitiesCashPay происходит:
+        // добавление терминалов
+        // добавление локаций
+
+        dump("Добавлено $countLocation новых населенных пунктов");
+        dump("Добавлено $countTerminal терминалов");
     }
 
     private function createLocation($city, $regionCode): Location
