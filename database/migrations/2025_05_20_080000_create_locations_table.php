@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('region_id')->constrained();
 
             $table->string('name', 100);
-            $table->string('type', 100);
+            $table->string('type', 100)->nullable();
 
             $table->integer('index_min')->nullable()->comment('начальный почтовый индекс');
             $table->integer('index_max')->nullable()->comment('конечный почтовый индекс');
