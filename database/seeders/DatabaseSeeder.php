@@ -13,6 +13,7 @@ use Database\Seeders\Tk\TerminalKitSeeder;
 use Database\Seeders\Tk\TerminalNrgSeeder;
 use Database\Seeders\Tk\TerminalPekSeeder;
 use Database\Seeders\Tk\TerminalVozovozSeeder;
+use Database\Seeders\Tk\TerritoriesVozovozSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -33,11 +34,14 @@ class DatabaseSeeder extends Seeder
             // у данной тк хороший, системный список, его данные близки к эталонным и ложатся в основу построения гео-данных
             // данный сидер должен запускаться в первую очередь
             // дополняет данные 63232 элементами
-            TerminalDpdSeeder::class,
+            // TerminalDpdSeeder::class,
 
-            // у данной тк имеется не полный, но хороший список регионов в том числе зарубежных стран, которыми можно дополнить базу данных
-            TerminalCdekSeeder::class, // очень хороший список населённых пунктов (остаток 638, в таблице 316) | второй в формировании списка локаций
-            // TerminalVozovozSeeder::class, // хороший список населённых пунктов (остаток 306742, в таблице 1695) | третий в формировании списка локаций
+            // у данной тк приемлемый список
+            // однако данные списка регионов расходятся со списком городов в части наименования регионов
+            // TerminalCdekSeeder::class,
+
+            TerminalVozovozSeeder::class, // хороший список населённых пунктов (остаток 306742, в таблице 1695) | третий в формировании списка локаций
+            TerritoriesVozovozSeeder::class, // хороший список населённых пунктов (остаток 306742, в таблице 1695) | третий в формировании списка локаций
 
             // TerminalPekSeeder::class, // (остаток 146, в таблице 709)
             // TerminalDellinSeeder::class, // короткий список городов со неприятным уровнем вложенности терминалов (остаток 36, в таблице 182)
