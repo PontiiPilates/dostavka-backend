@@ -7,7 +7,7 @@ use App\Services\Clients\Tk\SoapDpdClient;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
-class CreateDataFilesCommand extends Command
+class CreateDataFilesDpdCommand extends Command
 {
     private SoapDpdClient $client;
 
