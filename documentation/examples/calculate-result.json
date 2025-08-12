@@ -1,0 +1,848 @@
+{
+    "count": 7,
+    "request": {
+        "from": "Красноярск, Красноярский край",
+        "to": "Москва, Москва",
+        "places": [
+            {
+                "weight": "10",
+                "length": "100",
+                "width": "20",
+                "height": "10",
+                "volume": "0.2"
+            },
+            {
+                "weight": "20",
+                "length": "60",
+                "width": "30",
+                "height": "15",
+                "volume": "0.027"
+            }
+        ],
+        "companies": [
+            "baikal",
+            "boxberry",
+            "cdek",
+            "dellin",
+            "dpd",
+            "jde",
+            "pek"
+        ],
+        "delivery_type": [
+            "ss",
+            "sd",
+            "ds",
+            "dd"
+        ],
+        "shipment_date": "2025-09-06"
+    },
+    "results": {
+        "baikal": {
+            "ss": [
+                {
+                    "tariff": "Автоперевозка",
+                    "cost": 1454.2,
+                    "days": {
+                        "from": 7,
+                        "to": 7
+                    }
+                }
+            ],
+            "sd": [
+                {
+                    "tariff": "Автоперевозка",
+                    "cost": 2525.48,
+                    "days": {
+                        "from": 8,
+                        "to": 8
+                    }
+                }
+            ],
+            "ds": [
+                {
+                    "tariff": "Автоперевозка",
+                    "cost": 2099.97,
+                    "days": {
+                        "from": 8,
+                        "to": 8
+                    }
+                }
+            ],
+            "dd": [
+                {
+                    "tariff": "Автоперевозка",
+                    "cost": 3171.26,
+                    "days": {
+                        "from": 9,
+                        "to": 9
+                    }
+                }
+            ]
+        },
+        "boxberry": {
+            "ss": [
+                {
+                    "tariff": "Посылка",
+                    "cost": 4080,
+                    "days": {
+                        "from": 7,
+                        "to": 7
+                    }
+                }
+            ],
+            "dd": [
+                {
+                    "tariff": "Посылка",
+                    "cost": 4290,
+                    "days": {
+                        "from": 7,
+                        "to": 7
+                    }
+                }
+            ]
+        },
+        "cdek": {
+            "dd": [
+                {
+                    "tariff": "Магистральный экспресс дверь-дверь",
+                    "cost": 3710,
+                    "days": {
+                        "from": 6,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "Посылка дверь-дверь",
+                    "cost": 4380,
+                    "days": {
+                        "from": 5,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "Экспресс дверь-дверь",
+                    "cost": 6845,
+                    "days": {
+                        "from": 2,
+                        "to": 3
+                    }
+                }
+            ],
+            "ds": [
+                {
+                    "tariff": "Магистральный экспресс дверь-склад",
+                    "cost": 3160,
+                    "days": {
+                        "from": 6,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "Посылка дверь-склад",
+                    "cost": 3985,
+                    "days": {
+                        "from": 5,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "Экспресс дверь-склад",
+                    "cost": 6520,
+                    "days": {
+                        "from": 2,
+                        "to": 3
+                    }
+                }
+            ],
+            "sd": [
+                {
+                    "tariff": "Магистральный экспресс склад-дверь",
+                    "cost": 3160,
+                    "days": {
+                        "from": 6,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "Посылка склад-дверь",
+                    "cost": 3985,
+                    "days": {
+                        "from": 5,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "Экспресс склад-дверь",
+                    "cost": 6520,
+                    "days": {
+                        "from": 2,
+                        "to": 3
+                    }
+                }
+            ],
+            "ss": [
+                {
+                    "tariff": "Магистральный экспресс склад-склад",
+                    "cost": 2610,
+                    "days": {
+                        "from": 6,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "Посылка склад-склад",
+                    "cost": 3590,
+                    "days": {
+                        "from": 5,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "Экспресс склад-склад",
+                    "cost": 6195,
+                    "days": {
+                        "from": 2,
+                        "to": 3
+                    }
+                }
+            ],
+            "dp": [
+                {
+                    "tariff": "Магистральный экспресс дверь-постамат",
+                    "cost": 3160,
+                    "days": {
+                        "from": 6,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "Посылка дверь-постамат",
+                    "cost": 3985,
+                    "days": {
+                        "from": 5,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "Экспресс дверь-постамат",
+                    "cost": 6520,
+                    "days": {
+                        "from": 2,
+                        "to": 3
+                    }
+                }
+            ],
+            "sp": [
+                {
+                    "tariff": "Магистральный экспресс склад-постамат",
+                    "cost": 2610,
+                    "days": {
+                        "from": 6,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "Посылка склад-постамат",
+                    "cost": 3590,
+                    "days": {
+                        "from": 5,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "Экспресс склад-постамат",
+                    "cost": 6195,
+                    "days": {
+                        "from": 2,
+                        "to": 3
+                    }
+                }
+            ],
+            "pd": [
+                {
+                    "tariff": "Экспресс постамат-дверь",
+                    "cost": 6520,
+                    "days": {
+                        "from": 2,
+                        "to": 3
+                    }
+                }
+            ],
+            "ps": [
+                {
+                    "tariff": "Экспресс постамат-склад",
+                    "cost": 6195,
+                    "days": {
+                        "from": 2,
+                        "to": 3
+                    }
+                }
+            ],
+            "pp": [
+                {
+                    "tariff": "Экспресс постамат-постамат",
+                    "cost": 6195,
+                    "days": {
+                        "from": 2,
+                        "to": 3
+                    }
+                }
+            ]
+        },
+        "dellin": {
+            "ss": [
+                {
+                    "tariff": "auto",
+                    "cost": 1420,
+                    "days": {
+                        "from": 1,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "express",
+                    "cost": 1941,
+                    "days": {
+                        "from": 2,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "avia",
+                    "cost": 7966,
+                    "days": {
+                        "from": 0,
+                        "to": 2
+                    }
+                }
+            ],
+            "sd": [
+                {
+                    "tariff": "auto",
+                    "cost": 2620,
+                    "days": {
+                        "from": 1,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "express",
+                    "cost": 3141,
+                    "days": {
+                        "from": 2,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "avia",
+                    "cost": 9166,
+                    "days": {
+                        "from": 0,
+                        "to": 3
+                    }
+                }
+            ],
+            "ds": [
+                {
+                    "tariff": "auto",
+                    "cost": 2287,
+                    "days": {
+                        "from": 1,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "express",
+                    "cost": 2699,
+                    "days": {
+                        "from": 2,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "avia",
+                    "cost": 8616,
+                    "days": {
+                        "from": 0,
+                        "to": 2
+                    }
+                }
+            ],
+            "dd": [
+                {
+                    "tariff": "auto",
+                    "cost": 3487,
+                    "days": {
+                        "from": 1,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "express",
+                    "cost": 3899,
+                    "days": {
+                        "from": 2,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "avia",
+                    "cost": 9816,
+                    "days": {
+                        "from": 0,
+                        "to": 3
+                    }
+                }
+            ]
+        },
+        "dpd": {
+            "ss": [
+                {
+                    "tariff": "DPD MAX domestic",
+                    "cost": 970.56,
+                    "days": {
+                        "from": 7,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "DPD EXPRESS",
+                    "cost": 11472,
+                    "days": {
+                        "from": 2,
+                        "to": 2
+                    }
+                },
+                {
+                    "tariff": "DPD 18:00",
+                    "cost": 868.32,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "DPD CLASSIC",
+                    "cost": 3177.6,
+                    "days": {
+                        "from": 3,
+                        "to": 3
+                    }
+                },
+                {
+                    "tariff": "DPD ECONOMY",
+                    "cost": 679.68,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "DPD Online Express",
+                    "cost": 5748,
+                    "days": {
+                        "from": 3,
+                        "to": 3
+                    }
+                },
+                {
+                    "tariff": "DPD OPTIMUM",
+                    "cost": 2343.6,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                }
+            ],
+            "sd": [
+                {
+                    "tariff": "DPD MAX domestic",
+                    "cost": 1420.56,
+                    "days": {
+                        "from": 7,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "DPD EXPRESS",
+                    "cost": 11472,
+                    "days": {
+                        "from": 2,
+                        "to": 2
+                    }
+                },
+                {
+                    "tariff": "DPD 18:00",
+                    "cost": 1530.72,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "DPD CLASSIC",
+                    "cost": 6852.48,
+                    "days": {
+                        "from": 3,
+                        "to": 3
+                    }
+                },
+                {
+                    "tariff": "DPD ECONOMY",
+                    "cost": 1185.12,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "DPD Online Express",
+                    "cost": 6496.8,
+                    "days": {
+                        "from": 3,
+                        "to": 3
+                    }
+                },
+                {
+                    "tariff": "DPD OPTIMUM",
+                    "cost": 2811.6,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                }
+            ],
+            "ds": [
+                {
+                    "tariff": "DPD MAX domestic",
+                    "cost": 1420.56,
+                    "days": {
+                        "from": 7,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "DPD EXPRESS",
+                    "cost": 11472,
+                    "days": {
+                        "from": 2,
+                        "to": 2
+                    }
+                },
+                {
+                    "tariff": "DPD 18:00",
+                    "cost": 1372.32,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "DPD CLASSIC",
+                    "cost": 6429.12,
+                    "days": {
+                        "from": 3,
+                        "to": 3
+                    }
+                },
+                {
+                    "tariff": "DPD ECONOMY",
+                    "cost": 1064.16,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "DPD Online Express",
+                    "cost": 5748,
+                    "days": {
+                        "from": 3,
+                        "to": 3
+                    }
+                },
+                {
+                    "tariff": "DPD OPTIMUM",
+                    "cost": 2343.6,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                }
+            ],
+            "dd": [
+                {
+                    "tariff": "DPD MAX domestic",
+                    "cost": 1870.56,
+                    "days": {
+                        "from": 7,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "DPD EXPRESS",
+                    "cost": 11472,
+                    "days": {
+                        "from": 2,
+                        "to": 2
+                    }
+                },
+                {
+                    "tariff": "DPD 18:00",
+                    "cost": 2034.72,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "DPD CLASSIC",
+                    "cost": 7247.04,
+                    "days": {
+                        "from": 3,
+                        "to": 3
+                    }
+                },
+                {
+                    "tariff": "DPD ECONOMY",
+                    "cost": 1569.6,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                },
+                {
+                    "tariff": "DPD Online Express",
+                    "cost": 6496.8,
+                    "days": {
+                        "from": 3,
+                        "to": 3
+                    }
+                },
+                {
+                    "tariff": "DPD OPTIMUM",
+                    "cost": 2811.6,
+                    "days": {
+                        "from": 6,
+                        "to": 6
+                    }
+                }
+            ]
+        },
+        "jde": {
+            "ss": [
+                {
+                    "tariff": "Доставка сборных грузов",
+                    "cost": "1385",
+                    "days": {
+                        "from": "7",
+                        "to": "9"
+                    }
+                }
+            ],
+            "sd": [
+                {
+                    "tariff": "Доставка сборных грузов",
+                    "cost": "2485",
+                    "days": {
+                        "from": "7",
+                        "to": "9"
+                    }
+                }
+            ],
+            "ds": [
+                {
+                    "tariff": "Доставка сборных грузов",
+                    "cost": "2135",
+                    "days": {
+                        "from": "7",
+                        "to": "9"
+                    }
+                }
+            ],
+            "dd": [
+                {
+                    "tariff": "Доставка сборных грузов",
+                    "cost": "3235",
+                    "days": {
+                        "from": "7",
+                        "to": "9"
+                    }
+                }
+            ]
+        },
+        "kit": {
+            "ss": [
+                {
+                    "tariff": "Стандарт",
+                    "cost": 1920,
+                    "days": {
+                        "from": 7,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "Экспресс",
+                    "cost": 13800,
+                    "days": {
+                        "from": 0,
+                        "to": 0
+                    }
+                }
+            ],
+            "sd": [
+                {
+                    "tariff": "Стандарт",
+                    "cost": 2990,
+                    "days": {
+                        "from": 7,
+                        "to": 7
+                    }
+                },
+                {
+                    "tariff": "Экспресс",
+                    "cost": 14870,
+                    "days": {
+                        "from": 0,
+                        "to": 0
+                    }
+                }
+            ],
+            "ds": [
+                {
+                    "tariff": "Стандарт",
+                    "cost": 2600,
+                    "days": {
+                        "from": 8,
+                        "to": 8
+                    }
+                },
+                {
+                    "tariff": "Экспресс",
+                    "cost": 14480,
+                    "days": {
+                        "from": 0,
+                        "to": 0
+                    }
+                }
+            ],
+            "dd": [
+                {
+                    "tariff": "Стандарт",
+                    "cost": 3670,
+                    "days": {
+                        "from": 8,
+                        "to": 8
+                    }
+                },
+                {
+                    "tariff": "Экспресс",
+                    "cost": 15550,
+                    "days": {
+                        "from": 0,
+                        "to": 0
+                    }
+                }
+            ]
+        },
+        "nrg": {
+            "ss": [
+                {
+                    "tariff": "Авто",
+                    "cost": 1200,
+                    "days": {
+                        "from": "8",
+                        "to": "11"
+                    }
+                }
+            ],
+            "sd": [
+                {
+                    "tariff": "Авто",
+                    "cost": 2050,
+                    "days": {
+                        "from": "8",
+                        "to": "11"
+                    }
+                }
+            ],
+            "ds": [
+                {
+                    "tariff": "Авто",
+                    "cost": 2400,
+                    "days": {
+                        "from": "8",
+                        "to": "11"
+                    }
+                }
+            ],
+            "dd": [
+                {
+                    "tariff": "Авто",
+                    "cost": 3250,
+                    "days": {
+                        "from": "8",
+                        "to": "11"
+                    }
+                }
+            ]
+        },
+        "pek": {
+            "ss": [
+                {
+                    "tariff": "Express Авиаперевозка",
+                    "cost": 6632.21,
+                    "days": {
+                        "from": null,
+                        "to": null
+                    }
+                },
+                {
+                    "tariff": "LTL Автоперевозка (сборный груз)",
+                    "cost": 1070,
+                    "days": {
+                        "from": null,
+                        "to": null
+                    }
+                },
+                {
+                    "tariff": "EasyWay Автоперевозка (Доставка для интернет магазинов)",
+                    "cost": 1070,
+                    "days": {
+                        "from": null,
+                        "to": null
+                    }
+                }
+            ],
+            "sd": [
+                {
+                    "tariff": "Express Авиаперевозка",
+                    "cost": 7732.21,
+                    "days": {
+                        "from": null,
+                        "to": null
+                    }
+                },
+                {
+                    "tariff": "LTL Автоперевозка (сборный груз)",
+                    "cost": 2170,
+                    "days": {
+                        "from": null,
+                        "to": null
+                    }
+                },
+                {
+                    "tariff": "EasyWay Автоперевозка (Доставка для интернет магазинов)",
+                    "cost": 2170,
+                    "days": {
+                        "from": null,
+                        "to": null
+                    }
+                }
+            ]
+        }
+    },
+    "begin": "2025-08-11T23:29:22.554094Z",
+    "complete": "2025-08-11T23:29:56.276428Z",
+    "is_complete": true
+}
