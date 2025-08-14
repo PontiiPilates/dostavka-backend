@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('terminals_vozovoz', function (Blueprint $table) {
             $table->id();
 
-            // может быть null только на время компоновки данных
+            // во время формирования таблицы может быть null
+            // заполнение происходит после формирования таблицы locations
             $table->foreignId('location_id')->nullable()->constrained();
 
             $table->char('identifier', 50)->comment('идентификатор локации');
