@@ -13,6 +13,7 @@ use Database\Seeders\Tk\TerminalKitSeeder;
 use Database\Seeders\Tk\TerminalNrgSeeder;
 use Database\Seeders\Tk\TerminalPekSeeder;
 use Database\Seeders\Tk\TerminalVozovozSeeder;
+use Database\Seeders\Tk\TerritoriesPekSeeder;
 use Database\Seeders\Tk\TerritoriesVozovozSeeder;
 use Illuminate\Database\Seeder;
 
@@ -31,6 +32,21 @@ class DatabaseSeeder extends Seeder
             RegionSeeder::class,
             LocationSeeder::class,
 
+            // добавляет 100к населённых пунктов
+            TerminalVozovozSeeder::class,
+            TerritoriesVozovozSeeder::class,
+
+            // добавляет 850 населенных пунктов
+            TerminalPekSeeder::class,
+            TerritoriesPekSeeder::class,
+
+            // TerminalDellinSeeder::class, // короткий список городов со неприятным уровнем вложенности терминалов (остаток 36, в таблице 182)
+            // TerminalBoxberrySeeder::class, // список лучше чем Байкал и Кит (остаток 466, в таблице 276)
+            // TerminalBaikalSeeder::class, // должен быть одним из последних (остаток 12, в таблице 158)
+            // TerminalKitSeeder::class, // должен быть одним из последних (остаток 27400, в таблице 348)
+            // TerminalJdeSeeder::class, // (остаток 132, в таблице 211)
+            // TerminalNrgSeeder::class, // должен быть одним из последних, грязная принадлежность к регионам (остаток 4723, в таблице 363)
+
             // у данной тк хороший, системный список, его данные близки к эталонным и ложатся в основу построения гео-данных
             // данный сидер должен запускаться в первую очередь
             // дополняет данные 63232 элементами
@@ -39,17 +55,6 @@ class DatabaseSeeder extends Seeder
             // у данной тк приемлемый список
             // однако данные списка регионов расходятся со списком городов в части наименования регионов
             // TerminalCdekSeeder::class,
-
-            TerminalVozovozSeeder::class, // хороший список населённых пунктов (остаток 306742, в таблице 1695) | третий в формировании списка локаций
-            TerritoriesVozovozSeeder::class, // хороший список населённых пунктов (остаток 306742, в таблице 1695) | третий в формировании списка локаций
-
-            // TerminalPekSeeder::class, // (остаток 146, в таблице 709)
-            // TerminalDellinSeeder::class, // короткий список городов со неприятным уровнем вложенности терминалов (остаток 36, в таблице 182)
-            // TerminalBoxberrySeeder::class, // список лучше чем Байкал и Кит (остаток 466, в таблице 276)
-            // TerminalBaikalSeeder::class, // должен быть одним из последних (остаток 12, в таблице 158)
-            // TerminalKitSeeder::class, // должен быть одним из последних (остаток 27400, в таблице 348)
-            // TerminalJdeSeeder::class, // (остаток 132, в таблице 211)
-            // TerminalNrgSeeder::class, // должен быть одним из последних, грязная принадлежность к регионам (остаток 4723, в таблице 363)
 
             // TariffPochtaSeeder::class, // ото вообще не локации, просто тарифы почты россии
         ]);
