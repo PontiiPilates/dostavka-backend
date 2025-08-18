@@ -6,19 +6,16 @@ use App\Builders\BaseBuilder;
 use App\Enums\Vozovoz\VozovozUrlType;
 use App\Factorys\Vozovoz\DeliveryTypeFactory;
 use App\Interfaces\RequestBuilderInterface;
-use App\Services\LocationService;
+use App\Models\Location;
+use Exception;
 use Illuminate\Http\Client\Pool;
 
 class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 {
     private string $url;
 
-    private LocationService $locationService;
-
     public function __construct()
     {
-        $this->locationService = new LocationService();
-
         $this->url = config('companies.vozovoz.url') . '?token=' . config('companies.vozovoz.token');
 
         // выявленные ограничения
@@ -58,10 +55,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $from = $this->locationService->location($request->from)->terminalsVozovoz()->first()->identifier;
-            $to = $this->locationService->location($request->to)->terminalsVozovoz()->first()->identifier;
+            $from = Location::find($request->from)->terminalsVozovoz()->firstOrFail();
+            $to = Location::find($request->to)->terminalsVozovoz()->firstOrFail();
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
         $places = collect($request->places);

@@ -4,10 +4,11 @@ namespace App\Factorys\Vozovoz;
 
 use App\Builders\Vozovoz\DeliveryTypeBuilder;
 use App\Enums\DeliveryType;
+use App\Models\Tk\TerminalVozovoz;
 
 class DeliveryTypeFactory
 {
-    public static function make(string $type, string $from, string $to, string $date): array
+    public static function make(string $type, TerminalVozovoz $from, TerminalVozovoz $to, string $date): array
     {
         $builder = new DeliveryTypeBuilder();
 

@@ -27,19 +27,18 @@ class CalculateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // ! снижение требований валидации для разработки, после разработки вернуть обратно
-            'from' => 'required',
-            'to' => 'required',
-            'companies' => 'required|array',
+            'from' => 'required|integer',
+            'to' => 'required|integer',
             'places' => 'required|array',
             'places.*.weight' => 'required|decimal:0,1',
-            // 'places.*.length' => 'required|integer',
-            // 'places.*.width' => 'required|integer',
-            // 'places.*.height' => 'required|integer',
-            'delivery_methods' => 'array|nullable',
+            'places.*.length' => 'required|integer',
+            'places.*.width' => 'required|integer',
+            'places.*.height' => 'required|integer',
+            'companies' => 'required|array',
+            'delivery_type' => 'array|nullable',
             'shipment_date' => 'date',
-            'sumoc' => 'integer',
-            'sumnp' => 'lte:sumoc|integer',
+            'insurance' => 'integer',
+            'cash_on_delivery' => 'lte:insurance|integer',
         ];
     }
 
@@ -55,7 +54,6 @@ class CalculateRequest extends FormRequest
     public function  messages()
     {
         return [
-            // обязательно для заполнения
             'from.required' => ValidateMessagesType::Required->value,
             'to.required' => ValidateMessagesType::Required->value,
             'companies.required' => ValidateMessagesType::Required->value,
@@ -65,24 +63,24 @@ class CalculateRequest extends FormRequest
             'places.*.width.required' => ValidateMessagesType::Required->value,
             'places.*.height.required' => ValidateMessagesType::Required->value,
             'shipment_date.required' => ValidateMessagesType::Required->value,
-            // должно быть массивом
+
             'companies.array' => ValidateMessagesType::ToBeArray->value,
             'places.array' => ValidateMessagesType::ToBeArray->value,
-            'delivery_methods.array' => ValidateMessagesType::ToBeArray->value,
-            // должно быть датой
+            'delivery_type.array' => ValidateMessagesType::ToBeArray->value,
+
             'shipment_date.date' => ValidateMessagesType::ToBeDate->value,
-            // должно быть числом
+
             'from.integer' => ValidateMessagesType::ToBeInteger->value,
             'to.integer' => ValidateMessagesType::ToBeInteger->value,
             'places.*.length.integer' => ValidateMessagesType::ToBeInteger->value,
             'places.*.width.integer' => ValidateMessagesType::ToBeInteger->value,
             'places.*.height.integer' => ValidateMessagesType::ToBeInteger->value,
-            'sumoc.integer' => ValidateMessagesType::ToBeInteger->value,
-            'sumnp.integer' => ValidateMessagesType::ToBeInteger->value,
-            // должно быть с точкой или без
+            'insurance.integer' => ValidateMessagesType::ToBeInteger->value,
+            'cash_on_delivery.integer' => ValidateMessagesType::ToBeInteger->value,
+
             'places.*.weight.decimal' => ValidateMessagesType::ToBeDecimal->value,
-            // должно быть не более sumoc
-            'sumnp.lte' => ValidateMessagesType::ToBeNoMore->value,
+
+            'cash_on_delivery.lte' => ValidateMessagesType::ToBeNoMore->value,
         ];
     }
 }

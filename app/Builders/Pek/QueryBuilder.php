@@ -7,7 +7,7 @@ use App\Enums\DeliveryType;
 use App\Enums\Pek\PekTariffType;
 use App\Enums\Pek\PekUrlType;
 use App\Interfaces\RequestBuilderInterface;
-use App\Services\LocationService;
+use App\Models\Location;
 use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Request;
@@ -19,15 +19,11 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
     private string $user;
     private string $password;
 
-    private LocationService $locationService;
-
     public function __construct()
     {
         $this->url = config('companies.pek.url') . PekUrlType::Calculate->value;
         $this->user = config('companies.pek.user');
         $this->password = config('companies.pek.password');
-
-        $this->locationService = new LocationService();
 
         // выявленные ограничения
         $this->limitInsurance = (float) 999999999999;   // руб
@@ -75,10 +71,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $from = $this->locationService->location($request->from)->terminalsPek()->first();
-            $to = $this->locationService->location($request->to)->terminalsPek()->first();
+            $from = Location::find($request->from)->terminalsPek()->firstOrFail();
+            $to = Location::find($request->to)->terminalsPek()->firstOrFail();
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
         $tariffs = collect([]);

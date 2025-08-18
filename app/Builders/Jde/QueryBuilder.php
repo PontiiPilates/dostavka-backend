@@ -7,7 +7,8 @@ use App\Enums\DeliveryType;
 use App\Enums\Jde\JdeTariffType;
 use App\Enums\Jde\JdeUrlType;
 use App\Interfaces\RequestBuilderInterface;
-use App\Services\LocationService;
+use App\Models\Location;
+use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Request;
 
@@ -17,12 +18,8 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
     // private string $token;
     // private string $user;
 
-    private LocationService $locationService;
-
     public function __construct()
     {
-        $this->locationService = new LocationService();
-
         $this->url = config('companies.jde.url') . JdeUrlType::Calculator->value;
         // $this->token = config('companies.jde.token');
         // $this->user = config('companies.jde.user');
@@ -62,10 +59,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $from = $this->locationService->location($request->from)->terminalsJde()->first();
-            $to = $this->locationService->location($request->to)->terminalsJde()->first();
+            $from = Location::find($request->from)->terminalsJde()->firstOrFail();
+            $to = Location::find($request->to)->terminalsJde()->firstOrFail();
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
         $places = collect($request->places);

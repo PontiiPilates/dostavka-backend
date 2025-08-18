@@ -7,8 +7,9 @@ namespace App\Builders\Pochta;
 use App\Builders\BaseBuilder;
 use App\Enums\Pochta\PochtaUrlType;
 use App\Interfaces\RequestBuilderInterface;
+use App\Models\Location;
 use App\Models\Tk\TariffPochta;
-use App\Services\LocationService;
+use Exception;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Log;
@@ -21,13 +22,9 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
     private $insurance;
     private $cashOnDelivery;
 
-    private LocationService $locationService;
-
     public function __construct()
     {
         $this->url = config('companies.pochta.url') . PochtaUrlType::Calculate->value;
-
-        $this->locationService = new LocationService();
 
         // выявленные ограничения
         $this->limitInsurance = (float) 1000000000;         // руб
@@ -62,10 +59,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $from = $this->locationService->location($request->from);
-            $to = $this->locationService->location($request->to);
+            $from = Location::find($request->from)->firstOrFail();
+            $to = Location::find($request->to)->firstOrFail();
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
         $place = collect($request->places);

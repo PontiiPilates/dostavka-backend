@@ -5,8 +5,9 @@ namespace App\Builders\Cdek;
 use App\Builders\BaseBuilder;
 use App\Enums\Cdek\CdekUrlType;
 use App\Interfaces\RequestBuilderInterface;
-use App\Services\LocationService;
+use App\Models\Location;
 use App\Services\Tk\TokenCdekService;
+use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Log;
 
@@ -15,13 +16,11 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
     private string $url;
     private string $token;
 
-    private LocationService $locationService;
     private TokenCdekService $tokenCdecService;
 
     public function __construct()
     {
         $this->tokenCdecService = new TokenCdekService();
-        $this->locationService = new LocationService();
 
         $this->url = config('companies.cdek.url') . CdekUrlType::TariffList->value;
         $this->token = $this->tokenCdecService->getActualToken();
@@ -62,10 +61,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $fromTerminal = $this->locationService->location($request->from)->terminalsCdek()->first()->identifier;
-            $toTerminal = $this->locationService->location($request->to)->terminalsCdek()->first()->identifier;
+            $from = Location::find($request->from)->terminalsCdek()->firstOrFail();
+            $to = Location::find($request->to)->terminalsCdek()->firstOrFail();
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
         $places = [];
@@ -99,10 +98,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
             "date" => (string) $request->shipment_date . 'T00:00:00+0000',
             "lang" => "rus",
             "from_location" => [
-                "code" => (int) $fromTerminal
+                "code" => (int) $from->identifier
             ],
             "to_location" => [
-                "code" => (int) $toTerminal
+                "code" => (int) $to->identifier
             ],
             "services" => [
                 [

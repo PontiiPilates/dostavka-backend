@@ -8,7 +8,8 @@ use App\Builders\BaseBuilder;
 use App\Enums\DeliveryType;
 use App\Enums\Kit\KitUrlType;
 use App\Interfaces\RequestBuilderInterface;
-use App\Services\LocationService;
+use App\Models\Location;
+use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Log;
 
@@ -17,13 +18,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
     private string $url;
     private string $token;
 
-    private LocationService $locationService;
-
     public function __construct()
     {
         $this->url = config('companies.kit.url') . KitUrlType::Calculate->value;
         $this->token = config('companies.kit.token');
-        $this->locationService = new LocationService();
 
         // выявленные ограничения
         $this->limitWeight = (int) 1000000000;      // кг
@@ -60,10 +58,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $fromTerminal = $this->locationService->location($request->from)->terminalsKit()->first()->identifier;
-            $toTerminal = $this->locationService->location($request->to)->terminalsKit()->first()->identifier;
+            $from = Location::find($request->from)->terminalsKit()->firstOrFail();
+            $to = Location::find($request->to)->terminalsKit()->firstOrFail();
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
         // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
@@ -104,8 +102,8 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
             }
 
             $template = [
-                'city_pickup_code' => $fromTerminal,                                                        // откуда
-                'city_delivery_code' => $toTerminal,                                                        // куда
+                'city_pickup_code' => $from->identifier,                                                        // откуда
+                'city_delivery_code' => $to->identifier,                                                        // куда
                 'declared_price' => (int) ($request->insurance ?? 1),                                       // объявленная стоимость груза
                 'places' => $places,
                 'pick_up' => $type == DeliveryType::Ds->value || $type == DeliveryType::Dd->value ? 1 : 0,  // забор груза

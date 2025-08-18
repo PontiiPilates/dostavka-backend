@@ -5,7 +5,8 @@ namespace App\Builders\Nrg;
 use App\Builders\BaseBuilder;
 use App\Enums\Nrg\NrgUrlType;
 use App\Interfaces\RequestBuilderInterface;
-use App\Services\LocationService;
+use App\Models\Location;
+use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -15,14 +16,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
     private string $url;
     private string $token;
 
-    private LocationService $locationService;
-
     public function __construct()
     {
         $this->url = config('companies.nrg.url') . NrgUrlType::Price->value;
         $this->token = config('companies.nrg.token');
-
-        $this->locationService = new LocationService();
 
         // выявленные ограничения
         $this->limitWeight = (float) 999999999999;      // кг
@@ -60,10 +57,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $from = $this->locationService->location($request->from)->terminalsNrg()->first();
-            $to = $this->locationService->location($request->to)->terminalsNrg()->first();
+            $from = Location::find($request->from)->terminalsNrg()->firstOrFail();
+            $to = Location::find($request->to)->terminalsNrg()->firstOrFail();
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
         // проверка способа доставки, применение способа поумолчанию, если ни один не выбран

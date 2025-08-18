@@ -8,7 +8,8 @@ use App\Builders\BaseBuilder;
 use App\Enums\Baikal\BaikalUrlType;
 use App\Factorys\Baikal\DeliveryTypeFactory;
 use App\Interfaces\RequestBuilderInterface;
-use App\Services\LocationService;
+use App\Models\Location;
+use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Log;
 
@@ -17,13 +18,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
     private string $url;
     private string $username;
 
-    private LocationService $locationService;
-
     public function __construct()
     {
         $this->url = config('companies.baikal.url');
         $this->username = config('companies.baikal.username');
-        $this->locationService = new LocationService();
 
         // выявленные ограничения
         $this->limitWeight = (float) 20000;             // кг
@@ -59,10 +57,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $fromTerminal = $this->locationService->location($request->from)->terminalsBaikal()->first()->identifier;
-            $toTerminal = $this->locationService->location($request->to)->terminalsBaikal()->first()->identifier;
+            $from = Location::find($request->from)->terminalsBaikal()->firstOrFail();
+            $to = Location::find($request->to)->terminalsBaikal()->firstOrFail();
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
         // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
@@ -70,7 +68,7 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         foreach ($deliveryTypes as $type) {
 
-            $deliveryType = DeliveryTypeFactory::make($type, $fromTerminal, $toTerminal);
+            $deliveryType = DeliveryTypeFactory::make($type, $from, $to);
 
             $cargoList = [];
             foreach ($request->places as $place) {

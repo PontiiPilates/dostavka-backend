@@ -8,7 +8,8 @@ use App\Builders\BaseBuilder;
 use App\Enums\Boxberry\BoxberryUrlType;
 use App\Enums\DeliveryType;
 use App\Interfaces\RequestBuilderInterface;
-use App\Services\LocationService;
+use App\Models\Location;
+use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Log;
 
@@ -17,13 +18,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
     private string $url;
     private string $token;
 
-    private LocationService $locationService;
-
     public function __construct()
     {
         $this->url = config('companies.boxberry.url');
         $this->token = config('companies.boxberry.token');
-        $this->locationService = new LocationService();
 
         // выявленные ограничения
         $this->limitWeight = (int) 999000;              // гр
@@ -62,10 +60,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $fromTerminal = $this->locationService->location($request->from)->terminalsBoxberry()->first()->identifier;
-            $toTerminal = $this->locationService->location($request->to)->terminalsBoxberry()->first()->identifier;
+            $from = Location::find($request->from)->terminalsBoxberry()->firstOrFail();
+            $to = Location::find($request->to)->terminalsBoxberry()->firstOrFail();
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
         // проверка способа доставки, применение способа поумолчанию, если ни один не выбран
@@ -113,8 +111,8 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
             $template = [
                 "token" => (string) $this->token,
                 "method" => (string) BoxberryUrlType::DeliveryCalculation->value,
-                "SenderCityId" => (string) $fromTerminal,
-                "RecipientCityId" => (string) $toTerminal,
+                "SenderCityId" => (string) $from->identifier,
+                "RecipientCityId" => (string) $to->identifier,
                 "DeliveryType" => (string) $supportedDeliveryMethods[$type],
                 "OrderSum" => (float) ($request->insurance ?? 0),
                 "PaySum" => (float) ($request->cash_on_delivery ?? 0),

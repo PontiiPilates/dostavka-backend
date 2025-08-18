@@ -8,7 +8,7 @@ use App\Enums\Dellin\DellinTariffType;
 use App\Enums\Dellin\DellinUrlType;
 use App\Factorys\Dellin\DeliveryTypeFactory;
 use App\Interfaces\RequestBuilderInterface;
-use App\Services\LocationService;
+use App\Models\Location;
 use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Log;
@@ -18,12 +18,8 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
     private string $url;
     private string $token;
 
-    private LocationService $locationService;
-
     public function __construct()
     {
-        $this->locationService = new LocationService();
-
         $this->url = config('companies.dellin.url');
         $this->token = config('companies.dellin.token');
 
@@ -76,10 +72,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $from = $this->locationService->location($request->from)->terminalsDellin()->first();
-            $to = $this->locationService->location($request->to)->terminalsDellin()->first();
+            $from = Location::find($request->from)->terminalsDellin()->firstOrFail();
+            $to = Location::find($request->to)->terminalsDellin()->firstOrFail();
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
         $places = collect($request->places);
