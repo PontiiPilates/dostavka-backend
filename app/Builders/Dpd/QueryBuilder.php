@@ -5,7 +5,8 @@ namespace App\Builders\Dpd;
 use App\Builders\BaseBuilder;
 use App\Enums\DeliveryType;
 use App\Enums\DPD\DpdUrlType;
-use App\Services\LocationService;
+use App\Models\Location;
+use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Log;
 
@@ -15,12 +16,8 @@ class QueryBuilder extends BaseBuilder
     private string $clientNumber;
     private string $clientKey;
 
-    private LocationService $locationService;
-
     public function __construct()
     {
-        $this->locationService = new LocationService();
-
         $this->url = config('companies.dpd.url') . DpdUrlType::Calculator->value;
         $this->clientNumber = config('companies.dpd.client_number');
         $this->clientKey = config('companies.dpd.client_key');
@@ -61,10 +58,10 @@ class QueryBuilder extends BaseBuilder
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $from = $this->locationService->location($request->from)->terminalsDpd()->first();
-            $to = $this->locationService->location($request->to)->terminalsDpd()->first();
+            $from = Location::find($request->from)->terminalsDpd()->firstOrFail();
+            $to = Location::find($request->to)->terminalsDpd()->firstOrFail();
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
         $places = [];
