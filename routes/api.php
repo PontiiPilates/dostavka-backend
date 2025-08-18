@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AutocompleteController;
 use App\Http\Controllers\Api\CalculateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,4 +22,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::prefix('v1')->group(function () {
     Route::get('/calculate', [CalculateController::class, 'handle'])->name('calculate');
+    Route::get('/autocomplete', [AutocompleteController::class, 'handle'])->name('autocomplete');
 });
