@@ -14,12 +14,16 @@ return new class extends Migration
         Schema::create('terminals_vozovoz', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('location_id')->constrained();
+            // может быть null только на время компоновки данных
+            $table->foreignId('location_id')->nullable()->constrained();
 
             $table->char('identifier', 50)->comment('идентификатор локации');
             $table->text('name', 100)->comment('название локации');
-            $table->text('dirty', 300)->nullable()->comment('данные о регионе локации');
-
+            $table->text('type', 100)->nullable()->comment('тип локации локации');
+            $table->text('district', 100)->nullable()->comment('название района');
+            $table->text('region', 100)->nullable()->comment('название региона');
+            $table->boolean('federal')->default(false)->comment('значимая территория');
+            $table->text('country', 10)->nullable()->comment('страна');
 
             $table->timestamps();
         });

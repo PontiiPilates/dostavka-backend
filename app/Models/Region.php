@@ -16,6 +16,11 @@ class Region extends Model
         return $this->belongsTo(Country::class, 'country_id', 'id');
     }
 
+    public function districts(): HasMany
+    {
+        return $this->hasMany(District::class, 'region_id', 'id');
+    }
+
     public function locations(): HasMany
     {
         return $this->hasMany(Location::class, 'region_id', 'id');

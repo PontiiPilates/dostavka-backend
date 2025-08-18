@@ -39,6 +39,11 @@ class Location extends Model
         return $this->belongsTo(Region::class, 'region_id', 'id');
     }
 
+    public function district(): BelongsTo
+    {
+        return $this->belongsTo(District::class, 'district_id', 'id');
+    }
+
     public function terminalsBaikal(): HasMany
     {
         return $this->hasMany(TerminalBaikal::class, 'location_id', 'id');

@@ -11,18 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('locations', function (Blueprint $table) {
+        Schema::create('districts', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('country_id')->constrained();
             $table->foreignId('region_id')->constrained();
-            $table->foreignId('district_id')->nullable()->constrained();
 
             $table->string('name', 100);
-            $table->string('type', 100)->nullable();
-
-            $table->integer('index_min')->nullable()->comment('начальный почтовый индекс');
-            $table->integer('index_max')->nullable()->comment('конечный почтовый индекс');
 
             $table->timestamps();
         });
@@ -33,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('locations');
+        Schema::dropIfExists('districts');
     }
 };

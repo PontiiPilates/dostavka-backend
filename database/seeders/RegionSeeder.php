@@ -15,11 +15,6 @@ class RegionSeeder extends Seeder
     public function run(): void
     {
         $files = [
-            'Армения',
-            'Беларусь',
-            'Казахстан',
-            'Китай',
-            'Кыргызстан',
             'Россия',
         ];
 
@@ -29,22 +24,20 @@ class RegionSeeder extends Seeder
             $collection = collect($file);
             $chunks = $collection->chunk(2);
 
-            $city = '';
-            $region = '';
-
             foreach ($chunks as $chunk) {
 
                 $firstKey = array_key_first($chunk->all());
                 $lastKey = array_key_last($chunk->all());
 
-                $city = trim($chunk->all()[$firstKey]);
-                $region = trim($chunk->all()[$lastKey]);
+                $regionCode = trim($chunk->all()[$firstKey]);
+                $regionName = trim($chunk->all()[$lastKey]);
 
                 $countryModel = Country::where('name', $country)->first();
 
                 Region::create([
                     'country_id' => $countryModel->id,
-                    'name' => $region
+                    'code' => $regionCode,
+                    'name' => $regionName
                 ]);
             }
         }

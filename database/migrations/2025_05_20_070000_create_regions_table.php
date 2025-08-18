@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('country_id')->constrained();
 
             $table->string('name', 100);
+            $table->string('code', 50)->nullable();
 
             $table->timestamps();
         });
