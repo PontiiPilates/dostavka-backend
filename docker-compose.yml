@@ -1,0 +1,67 @@
+services:
+  php:
+    build:
+      context: /docker/php
+      dockerfile: Dockerfile
+    container_name: dostavka_php
+    volumes:
+      - ./:/var/www/html
+  mysql:
+    image: mysql:8.4
+    container_name: dostavka_mysql
+    ports:
+      - 3306:3306
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+    env_file:
+      - ./docker/mysql/.env
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: dostavka_phpmyadmin
+    ports:
+      - 8080:80
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    depends_on:
+      - mysql
+      - php
+  nginx:
+    image: nginx:stable-alpine
+    container_name: dostavka_nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - mysql
+      - redis
+      - php
+  redis:
+    image: redis:latest
+    container_name: dostavka_redis
+    ports:
+      - 6379:6379
+    volumes:
+      - ./docker/redis:/data
+  composer:
+    build:
+      context: /docker/composer
+      dockerfile: Dockerfile
+    container_name: dostavka_composer
+    volumes:
+      - ./:/var/www/html
+  artisan:
+    build:
+      context: /docker/php
+      dockerfile: Dockerfile
+    container_name: dostavka_artisan
+    volumes:
+      - ./:/var/www/html
+    entrypoint: ["php", "/var/www/html/artisan"]
+    depends_on:
+      - mysql
+      - redis
+      - php
+    
