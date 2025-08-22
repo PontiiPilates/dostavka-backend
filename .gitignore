@@ -30,8 +30,13 @@ Homestead.json
 auth.json
 
 # This project
-/storage
 .vscode
-TODO.md
 .osp
 .idea
+
+docker/mysql/data/*
+!docker/mysql/data/.directoryviewer
+docker/redis/*
+!docker/redis/.directoryviewer
+
+/storage
