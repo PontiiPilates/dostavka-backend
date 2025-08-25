@@ -30,18 +30,18 @@ class DatabaseSeeder extends Seeder
 
             // засев начальными (эталонными) данными
             CountrySeeder::class,
-            // RegionSeeder::class,
-            // LocationSeeder::class,
+            RegionSeeder::class,
+            LocationSeeder::class,
 
             // добавляет 100к населённых пунктов
-            // TerminalVozovozSeeder::class,
-            // TerritoriesVozovozSeeder::class,
+            TerminalVozovozSeeder::class,
+            TerritoriesVozovozSeeder::class,
 
             // добавляет 850 населенных пунктов
-            // TerminalPekSeeder::class,
-            // TerritoriesPekSeeder::class,
+            TerminalPekSeeder::class,
+            TerritoriesPekSeeder::class,
 
-            // добавляет 219 терминалов, 31 район, 
+            // добавляет 219 терминалов, 31 район, 81 регион
             TerminalDellinSeeder::class,
             TerritoriesDellinSeeder::class,
 
