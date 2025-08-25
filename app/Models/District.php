@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class District extends Model
 {
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_id', 'id');
+    }
+
     public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class, 'region_id', 'id');

@@ -18,13 +18,18 @@ class Country extends Model
         "alpha3",
     ];
 
-    public function cities(): HasMany
-    {
-        return $this->hasMany(Location::class, 'country_id', 'id');
-    }
-
     public function regions(): HasMany
     {
         return $this->hasMany(Region::class, 'country_id', 'id');
+    }
+
+    public function districts(): HasMany
+    {
+        return $this->hasMany(District::class, 'country_id', 'id');
+    }
+
+    public function locations(): HasMany
+    {
+        return $this->hasMany(Location::class, 'country_id', 'id');
     }
 }

@@ -13,6 +13,7 @@ use Database\Seeders\Tk\TerminalKitSeeder;
 use Database\Seeders\Tk\TerminalNrgSeeder;
 use Database\Seeders\Tk\TerminalPekSeeder;
 use Database\Seeders\Tk\TerminalVozovozSeeder;
+use Database\Seeders\Tk\TerritoriesDellinSeeder;
 use Database\Seeders\Tk\TerritoriesPekSeeder;
 use Database\Seeders\Tk\TerritoriesVozovozSeeder;
 use Illuminate\Database\Seeder;
@@ -29,18 +30,21 @@ class DatabaseSeeder extends Seeder
 
             // засев начальными (эталонными) данными
             CountrySeeder::class,
-            RegionSeeder::class,
-            LocationSeeder::class,
+            // RegionSeeder::class,
+            // LocationSeeder::class,
 
             // добавляет 100к населённых пунктов
-            TerminalVozovozSeeder::class,
-            TerritoriesVozovozSeeder::class,
+            // TerminalVozovozSeeder::class,
+            // TerritoriesVozovozSeeder::class,
 
             // добавляет 850 населенных пунктов
-            TerminalPekSeeder::class,
-            TerritoriesPekSeeder::class,
+            // TerminalPekSeeder::class,
+            // TerritoriesPekSeeder::class,
 
-            // TerminalDellinSeeder::class, // короткий список городов со неприятным уровнем вложенности терминалов (остаток 36, в таблице 182)
+            // добавляет 219 терминалов, 31 район, 
+            TerminalDellinSeeder::class,
+            TerritoriesDellinSeeder::class,
+
             // TerminalBoxberrySeeder::class, // список лучше чем Байкал и Кит (остаток 466, в таблице 276)
             // TerminalBaikalSeeder::class, // должен быть одним из последних (остаток 12, в таблице 158)
             // TerminalKitSeeder::class, // должен быть одним из последних (остаток 27400, в таблице 348)

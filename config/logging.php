@@ -81,6 +81,12 @@ return [
             'path' => storage_path('logs/requests.log'),
         ],
 
+        // содержит записи о терминалах, которые не удалось распарсить
+        'parse' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/parse.log'),
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
