@@ -128,6 +128,7 @@ class TerminalPekSeeder extends Seeder
                     $district = '(Раменский р-н)';
                 }
 
+                // если не удалось обнаружить принадлежность (распарсить)
                 if (!$region && !$district && !$onlyCity) {
                     $this->unknown[] = $city->title . ': ' . $location->address;
                 }
