@@ -27,25 +27,22 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             CompanySeeder::class,
+        ]);
 
-            // засев начальными (эталонными) данными
+        // засев начальными (эталонными) данными
+        $this->call([
             CountrySeeder::class,
             RegionSeeder::class,
             LocationSeeder::class,
+        ]);
 
-            // добавляет 100к населённых пунктов
-            TerminalVozovozSeeder::class,
-            TerritoriesVozovozSeeder::class,
-
-            // добавляет 850 населенных пунктов
-            TerminalPekSeeder::class,
-            TerritoriesPekSeeder::class,
-
-            // добавляет 219 терминалов, 31 район, 81 регион
+        // засев терминалов компаний
+        $this->call([
+            TerminalBoxberrySeeder::class,
             TerminalDellinSeeder::class,
-            TerritoriesDellinSeeder::class,
+            TerminalPekSeeder::class,
+            TerminalVozovozSeeder::class,
 
-            // TerminalBoxberrySeeder::class, // список лучше чем Байкал и Кит (остаток 466, в таблице 276)
             // TerminalBaikalSeeder::class, // должен быть одним из последних (остаток 12, в таблице 158)
             // TerminalKitSeeder::class, // должен быть одним из последних (остаток 27400, в таблице 348)
             // TerminalJdeSeeder::class, // (остаток 132, в таблице 211)
@@ -61,6 +58,12 @@ class DatabaseSeeder extends Seeder
             // TerminalCdekSeeder::class,
 
             // TariffPochtaSeeder::class, // ото вообще не локации, просто тарифы почты россии
+
+        ]);
+
+        // финализация таблицы локаций
+        $this->call([
+            FinalizerLocationSeeder::class,
         ]);
     }
 }
