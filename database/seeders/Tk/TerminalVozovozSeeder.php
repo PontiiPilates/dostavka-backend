@@ -2,7 +2,11 @@
 
 namespace Database\Seeders\Tk;
 
+use App\Enums\CompanyType;
+use App\Enums\EnvironmentType;
+use App\Enums\LocationType;
 use App\Models\Tk\TerminalVozovoz;
+use App\Traits\Logger;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -10,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 class TerminalVozovozSeeder extends Seeder
 {
-    private array $unknown = [];
+    use Logger;
 
     /**
      * Run the database seeds.
@@ -28,12 +32,14 @@ class TerminalVozovozSeeder extends Seeder
     {
         $dataFiles = Storage::files('assets\geo\tk\vozovoz\data-files');
 
+        $countFiles = 0;
         foreach ($dataFiles as $dataFile) {
 
             $terminals = Storage::json($dataFile);
 
             $iterable = 0;
             $timeStart = Carbon::now();
+
             foreach ($terminals as $terminal) {
 
                 $terminal = (object) $terminal;
@@ -131,42 +137,35 @@ class TerminalVozovozSeeder extends Seeder
 
                 // если не удалось обнаружить принадлежность (распарсить)
                 if (!$region && !$district && !$city) {
-                    $this->unknown[] = $terminal->name . ': ' . $terminal->region_str;
+                    $this->parseFail(CompanyType::Vozovoz->value, $terminal->name . ': ' . $terminal->region_str);
                 }
 
-                TerminalVozovoz::updateOrCreate(
-                    [
-                        'name' => $terminal->name,
-                        'district' => $this->territoryReplacer($district),
-                        'region' => $this->territoryReplacer($region),
-                    ],
-                    [
-                        'identifier' => $terminal->guid,
-                        'name' => $terminal->name,
-                        'type' => $this->typesReplacer($terminal->type),
-                        'district' => $this->territoryReplacer($district),
-                        'region' => $this->territoryReplacer($region),
-                        'federal' => $federal,
-                        'country' => $terminal->country,
-                    ]
-                );
+                TerminalVozovoz::create([
+                    'identifier' => $terminal->guid,
+                    'name' => $terminal->name,
+                    'type' => $this->typesReplacer($terminal->type),
+                    'district' => $this->territoryReplacer($district),
+                    'region' => $this->territoryReplacer($region),
+                    'federal' => $federal,
+                    'country' => $terminal->country,
+                ]);
 
                 $iterable++;
             }
 
             $timeEnd = Carbon::now();
             $executionTime = $timeStart->diffInSeconds($timeEnd);
+            $executionTime = number_format((float) $executionTime, 1, '.');
 
-            dump("Добавлено $iterable новых терминалов. $executionTime сек.");
-
-            if ($this->unknown) {
-                dump('Появились территории, которые не удалось распарсить: ', $this->unknown);
-            }
+            $this->command->info("Добавлено $iterable терминалов, $executionTime сек.");
 
             // если сидер выполняется в 'Dev', то выполняется обработка 1 файла из 32 (для скорости)
-            if (config('app.env') == 'Dev') {
+            if (config('app.env') == EnvironmentType::Dev->value) {
                 break;
             }
+
+            $countFiles++;
+            $this->command->info("Обработано $countFiles из 32");
         }
     }
 
@@ -200,20 +199,20 @@ class TerminalVozovozSeeder extends Seeder
         ];
 
         $goodTypes = [
-            1 => "село",
-            2 => "деревня",
-            3 => "хутор",
-            4 => "посёлок",
-            5 => "станица",
-            6 => "агрогородок",
-            7 => "сельское поселение",
-            8 => "рабочий посёлок",
-            9 => "дачный посёлок",
-            10 => "сельское поселение",
-            11 => "слобода",
-            12 => "остров",
-            13 => "городской посёлок",
-            14 => "город",
+            1 => LocationType::Village->value,
+            2 => LocationType::Hamlet->value,
+            3 => LocationType::Farmstead->value,
+            4 => LocationType::Township->value,
+            5 => LocationType::Stanitsa->value,
+            6 => LocationType::AgroTown->value,
+            7 => LocationType::RualVillage->value,
+            8 => LocationType::JobVillage->value,
+            9 => LocationType::CottageVillage->value,
+            10 => LocationType::RualVillage->value,
+            11 => LocationType::Sloboda->value,
+            12 => LocationType::Island->value,
+            13 => LocationType::UrbanVillage->value,
+            14 => LocationType::Town->value,
         ];
 
         $key = array_search($type, $badTypes);
@@ -232,15 +231,15 @@ class TerminalVozovozSeeder extends Seeder
             2 => 'обл',
             3 => 'Аобласть',
             4 => '.',
-            5 => ' г'
+            5 => ' г',
         ];
 
         $replace = [
-            1 => 'район',
-            2 => 'область',
-            3 => 'автономная область',
+            1 => LocationType::District->value,
+            2 => LocationType::Area->value,
+            3 => LocationType::AutonomousRegion->value,
             4 => '',
-            5 => ''
+            5 => '',
         ];
 
         $territory = str_replace($search, $replace, $territory);

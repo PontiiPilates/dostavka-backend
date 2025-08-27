@@ -77,12 +77,12 @@ class FinalizerLocationSeeder extends Seeder
             }
             $timeEnd = Carbon::now();
             $executionTime = $timeStart->diffInSeconds($timeEnd);
-            $executionTime = substr($executionTime, 0, 3);
+            $executionTime = number_format((float) $executionTime, 1, '.');
 
             if ($iterable > 0) {
-                $this->command->info("$company: обработано $iterable локаций за $executionTime сек.");
+                $this->command->info("$company: сформировано $iterable локаций, $executionTime сек.");
             } else {
-                $this->command->line("$company: обработано $iterable локаций за $executionTime сек.");
+                $this->command->line("$company: сформировано $iterable локаций, $executionTime сек.");
             }
         }
     }

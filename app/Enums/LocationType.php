@@ -1,26 +1,32 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Enums;
 
-enum  RegionType: string
+enum  LocationType: string
 {
     case Area = 'область';
     case Edge = 'край';
+    case Republic = 'Республика';
+    case AutonomousRegion = 'автономный округ';
     case District = 'район';
     case Locality = 'населённый пункт';
+    case UrbanVillage = 'городской посёлок';
     case Town = 'город';
+    case AgroTown = 'агрогородок';
     case Zato = 'ЗАТО';
     case SmallTown = 'городок';
     case Hamlet = 'деревня';
     case Township = 'посёлок';
     case Village = 'село';
+    case Island = 'остров';
+    case RualVillage = 'сельское поселение';
     case Farmstead = 'хутор';
+    case Sloboda = 'слобода';
     case Aul = 'аул';
     case JobVillage = 'рабочий посёлок';
+    case CottageVillage = 'дачный посёлок';
     case Pgt = 'ПГТ';
-    case Microdistrict = 'микрорайон';
+    case MicroDistrict = 'микрорайон';
     case ResidentialComplex = 'жилой комплекс';
     case Snt = 'СНТ';
     case Spk = 'СПК';

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\LocationType;
 use App\Models\Country;
 use App\Models\Location;
 use App\Models\Region;
@@ -58,7 +59,7 @@ class LocationSeeder extends Seeder
                     'country_id' => $countryModel->id,
                     'region_id' => $region->id,
                     'name' => $city,
-                    'type' => 'г'
+                    'type' => LocationType::Town->value,
                 ]);
             }
         }

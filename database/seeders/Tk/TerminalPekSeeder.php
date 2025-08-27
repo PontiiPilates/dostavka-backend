@@ -2,8 +2,11 @@
 
 namespace Database\Seeders\Tk;
 
+use App\Enums\CompanyType;
+use App\Enums\LocationType;
 use App\Enums\Pek\PekUrlType;
 use App\Models\Tk\TerminalPek;
+use App\Traits\Logger;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -11,7 +14,7 @@ use Illuminate\Support\Facades\Http;
 
 class TerminalPekSeeder extends Seeder
 {
-    private array $unknown = [];
+    use Logger;
 
     /**
      * Run the database seeds.
@@ -26,6 +29,7 @@ class TerminalPekSeeder extends Seeder
 
         $iterable = 0;
         $timeStart = Carbon::now();
+
         foreach ($response->object()->branches as $location) {
 
             $countryCode = null;
@@ -130,7 +134,7 @@ class TerminalPekSeeder extends Seeder
 
                 // если не удалось обнаружить принадлежность (распарсить)
                 if (!$region && !$district && !$onlyCity) {
-                    $this->unknown[] = $city->title . ': ' . $location->address;
+                    $this->parseFail(CompanyType::Pek->value, $city->title . ': ' . $location->address);
                 }
 
                 foreach ($location->divisions as $division) {
@@ -166,12 +170,9 @@ class TerminalPekSeeder extends Seeder
 
         $timeEnd = Carbon::now();
         $executionTime = $timeStart->diffInSeconds($timeEnd);
+        $executionTime = number_format((float) $executionTime, 1, '.');
 
-        dump("Добавлено $iterable новых терминалов. $executionTime сек.");
-
-        if ($this->unknown) {
-            dump('Появились территории, которые не удалось распарсить: ', $this->unknown);
-        }
+        $this->command->info("Добавлено $iterable терминалов, $executionTime сек.");
     }
 
     /**
@@ -232,11 +233,17 @@ class TerminalPekSeeder extends Seeder
         }
 
         if (str_ends_with($onlyCorrectRegionName, 'обл') || str_ends_with($onlyCorrectRegionName, 'обл.') || str_ends_with($onlyCorrectRegionName, 'обл..')) {
-            $onlyCorrectRegionName = str_replace(['обл', 'обл.'], ['область', 'область'], $onlyCorrectRegionName);
+            $onlyCorrectRegionName = str_replace([
+                'обл',
+                'обл.'
+            ], [
+                LocationType::Area->value,
+                LocationType::Area->value,
+            ], $onlyCorrectRegionName);
         }
 
         if (str_ends_with($onlyCorrectRegionName, 'АО') || str_ends_with($onlyCorrectRegionName, 'АО.')) {
-            $onlyCorrectRegionName = str_replace(['АО'], ['автономный округ'], $onlyCorrectRegionName);
+            $onlyCorrectRegionName = str_replace(['АО'], [LocationType::AutonomousRegion->value], $onlyCorrectRegionName);
         }
 
         $onlyCorrectRegionName = str_replace(['663300', '353960'], ['', ''], $onlyCorrectRegionName);

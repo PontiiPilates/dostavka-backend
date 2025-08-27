@@ -3,6 +3,7 @@
 namespace Database\Seeders\Tk;
 
 use App\Enums\Boxberry\BoxberryUrlType;
+use App\Enums\LocationType;
 use App\Models\Country;
 use App\Models\Region;
 use App\Models\Tk\TerminalBoxberry;
@@ -25,7 +26,6 @@ class TerminalBoxberrySeeder extends Seeder
 
         $iterable = 0;
         $timeStart = Carbon::now();
-        $count = count($response->object());
 
         foreach ($response->object() as $place) {
 
@@ -63,8 +63,9 @@ class TerminalBoxberrySeeder extends Seeder
 
         $timeEnd = Carbon::now();
         $executionTime = $timeStart->diffInSeconds($timeEnd);
+        $executionTime = number_format((float) $executionTime, 1, '.');
 
-        $this->command->info("Добавлено $iterable локаций из $count за $executionTime сек.");
+        $this->command->info("Добавлено $iterable терминалов, $executionTime сек.");
     }
 
     /**
@@ -73,34 +74,34 @@ class TerminalBoxberrySeeder extends Seeder
     private function correctorType(string $name): string
     {
         if ($name == 'г') {
-            return 'город';
+            return LocationType::Town->value;
         }
         if ($name == 'рп') {
-            return 'рабочий посёлок';
+            return LocationType::JobVillage->value;
         }
         if ($name == 'п') {
-            return 'посёлок';
+            return LocationType::Township->value;
         }
         if ($name == 'ст-ца') {
-            return 'станица';
+            return LocationType::Stanitsa->value;
         }
         if ($name == 'д') {
-            return 'деревня';
+            return LocationType::Hamlet->value;
         }
         if ($name == 'дп') {
-            return 'деревенский посёлок';
+            return LocationType::CottageVillage->value;
         }
         if ($name == 'с') {
-            return 'село';
+            return LocationType::Village->value;
         }
         if ($name == 'х') {
-            return 'хутор';
+            return LocationType::Farmstead->value;
         }
         if ($name == 'мкр') {
-            return 'микрорайон';
+            return LocationType::MicroDistrict->value;
         }
         if ($name == 'нп') {
-            return 'населённый пункт';
+            return LocationType::Locality->value;
         }
 
         return $name;
@@ -111,7 +112,7 @@ class TerminalBoxberrySeeder extends Seeder
      */
     private function cleanDistrictName(string $name): string
     {
-        return $name . ' район';
+        return $name . ' ' . LocationType::District->value;
     }
 
     /**

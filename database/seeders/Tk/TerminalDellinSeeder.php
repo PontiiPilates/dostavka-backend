@@ -2,28 +2,31 @@
 
 namespace Database\Seeders\Tk;
 
+use App\Enums\CompanyType;
+use App\Enums\LocationType;
 use App\Models\Tk\TerminalDellin;
+use App\Traits\Logger;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class TerminalDellinSeeder extends Seeder
 {
-    private string $terminals;
+    use Logger;
 
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        $this->terminals = 'assets/geo/tk/dellin/terminals.json';
+        $pathToTerminals = 'assets/geo/tk/dellin/terminals.json';
 
-        $file = Storage::json($this->terminals);
+        $file = Storage::json($pathToTerminals);
 
         $iterable = 0;
         $timeStart = Carbon::now();
+
         foreach ($file['city'] as $city) {
             $city = (object) $city;
 
@@ -40,6 +43,7 @@ class TerminalDellinSeeder extends Seeder
                         $region = null;
                         $district = null;
                         $federal = false;
+
                         foreach ($territories as $key => $territory) {
 
                             // если обнаружена принадлежность к территиории федерального значения
@@ -66,7 +70,7 @@ class TerminalDellinSeeder extends Seeder
 
                         // если не удалось обнаружить принадлежность (распарсить)
                         if (!$region && !$district) {
-                            $this->parseFail($city->name . ': ' . $terminal->fullAddress);
+                            $this->parseFail(CompanyType::Dellin->value, $city->name . ': ' . $terminal->fullAddress);
                         }
 
                         TerminalDellin::create([
@@ -90,19 +94,9 @@ class TerminalDellinSeeder extends Seeder
 
         $timeEnd = Carbon::now();
         $executionTime = $timeStart->diffInSeconds($timeEnd);
+        $executionTime = number_format((float) $executionTime, 1, '.');
 
-        dump("Добавлено $iterable новых терминалов. $executionTime сек.");
-    }
-
-    /**
-     * Записывает в лог-файл данные, которые не удалось распарсить.
-     * 
-     * @param $unknown
-     * @return void
-     */
-    private function parseFail($unknown): void
-    {
-        Log::channel('parse')->warning('Dellin', [$unknown]);
+        $this->command->info("Добавлено $iterable терминалов, $executionTime сек.");
     }
 
     /**
@@ -111,7 +105,7 @@ class TerminalDellinSeeder extends Seeder
     private function cleanDistrictName(string $name): string
     {
         // замена нежелательных вхождений
-        $name = str_replace(['р-н'], ['район'], $name);
+        $name = str_replace(['р-н'], [LocationType::District->value], $name);
 
         // замена всей строки
         $badDistrictName = [
@@ -139,11 +133,25 @@ class TerminalDellinSeeder extends Seeder
      */
     private function cleanRegionName(string $name): string
     {
-        $name = str_replace(['Республика', 'Автономный округ', 'область'], ['Респ', 'АО', 'обл'], $name);
-        $name = str_replace(['Респ', 'АО', 'обл'], ['Республика', 'автономный округ', 'область'], $name);
+        $name = str_replace([
+            'Республика',
+            'Автономный округ',
+            'область'
+        ], [
+            'Респ',
+            'АО',
+            'обл'
+        ], $name);
 
-        // Кемеровская область - Кузбасс область
-        // Ханты-Мансийский автономный округ - Югра автономный округ
+        $name = str_replace([
+            'Респ',
+            'АО',
+            'обл'
+        ], [
+            LocationType::Republic->value,
+            LocationType::AutonomousRegion->value,
+            LocationType::Area->value
+        ], $name);
 
         return str_replace([
             0 => 'Башкортостан Республика',
