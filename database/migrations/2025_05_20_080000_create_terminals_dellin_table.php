@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('location_id')->nullable()->constrained();
 
             $table->char('identifier', 50)->comment('идентификатор локации');
+            $table->char('code', 50)->comment('код терминала');
             $table->text('name', 100)->comment('название локации');
             $table->text('type', 100)->nullable()->comment('тип локации локации');
             $table->text('district', 100)->nullable()->comment('название района');
