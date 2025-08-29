@@ -1,7 +1,7 @@
 services:
   php:
     build:
-      context: /docker/php
+      context: ./docker/php
       dockerfile: Dockerfile
     container_name: dostavka_php
     volumes:
@@ -47,14 +47,14 @@ services:
       - ./docker/redis:/data
   composer:
     build:
-      context: /docker/composer
+      context: ./docker/composer
       dockerfile: Dockerfile
     container_name: dostavka_composer
     volumes:
       - ./:/var/www/html
   artisan:
     build:
-      context: /docker/php
+      context: ./docker/php
       dockerfile: Dockerfile
     container_name: dostavka_artisan
     volumes:
@@ -64,4 +64,3 @@ services:
       - mysql
       - redis
       - php
-    
