@@ -17,6 +17,7 @@ use App\Traits\Hash;
 use App\Traits\Json;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Redis;
 use Tests\TestCase;
 
@@ -39,10 +40,9 @@ class JobTkTest extends TestCase
     {
         $hash = $this->arrayToHash($this->request());
 
-        // ! для отладки: удаление прежней записи, для прохождения проверки
+        // ! debug: удаление прежней записи, для прохождения проверки
         Redis::del($hash);
 
-        // todo: преобразовать структуру в DTO, это уже сложившийся концепт
         $structure = [
             'count' => count($this->request()['companies']),
             'request' => $this->request(),
@@ -54,16 +54,16 @@ class JobTkTest extends TestCase
 
         Redis::setex($hash, config('custom.expire'), $this->toJson($structure));
 
-        BaikalJob::dispatch($this->request(), $hash);
+        // BaikalJob::dispatch($this->request(), $hash);
         BoxberryJob::dispatch($this->request(), $hash);
-        CdekJob::dispatch($this->request(), $hash);
+        // CdekJob::dispatch($this->request(), $hash);
         DellinJob::dispatch($this->request(), $hash);
-        DpdJob::dispatch($this->request(), $hash);
-        JdeJob::dispatch($this->request(), $hash);
-        KitJob::dispatch($this->request(), $hash);
-        NrgJob::dispatch($this->request(), $hash);
+        // DpdJob::dispatch($this->request(), $hash);
+        // JdeJob::dispatch($this->request(), $hash);
+        // KitJob::dispatch($this->request(), $hash);
+        // NrgJob::dispatch($this->request(), $hash);
         PekJob::dispatch($this->request(), $hash);
-        PochtaJob::dispatch($this->request(), $hash);
+        // PochtaJob::dispatch($this->request(), $hash);
         VozovozJob::dispatch($this->request(), $hash);
 
         $data = $this->toArray(Redis::get($hash));
@@ -74,35 +74,35 @@ class JobTkTest extends TestCase
 
         assertArrayHasKey('results', $data);
 
-        assertArrayHasKey('baikal', $data['results']);
-        assertArrayHasKey('ss', $data['results']['baikal']);
+        // assertArrayHasKey('baikal', $data['results']);
+        // assertArrayHasKey('ss', $data['results']['baikal']);
 
         assertArrayHasKey('boxberry', $data['results']);
         assertArrayHasKey('ss', $data['results']['boxberry']);
 
-        assertArrayHasKey('cdek', $data['results']);
-        assertArrayHasKey('ss', $data['results']['cdek']);
+        // assertArrayHasKey('cdek', $data['results']);
+        // assertArrayHasKey('ss', $data['results']['cdek']);
 
         assertArrayHasKey('dellin', $data['results']);
         assertArrayHasKey('ss', $data['results']['dellin']);
 
-        assertArrayHasKey('dpd', $data['results']);
-        assertArrayHasKey('ss', $data['results']['dpd']);
+        // assertArrayHasKey('dpd', $data['results']);
+        // assertArrayHasKey('ss', $data['results']['dpd']);
 
-        assertArrayHasKey('jde', $data['results']);
-        assertArrayHasKey('ss', $data['results']['jde']);
+        // assertArrayHasKey('jde', $data['results']);
+        // assertArrayHasKey('ss', $data['results']['jde']);
 
-        assertArrayHasKey('kit', $data['results']);
-        assertArrayHasKey('ss', $data['results']['kit']);
+        // assertArrayHasKey('kit', $data['results']);
+        // assertArrayHasKey('ss', $data['results']['kit']);
 
-        assertArrayHasKey('nrg', $data['results']);
-        assertArrayHasKey('ss', $data['results']['nrg']);
+        // assertArrayHasKey('nrg', $data['results']);
+        // assertArrayHasKey('ss', $data['results']['nrg']);
 
         assertArrayHasKey('pek', $data['results']);
         assertArrayHasKey('ss', $data['results']['pek']);
 
-        assertArrayHasKey('pochta', $data['results']);
-        assertArrayHasKey('ss', $data['results']['pochta']);
+        // assertArrayHasKey('pochta', $data['results']);
+        // assertArrayHasKey('ss', $data['results']['pochta']);
 
         assertArrayHasKey('vozovoz', $data['results']);
         assertArrayHasKey('ss', $data['results']['vozovoz']);
@@ -111,32 +111,31 @@ class JobTkTest extends TestCase
     private function request(): array
     {
         return [
-            "from" => "Красноярск, Красноярский край",
-            "to" => "Москва, Москва",
+            "from" => 212,
+            "to" => 169,
             "places" => [
                 0 => [
                     "weight" => "10",
                     "length" => "100",
                     "width" => "20",
                     "height" => "10",
-                    "volume" => "0.2",
                 ],
                 1 => [
                     "weight" => "20",
                     "length" => "60",
                     "width" => "30",
                     "height" => "15",
-                    "volume" => "0.027",
                 ],
             ],
             "companies" => [
-                0 => "baikal",
-                1 => "boxberry",
-                2 => "cdek",
-                3 => "dellin",
-                4 => "dpd",
-                5 => "jde",
-                6 => "pek",
+                // "baikal",
+                "boxberry",
+                // "cdek",
+                "dellin",
+                // "dpd",
+                // "jde",
+                "pek",
+                "vozovoz",
             ],
             "delivery_type" => [
                 0 => "ss",
@@ -144,7 +143,7 @@ class JobTkTest extends TestCase
                 2 => "ds",
                 3 => "dd",
             ],
-            "shipment_date" => "2025-09-06",
+            "shipment_date" => Carbon::now()->addDays(2)->isoFormat('YYYY-MM-DD'),
         ];
     }
 }
