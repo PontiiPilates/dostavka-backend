@@ -74,7 +74,7 @@ class TerminalDellinSeeder extends Seeder
                         }
 
                         TerminalDellin::create([
-                            'identifier' => $city->id,
+                            'identifier' => $terminal->id,
                             'code' => $city->code,
                             'name' => $city->name,
                             'district' => $district

@@ -17,11 +17,11 @@ class DeliveryTypeBuilder
             "derival" => [
                 "produceDate" => $date,
                 "variant" => "terminal",
-                "terminalID" => $from->terminal_id
+                "terminalID" => $from->identifier
             ],
             "arrival" => [
                 "variant" => "terminal",
-                "terminalID" => $to->terminal_id
+                "terminalID" => $to->identifier
             ],
         ];
     }
@@ -34,12 +34,12 @@ class DeliveryTypeBuilder
             "derival" => [
                 "produceDate" => $date,
                 "variant" => "terminal",
-                "terminalID" => $from->terminal_id
+                "terminalID" => $from->identifier
             ],
             "arrival" => [
                 "variant" => "address",
                 "address" => [
-                    "search" => $to->city_id
+                    "search" => $to->code
                 ],
                 "time" => [
                     "worktimeEnd" => "19:30",
@@ -61,7 +61,7 @@ class DeliveryTypeBuilder
                 "produceDate" => $date,
                 "variant" => "address",
                 "address" => [
-                    "search" => $from->city_id
+                    "search" => $from->code
                 ],
                 "time" => [
                     "worktimeEnd" => "19:30",
@@ -73,7 +73,7 @@ class DeliveryTypeBuilder
             ],
             "arrival" => [
                 "variant" => "terminal",
-                "terminalID" => $to->terminal_id
+                "terminalID" => $to->identifier
             ],
         ];
     }
@@ -87,7 +87,7 @@ class DeliveryTypeBuilder
                 "produceDate" => $date,
                 "variant" => "address",
                 "address" => [
-                    "search" => $from->city_id
+                    "search" => $from->code
                 ],
                 "time" => [
                     "worktimeEnd" => "19:30",
@@ -100,7 +100,7 @@ class DeliveryTypeBuilder
             "arrival" => [
                 "variant" => "address",
                 "address" => [
-                    "search" => $to->city_id
+                    "search" => $to->code
                 ],
                 "time" => [
                     "worktimeEnd" => "19:30",
