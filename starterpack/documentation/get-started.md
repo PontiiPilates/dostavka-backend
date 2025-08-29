@@ -7,9 +7,10 @@ Get started
 * **[Клонирование репозитория](#клонирование-репозитория)**
 * **[Запуск проекта в Docker](#запуск-проекта-в-docker)**
 * **[Инициализация проекта](#инициализация-проекта)**
+* **[Выдача прав доступа](#выдача-прав-доступа)**
 * **[Импорт начальных данных](#импорт-начальных-данных)**
-* **[Миграции и посев данных](#миграции-и-посев-данных)**
-* **[Проверка работоспособности](#проверка-работоспособности)**
+* **[Тестирование](#тестирование)**
+* **[Возможные ошибки](#возможные-ошибки)**
 
 ## Клонирование репозитория
 
@@ -38,6 +39,21 @@ docker-compose up -d
 docker-compose run --remove-orphans composer install
 ```
 
+## Выдача прав доступа
+
+Войти в php-контейнер
+
+```shell
+docker-compose exec php sh
+```
+
+Разрешить www-data запись в файлы
+
+```shell
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+```
+
 ## Импорт начальных данных
 
 Снабжает проект гео-данными. Это данные самого верхнего уровня, собранные вручную, имеют наивысший уровень доверия.
@@ -51,25 +67,10 @@ docker-compose run --remove-orphans composer install
 
 Эти данные также необходимы для выполнения сидеров.
 
-## Миграции и посев данных
-
-При первом запуске достаточно выполнить:
+Наполнение базы данными
 
 ```shell
-docker compose run --remove-orphans artisan migrate --seed
-```
-
-Если выполнение происходит повторно, то следует выполнить:
-
-```shell
-docker compose run --remove-orphans artisan migrate:refresh --seed
-```
-
-При появлении ошибок типа `already exists` необходимо полностью очистить базу и снова выполнить ее сборку:
-
-```shell
-docker compose run --remove-orphans artisan db:wipe
-docker compose run --remove-orphans artisan migrate --seed
+docker-compose run --remove-orphans artisan migrate --seed
 ```
 
 После успешного выполнения, данные вырастут до следующей структуры:
@@ -79,17 +80,34 @@ docker compose run --remove-orphans artisan migrate --seed
 │   ├── Регионы / Города Федерального Значения
 │   |   ├── Районы
 │   |   |   ├── Локации
-│   |   |   |   ├── Терминалы Vozovoz
+│   |   |   |   ├── Терминалы Baikal
+│   |   |   |   ├── Терминалы Cdek
+│   |   |   |   ├── Терминалы Dellin
+│   |   |   |   ├── Терминалы Dpd
+│   |   |   |   ├── Терминалы Jde
+│   |   |   |   ├── Терминалы Kit
+│   |   |   |   ├── Терминалы Nrg
 │   |   |   |   ├── Терминалы Pek
+│   |   |   |   ├── Терминалы Pochta
+│   |   |   |   ├── Терминалы Vozovoz
 ```
 
-> **В настоящий момент доступна работа с данными только Vozovoz и Pek. Остальные данные подготавливаются.**
+## Тестирование
 
-## Проверка работоспособности
+Проверяет результат калькуляции всех транспортных компаний
 
-После выполненных пунктов можно [выполнить](http://localhost/api/v1/calculate?from=212&to=256&places[0][weight]=20&places[0][length]=100&places[0][width]=50&places[0][height]=20&places[1][weight]=10&places[1][length]=75&places[1][width]=15&places[1][height]=10&companies[]=pek&companies[]=vozovoz&delivery_type[]=ss&delivery_type[]=dd&insurance=3200&shipment_date=2025-10-10) запрос на расчёт стоимости и сроков доставки.
+```shell
+docker-compose run --remove-orphans artisan test --filter JobTkTest
+```
 
-А также получить результат [выполненной](http://localhost/api/v1/calculate-result?get=e26fa965bcc89068c5dac7cf233dd2fc) калькуляции.
+## Возможные ошибки
+
+При появлении ошибок типа `already exists` необходимо полностью очистить базу и снова выполнить ее сборку:
+
+```shell
+docker-compose run --remove-orphans artisan db:wipe
+docker-compose run --remove-orphans artisan migrate --seed
+```
 
 ***
 [▲ Наверх](#get-started)
