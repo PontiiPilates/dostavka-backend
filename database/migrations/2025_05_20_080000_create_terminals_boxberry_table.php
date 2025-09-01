@@ -18,7 +18,7 @@ return new class extends Migration
 
             $table->char('identifier', 50)->comment('идентификатор локации');
             $table->text('name', 100)->comment('название локации');
-            $table->text('type', 100)->nullable()->comment('тип локации локации');
+            $table->text('type', 100)->nullable()->comment('тип локации');
             $table->text('district', 100)->nullable()->comment('название района');
             $table->text('region', 100)->nullable()->comment('название региона');
             $table->boolean('federal')->default(false)->comment('значимая территория');
