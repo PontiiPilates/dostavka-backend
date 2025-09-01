@@ -54,7 +54,7 @@ class JobTkTest extends TestCase
 
         Redis::setex($hash, config('custom.expire'), $this->toJson($structure));
 
-        // BaikalJob::dispatch($this->request(), $hash);
+        BaikalJob::dispatch($this->request(), $hash);
         BoxberryJob::dispatch($this->request(), $hash);
         // CdekJob::dispatch($this->request(), $hash);
         DellinJob::dispatch($this->request(), $hash);
@@ -74,8 +74,8 @@ class JobTkTest extends TestCase
 
         assertArrayHasKey('results', $data);
 
-        // assertArrayHasKey('baikal', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['baikal']);
+        assertArrayHasKey('baikal', $data['results']);
+        assertArrayHasKey('ss', $data['results']['baikal']);
 
         assertArrayHasKey('boxberry', $data['results']);
         assertArrayHasKey('ss', $data['results']['boxberry']);
@@ -128,7 +128,7 @@ class JobTkTest extends TestCase
                 ],
             ],
             "companies" => [
-                // "baikal",
+                "baikal",
                 "boxberry",
                 // "cdek",
                 "dellin",

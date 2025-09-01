@@ -57,7 +57,7 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $from = Location::find($request->from)->terminalsBaikal()->firstOrFail();
+            $from = Location::find($request->from)->terminalsBaikal()->first();
             $to = Location::find($request->to)->terminalsBaikal()->firstOrFail();
         } catch (\Throwable $th) {
             throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);

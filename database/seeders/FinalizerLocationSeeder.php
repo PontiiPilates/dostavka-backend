@@ -20,8 +20,6 @@ use App\Models\Tk\TerminalVozovoz;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 class FinalizerLocationSeeder extends Seeder
 {
@@ -30,11 +28,6 @@ class FinalizerLocationSeeder extends Seeder
      */
     public function run(): void
     {
-        // для отладки
-        // Schema::disableForeignKeyConstraints();
-        // DB::table('locations')->truncate();
-        // Schema::enableForeignKeyConstraints();
-
         $companys = [
             CompanyType::Baikal->value => TerminalBaikal::class,
             CompanyType::Boxberry->value => TerminalBoxberry::class,
@@ -87,7 +80,7 @@ class FinalizerLocationSeeder extends Seeder
         }
     }
 
-    private function createRegion($country, $terminal): Region
+    private function createRegion(Country $country, $terminal): Region
     {
         return Region::updateOrCreate(
             [
@@ -101,38 +94,76 @@ class FinalizerLocationSeeder extends Seeder
         );
     }
 
-    private function createDistrict($country, $region, $terminal): District
+    private function createDistrict(Country $country, Region|null $region, $terminal): District
     {
         return District::updateOrCreate(
             [
+                'country_id' => $country->id,
                 'region_id' => $region->id ?? null,
                 'name' => $terminal->district,
-                'country_id' => $country->id,
             ],
             [
+                'country_id' => $country->id,
                 'region_id' => $region->id ?? null,
                 'name' => $terminal->district,
-                'country_id' => $country->id,
             ]
         );
     }
 
-    private function createLocation($country, $region, $district, $terminal): Location
+    /**
+     * Создаёт локацию с предотвращением появления дублей посредствам снижения строгости сравнения.
+     * 
+     * @param Country $country
+     * @param Region|null $region
+     * @param District|null $district
+     * @param object $terminal
+     * @return Location
+     */
+    private function createLocation(Country $country, Region|null $region, District|null $district, object $terminal): Location
     {
-        return Location::updateOrCreate(
-            [
-                'country_id' => $country->id,
-                'region_id' => $region->id ?? null,
-                'district_id' => $district->id ?? null,
-                'name' => $terminal->name,
-            ],
-            [
-                'country_id' => $country->id,
-                'region_id' => $region->id ?? null,
-                'district_id' => $district->id ?? null,
-                'name' => $terminal->name,
-                'type' => $terminal->type,
-            ]
-        );
+        // если есть район, то пытается обнаружить и вернуть локацию с стране и районе
+        if (isset($district->id)) {
+            $existsDistrict = Location::where([
+                ['country_id', '=', $country->id],
+                ['region_id', '=', $district->id],
+                ['name', '=', $terminal->name]
+            ])->first();
+
+            if ($existsDistrict) {
+                return $existsDistrict;
+            }
+        }
+
+        // если есть регион, то пытается обнаружить и вернуть локацию с стране и регионе
+        if (isset($region->id)) {
+            $existsRegion = Location::where([
+                ['country_id', '=', $country->id],
+                ['region_id', '=', $region->id],
+                ['name', '=', $terminal->name]
+            ])->first();
+
+            if ($existsRegion) {
+                return $existsRegion;
+            }
+        }
+
+        // если есть только страна, то пытается обнаружить и вернуть локацию в стране
+        $existsCountry = Location::where([
+            ['country_id', '=', $country->id],
+            ['name', '=', $terminal->name]
+        ])->first();
+
+        if ($existsCountry) {
+            return $existsCountry;
+        }
+
+        // если ничего не обнаружено, то создает локацию
+        return Location::create([
+            'country_id' => $country->id,
+            'region_id' => $region->id ?? null,
+            'district_id' => $district->id ?? null,
+            'name' => $terminal->name,
+            'type' => $terminal->type,
+        ]);
     }
 }

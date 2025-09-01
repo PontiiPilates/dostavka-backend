@@ -5,14 +5,13 @@ namespace Database\Seeders\Tk;
 use App\Enums\Baikal\BaikalUrlType;
 use App\Models\Location;
 use App\Models\Tk\TerminalBaikal;
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Http;
 
 class TerminalBaikalSeeder extends Seeder
 {
-    private array $candidatsToUpdate = [];
-
     /**
      * Run the database seeds.
      */
@@ -23,36 +22,61 @@ class TerminalBaikalSeeder extends Seeder
 
         $response = Http::withBasicAuth($username, '')->get($url);
 
-        // особенность данного списка в том, что здесь нет явного указания страны в буквенно-цифровом виде
-        // поэтому, сеять данный список необходимо в последнюю очередь, когда уже есть набор основных локаций
-        // в связи с этим за основу посева будет взята таблица локаций, а не стран
+        $iterable = 0;
+        $timeStart = Carbon::now();
 
         foreach ($response->object() as $fillial) {
 
-            $place = $fillial->name;
-            $identifier = $fillial->guid;
-            $terminals = $fillial->terminals;
+            // проблема данных Байкал сервис в том, что они не содержат принадлежности к стране
+            try {
+                $country = Location::where('name', $fillial->name)->first()->country()->first()->alpha2;
+            } catch (\Throwable $th) {
+                $places = [
+                    'Пушкино' => 'RU',
+                    'Актау' => 'KZ',
+                    'Кызылорда' => 'KZ',
+                    'Жезказган' => 'KZ',
+                    'Новомосковск' => 'RU',
+                    'Железнодорожный' => 'RU',
+                    'Томилино' => 'RU',
+                    'Одинцово' => 'RU',
+                    'Зеленоград' => 'RU',
+                    'Великие Луки' => 'RU',
+                    'Кокшетау' => 'KZ',
+                    'Балашиха' => 'RU',
+                    'Балхаш' => 'KZ',
+                ];
 
-            foreach ($terminals as $terminal) {
-
-                $dirty = $terminal->address;
-
-                $location = Location::where('name', $place)->first();
-
-                if (!$location) {
-                    $this->candidatsToUpdate[] = $place . ': ' . $dirty;
-                    continue;
-                }
-
-                TerminalBaikal::create([
-                    'location_id' => $location->id,
-                    'identifier' => $identifier,
-                    'name' => $location->name,
-                    'dirty' => $dirty,
-                ]);
+                $country = $places[$fillial->name];
             }
+
+            $region = null;
+            $district = null;
+            $type = null;
+            $federal = false;
+
+            if ($fillial->name == 'Санкт-Петербург' || $fillial->name == 'Москва' || $fillial->name == 'Севастополь') {
+                $region = $fillial->name;
+                $federal = true;
+            }
+
+            TerminalBaikal::create([
+                'identifier' => $fillial->guid,
+                'name' => $fillial->name,
+                'type' => $type,
+                'district' => $district,
+                'region' => $region,
+                'federal' => $federal,
+                'country' => $country ?? null,
+            ]);
+
+            $iterable++;
         }
 
-        dump('Следующие локации остались не добавленными: ', $this->candidatsToUpdate);
+        $timeEnd = Carbon::now();
+        $executionTime = $timeStart->diffInSeconds($timeEnd);
+        $executionTime = number_format((float) $executionTime, 1, '.');
+
+        $this->command->info("Добавлено $iterable терминалов, $executionTime сек.");
     }
 }

@@ -4,53 +4,55 @@ declare(strict_types=1);
 
 namespace App\Builders\Baikal;
 
+use App\Models\Tk\TerminalBaikal;
+
 class DeliveryTypeBuilder
 {
-    public function sS(string $fromTerminal, string $toTerminal): array
+    public function sS(TerminalBaikal $from, TerminalBaikal $to): array
     {
         return [
             "Departure" => [
-                "CityGuid" => $fromTerminal // идентификатор из справочника населенных пунктов
+                "CityGuid" => $from->identifier,
             ],
             "Destination" => [
-                "CityGuid" => $toTerminal // идентификатор из справочника населенных пунктов
+                "CityGuid" => $to->identifier,
             ],
         ];
     }
 
-    public function sD(string $fromTerminal, string $toTerminal): array
+    public function sD(TerminalBaikal $from, TerminalBaikal $to): array
     {
         return [
             "Departure" => [
-                "CityGuid" => $fromTerminal // идентификатор из справочника населенных пунктов
+                "CityGuid" => $from->identifier,
             ],
             "Destination" => [
-                "CityGuid" => $toTerminal, // идентификатор из справочника населенных пунктов
+                "CityGuid" => $to->identifier,
                 'Delivery' => $this->emptyAddress()
             ],
         ];
     }
-    public function dS(string $fromTerminal, string $toTerminal): array
+    public function dS(TerminalBaikal $from, TerminalBaikal $to): array
     {
         return [
             "Departure" => [
-                "CityGuid" => $fromTerminal, // идентификатор из справочника населенных пунктов
+                "CityGuid" => $from->identifier,
                 'PickUp' => $this->emptyAddress()
             ],
             "Destination" => [
-                "CityGuid" => $toTerminal // идентификатор из справочника населенных пунктов
+                "CityGuid" => $to->identifier
             ],
         ];
     }
-    public function dD(string $fromTerminal, string $toTerminal): array
+    public function dD(TerminalBaikal $from, TerminalBaikal $to): array
     {
         return [
             "Departure" => [
-                "CityGuid" => $fromTerminal, // идентификатор из справочника населенных пунктов
+                "CityGuid" => $from->identifier,
                 'PickUp' => $this->emptyAddress()
             ],
             "Destination" => [
-                "CityGuid" => $toTerminal, // идентификатор из справочника населенных пунктов
+                "CityGuid" => $to->identifier,
                 'Delivery' => $this->emptyAddress()
             ],
         ];

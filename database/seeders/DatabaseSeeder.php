@@ -38,12 +38,12 @@ class DatabaseSeeder extends Seeder
 
         // засев терминалов компаний
         $this->call([
+            TerminalBaikalSeeder::class,
             TerminalBoxberrySeeder::class,
             TerminalDellinSeeder::class,
             TerminalPekSeeder::class,
             TerminalVozovozSeeder::class,
 
-            // TerminalBaikalSeeder::class, // должен быть одним из последних (остаток 12, в таблице 158)
             // TerminalKitSeeder::class, // должен быть одним из последних (остаток 27400, в таблице 348)
             // TerminalJdeSeeder::class, // (остаток 132, в таблице 211)
             // TerminalNrgSeeder::class, // должен быть одним из последних, грязная принадлежность к регионам (остаток 4723, в таблице 363)
