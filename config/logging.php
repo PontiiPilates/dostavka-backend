@@ -87,6 +87,12 @@ return [
             'path' => storage_path('logs/parse.log'),
         ],
 
+        // содержит записи об ошибках, появление которых можно спрогнозировать
+        'errors' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/errors.log'),
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

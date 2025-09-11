@@ -14,4 +14,9 @@ class Authenticate extends Middleware
     {
         return $request->expectsJson() ? null : route('login');
     }
+
+    /**
+     * Наличие этого метода позволяет возвращать ответы в формате json
+     */
+    protected function unauthenticated($request, array $guards) {}
 }
