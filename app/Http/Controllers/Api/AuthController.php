@@ -477,20 +477,4 @@ class AuthController extends Controller
             'data' => [],
         ], JsonResponse::HTTP_OK);
     }
-
-    /**
-     * Тестирование SMTP-сервера.
-     */
-    public function testEmailSend()
-    {
-        try {
-            Mail::raw('Test email', function ($message) {
-                $message->to('s.m.leshukov@yandex.ru')
-                    ->subject('Test Mail');
-            });
-            return 'Email sent successfully';
-        } catch (\Exception $e) {
-            return 'Error: ' . $e->getMessage();
-        }
-    }
 }
