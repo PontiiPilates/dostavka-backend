@@ -45,6 +45,12 @@ services:
       - 6379:6379
     volumes:
       - ./docker/redis:/data:rw
+  mailhog:
+    container_name: dostavka_smtp
+    image: mailhog/mailhog
+    ports:
+      - 1025:1025
+      - 8025:8025
   composer:
     build:
       context: ./docker/composer
@@ -59,7 +65,7 @@ services:
     container_name: dostavka_artisan
     volumes:
       - ./:/var/www/html
-    entrypoint: ["php", "/var/www/html/artisan"]
+    entrypoint: [ "php", "/var/www/html/artisan" ]
     depends_on:
       - mysql
       - redis
