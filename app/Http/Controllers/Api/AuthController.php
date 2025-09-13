@@ -34,7 +34,7 @@ class AuthController extends Controller
                 'message' => 'Пользователь уже авторизован.',
                 'errors' => [],
                 'data' => [],
-            ], JsonResponse::HTTP_OK);
+            ], JsonResponse::HTTP_FORBIDDEN);
         }
 
         $validator = Validator::make($request->all(), [
@@ -76,10 +76,10 @@ class AuthController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
             Log::channel('errors')->error('Ошибка при регистрации нового пользователя:', [$th]);
-            $message = 'Регистрация не удалась, попробуйте позже или свяжитесь с администратором.';
             return response()->json([
                 'success' => false,
-                'message' => $message,
+                'message' => 'Регистрация не удалась, попробуйте позже или свяжитесь с администратором.',
+                'errors' => [],
                 'data' => [],
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -88,10 +88,10 @@ class AuthController extends Controller
 
         event(new Registered($user));
 
-        $message = 'Спасибо за регистрацию! Мы отправили ссылку на указанную почту. Пожалуйста, перейдите по ней для завершения регистрации.';
         return response()->json([
             'success' => true,
-            'message' => $message,
+            'message' => 'Ссылка для подтверждения регистрации отправлена на почту пользователя.',
+            'errors' => [],
             'data' => [
                 'token' => $token
             ],
@@ -137,6 +137,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Пользователь с такими данными не обнаружен.',
+                'errors' => [],
                 'data' => []
             ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -168,6 +169,8 @@ class AuthController extends Controller
                 'data' => [],
             ], JsonResponse::HTTP_UNAUTHORIZED);
         }
+
+        $user->tokens; // добавляет токены к данным пользователя
 
         return response()->json([
             'success' => true,
@@ -367,7 +370,7 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Пользователь не авторизован.',
+                'message' => 'Необходимо авторизоваться.',
                 'errors' => [],
                 'data' => [],
             ], JsonResponse::HTTP_UNAUTHORIZED);
@@ -379,16 +382,15 @@ class AuthController extends Controller
             $user->delete();
             return response()->json([
                 'success' => true,
-                'message' => 'Профиль пользователя успешно удалён.',
+                'message' => 'Ваш профиль успешно удалён.',
                 'errors' => [],
                 'data' => [],
             ], JsonResponse::HTTP_OK);
         } catch (\Throwable $th) {
-            $message = 'Не удалось удалить профиль пользователя.';
-            Log::channel('errors')->error('Ошибка при удалении профиля пользователя:', [$th]);
+            Log::channel('errors')->error('Ошибка при удалении профиля пользователя: ', [$th]);
             return response()->json([
                 'success' => true,
-                'message' => $message,
+                'message' => 'Не получилось удалить профиль. Попробуйте позже.',
                 'errors' => [],
                 'data' => [],
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR)->withHeaders([]);

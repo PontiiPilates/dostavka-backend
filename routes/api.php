@@ -43,7 +43,7 @@ Route::prefix('v1')->group(function () {
     Route::get('me', [AuthController::class, 'me'])->name('me')->middleware('auth:sanctum');
 
     Route::get('verification-email', [AuthController::class, 'verificationNotice'])->name('verification.notice')->middleware('auth:sanctum', 'throttle:5,1'); // done
-    Route::get('verification-email/{id}/{hash}', [AuthController::class, 'verificationVerify'])->name('verification.verify')->middleware('signed', 'throttle:5,1'); // done
+    Route::get('verification-email/{id}/{hash}', [AuthController::class, 'verificationVerify'])->name('verification.verify')->middleware('auth:sanctum', 'signed', 'throttle:5,1'); // done
 
     Route::post('password-forgot', [AuthController::class, 'passwordForgot'])->name('password.forgot')->middleware('guest'); // doneS
     Route::post('password-reset', [AuthController::class, 'passwordReset'])->name('password.reset')->middleware('guest'); // done
