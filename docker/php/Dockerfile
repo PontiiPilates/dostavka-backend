@@ -11,22 +11,63 @@
 
 # CMD ["php-fpm"]
 
+# ===
 
+# FROM php:8.3-fpm
+
+# # установка рабочей директории
+# WORKDIR /var/www/html
+
+# # установка зависимостей дял базы данных
+# RUN docker-php-ext-install pdo pdo_mysql pcntl
+
+# # установка supervisor
+# RUN apt-get update && apt-get install -y \
+#     supervisor \
+#     git \
+#     unzip
+
+
+
+
+    
+# # установка Composer
+# RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+
+
+# EXPOSE 9000
+# CMD ["php-fpm"]
+
+# ===
 FROM php:8.3-fpm
 
-# установка рабочей директории
-WORKDIR /var/www/html
+# RUN apt-get update && apt-get install -y libpq-dev libpng-dev libzip-dev zip unzip curl
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    supervisor
 
-# установка зависимостей дял базы данных
-RUN docker-php-ext-install pdo pdo_mysql
+# RUN docker-php-ext-install pdo pdo_mysql gd zip\
+#   && docker-php-ext-enable opcache
 
-# установка supervisor
-RUN apt-get update && apt-get install -y supervisor
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# установка Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Install redis
+# RUN pecl install -o -f redis \
+#   &&  rm -rf /tmp/pear \
+#   &&  docker-php-ext-enable redis
+RUN pecl install redis && docker-php-ext-enable redis
 
+# Install Supervisor
+RUN apt-get install -y supervisor
 
+RUN mkdir -p "/etc/supervisor/logs"
 
-
-CMD ["php-fpm"]
+CMD ["/usr/bin/supervisord", "-n", "-c",  "/etc/supervisor/supervisord.conf"]
