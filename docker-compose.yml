@@ -12,7 +12,7 @@ services:
     networks:
       - dostavka
 
-  # php, composer, supervisor, horison
+  # php, supervisor, composer, horison
   app:
     build:
       context: ./
@@ -79,37 +79,6 @@ services:
     networks:
       - dostavka
 
-  horizon:
-    build:
-      context: ./
-      dockerfile: ./docker/php/Dockerfile
-    volumes:
-      - ./:/var/www
-    environment:
-      - APP_NAME=$(APP_NAME)
-      - APP_ENV=$(APP_ENV)
-      - APP_KEY=$(APP_KEY)
-      - APP_DEBUG=$(APP_DEBUG)
-      - APP_URL=$(APP_URL)
-      - DB_CONNECTION=$(DB_CONNECTION)
-      - DB_HOST=$(DB_HOST)
-      - DB_PORT=$(DB_PORT)
-      - DB_DATABASE=$(DB_DATABASE)
-      - DB_USERNAME=$(DB_USERNAME)
-      - DB_PASSWORD=$(DB_PASSWORD)
-      - REDIS_HOST=$(REDIS_HOST)
-      - REDIS_PORT=$(REDIS_PORT)
-      - QUEUE_CONNECTION=$(QUEUE_CONNECTION)
-      - HORIZON_DASHBOARD_SECRET=secret
-    depends_on:
-      - redis
-    networks:
-      - dostavka
-    command: php artisan horizon
-
 networks:
   dostavka:
     driver: bridge
-
-# https://howto.im/q/how-to-deploy-laravel-horizon-using-docker
-# https://www.youtube.com/watch?v=R-ALpRFmiAU
