@@ -17,12 +17,12 @@ class LocationSeeder extends Seeder
     public function run(): void
     {
         $files = [
-            'Казахстан',
-            'Армения',
-            'Беларусь',
-            'Кыргызстан',
-            'Китай',
-            'Россия',
+            'KZ',
+            'AM',
+            'BY',
+            'KG',
+            'CN',
+            'RU',
         ];
 
         foreach ($files as $country) {
@@ -42,7 +42,7 @@ class LocationSeeder extends Seeder
                 $city = trim($chunk->all()[$firstItem]);
                 $region = trim($chunk->all()[$lastItem]);
 
-                $countryModel = Country::where('name', $country)->first();
+                $countryModel = Country::where('alpha2', $country)->first();
 
                 $region = Region::updateOrCreate(
                     [

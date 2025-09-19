@@ -4,7 +4,8 @@ namespace App\Enums;
 
 enum  EnvironmentType: string
 {
-    case Dev = 'Dev';
-    case Test = 'Test';
-    case Prod = 'Prod';
+    case Local = 'local';
+    case Dev = 'dev';
+    case Test = 'test';
+    case Prod = 'production';
 }

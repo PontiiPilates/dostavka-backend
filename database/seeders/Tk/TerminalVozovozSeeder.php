@@ -160,7 +160,10 @@ class TerminalVozovozSeeder extends Seeder
             $this->command->info("Добавлено $iterable терминалов, $executionTime сек.");
 
             // если сидер выполняется в 'Dev', то выполняется обработка 1 файла из 32 (для скорости)
-            if (config('app.env') == EnvironmentType::Dev->value) {
+            if (
+                config('app.env') == EnvironmentType::Local->value
+                || config('app.env') == EnvironmentType::Dev->value
+            ) {
                 break;
             }
 
