@@ -3,7 +3,7 @@ services:
   nginx:
     image: nginx:stable-alpine
     ports:
-      - 80:80
+      - 88:80
     volumes:
       - ./:/var/www/html
       - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
