@@ -23,7 +23,7 @@ Route::get('/i', function () {
 });
 
 Route::get('/test-assynch', function () {
-    TestJob::dispatch(3);
-    TestJob::dispatch(4);
     TestJob::dispatch(5);
+    TestJob::dispatch(6);
+    TestJob::dispatch(7);
 });
