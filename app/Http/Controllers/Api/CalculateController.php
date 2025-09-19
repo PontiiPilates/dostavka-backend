@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\CompanyType;
+use App\Enums\EnvironmentType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CalculateRequest;
 use App\Jobs\Tk\BaikalJob;
@@ -37,8 +38,13 @@ class CalculateController extends Controller
 
         $hash = $this->arrayToHash($request->all());
 
-        // ! для отладки: удаление прежней записи, для прохождения проверки
-        Redis::del($hash);
+        // если hash запроса обнаружен в качестве ключа в redis
+        // то происходит выдача результата по этому ключу
+        // в локальной среде проверка работоспособности требуется чаще чем получение результата
+        // поэтому происходит предварительная очистка redis от данного результата
+        if (config('app.env') == EnvironmentType::Local->value) {
+            Redis::del($hash);
+        }
 
         // todo: преобразовать структуру в DTO, это уже сложившийся концепт
         $structure = [
@@ -61,17 +67,17 @@ class CalculateController extends Controller
 
         foreach ($request->companies as $company) {
             match ($company) {
-                CompanyType::Baikal->value => BaikalJob::dispatch($request->all(), $hash)->onQueue('h'),
-                CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all(), $hash)->onQueue('l'),
-                CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash)->onQueue('h'),
-                CompanyType::Dellin->value => DellinJob::dispatch($request->all(), $hash)->onQueue('l'),
-                CompanyType::DPD->value => DpdJob::dispatch($request->all(), $hash)->onQueue('h'),
-                CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash)->onQueue('h'),
+                CompanyType::Baikal->value => BaikalJob::dispatch($request->all(), $hash),
+                CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all(), $hash),
+                CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash),
+                CompanyType::Dellin->value => DellinJob::dispatch($request->all(), $hash),
+                CompanyType::DPD->value => DpdJob::dispatch($request->all(), $hash),
+                CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash),
                 CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
-                CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash)->onQueue('l'),
-                CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash)->onQueue('l'),
-                CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash)->onQueue('l'),
-                CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash)->onQueue('h'),
+                CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash),
+                CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash),
+                CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash),
+                CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash),
             };
         }
 
