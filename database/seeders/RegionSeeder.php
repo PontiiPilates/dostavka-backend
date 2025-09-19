@@ -15,7 +15,7 @@ class RegionSeeder extends Seeder
     public function run(): void
     {
         $files = [
-            'Россия',
+            'RU',
         ];
 
         foreach ($files as $country) {
@@ -32,7 +32,7 @@ class RegionSeeder extends Seeder
                 $regionCode = trim($chunk->all()[$firstKey]);
                 $regionName = trim($chunk->all()[$lastKey]);
 
-                $countryModel = Country::where('name', $country)->first();
+                $countryModel = Country::where('alpha2', $country)->first();
 
                 Region::create([
                     'country_id' => $countryModel->id,

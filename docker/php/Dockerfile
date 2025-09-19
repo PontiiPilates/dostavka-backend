@@ -1,19 +1,24 @@
-# FROM php:8.2.1-fpm
+FROM php:8.3-fpm
 
-# RUN apt-get -y update && apt-get upgrade -y
-# RUN docker-php-ext-install pdo pdo_mysql && docker-php-ext-enable pdo_mysql
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    supervisor
 
-# RUN pecl install xdebug-3.2.0 && docker-php-ext-enable xdebug
+# Install system dependencies
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# RUN docker-php-ext-configure pcntl --enable-pcntl \
-#   && docker-php-ext-install \
-#   pcntl
+# Install redis
+RUN pecl install redis && docker-php-ext-enable redis
 
-# CMD ["php-fpm"]
+# Install Supervisor
+RUN apt-get install -y supervisor
+RUN mkdir -p "/etc/supervisor/logs"
 
-
-FROM php:8.2-fpm-alpine
-
-WORKDIR /var/www/html
-
-RUN docker-php-ext-install pdo pdo_mysql
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]

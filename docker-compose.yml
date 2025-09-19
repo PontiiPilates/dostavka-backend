@@ -1,72 +1,84 @@
 services:
-  php:
-    build:
-      context: ./docker/php
-      dockerfile: Dockerfile
-    container_name: dostavka_php
-    volumes:
-      - ./:/var/www/html
-  mysql:
-    image: mysql:8.4
-    container_name: dostavka_mysql
-    ports:
-      - 3306:3306
-    volumes:
-      - ./docker/mysql/data:/var/lib/mysql
-    env_file:
-      - ./docker/mysql/.env
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: dostavka_phpmyadmin
-    ports:
-      - 8080:80
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-    depends_on:
-      - mysql
-      - php
+
   nginx:
     image: nginx:stable-alpine
-    container_name: dostavka_nginx
     ports:
-      - 80:80
+      - 88:80
     volumes:
       - ./:/var/www/html
       - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
+      - app
+    networks:
+      - dostavka
+
+  # php, supervisor, composer, horison
+  app:
+    build:
+      context: ./
+      dockerfile: ./docker/php/Dockerfile
+    volumes:
+      - ./:/var/www/html
+      - ./docker/supervisor/supervisord.conf:/etc/supervisor/supervisord.conf
+      - ./docker/supervisor/laravel-worker.conf:/etc/supervisor/conf.d/laravel-worker.conf
+    networks:
+      - dostavka
+    depends_on:
       - mysql
       - redis
-      - php
-  redis:
-    image: redis:latest
-    container_name: dostavka_redis
+      - mailhog
+
+  mysql:
+    image: mysql:8.4
     ports:
-      - 6379:6379
+      - 3306:3306
     volumes:
-      - ./docker/redis:/data:rw
+      - ./docker/mysql/data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_USER: '${DB_USERNAME}'
+      MYSQL_PASSWORD: '${DB_PASSWORD:-secret}'
+      MYSQL_ROOT_PASSWORD: 'root'
+    networks:
+      - dostavka
+
+  redis:
+    image: 'redis:alpine'
+    ports:
+      - '${FORWARD_REDIS_PORT:-6379}:6379'
+    volumes:
+      - ./docker/redis:/data
+    networks:
+      - dostavka
+    command: >
+      sh -c " chown -R redis:redis /data && chmod -R 755 /data && redis-server --appendonly yes --stop-writes-on-bgsave-error no "
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      retries: 3
+      timeout: 5s
+
   mailhog:
-    container_name: dostavka_smtp
     image: mailhog/mailhog
     ports:
       - 1025:1025
       - 8025:8025
-  composer:
-    build:
-      context: ./docker/composer
-      dockerfile: Dockerfile
-    container_name: dostavka_composer
-    volumes:
-      - ./:/var/www/html
-  artisan:
-    build:
-      context: ./docker/php
-      dockerfile: Dockerfile
-    container_name: dostavka_artisan
-    volumes:
-      - ./:/var/www/html
-    entrypoint: [ "php", "/var/www/html/artisan" ]
+    networks:
+      - dostavka
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - 8080:8080
+    environment:
+      - ADMINER_DEFAULT_SERVER=${DB_HOST}
     depends_on:
       - mysql
-      - redis
-      - php
+    networks:
+      - dostavka
+
+networks:
+  dostavka:
+    driver: bridge

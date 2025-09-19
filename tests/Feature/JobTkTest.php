@@ -54,17 +54,17 @@ class JobTkTest extends TestCase
 
         Redis::setex($hash, config('custom.expire'), $this->toJson($structure));
 
-        BaikalJob::dispatch($this->request(), $hash);
-        BoxberryJob::dispatch($this->request(), $hash);
+        BaikalJob::dispatch($this->request(), $hash); // 2.1, 2.1, 2.3
+        // BoxberryJob::dispatch($this->request(), $hash); // ! bocked
         // CdekJob::dispatch($this->request(), $hash);
-        DellinJob::dispatch($this->request(), $hash);
+        DellinJob::dispatch($this->request(), $hash); // 4.0, 4.8, 5.7
         // DpdJob::dispatch($this->request(), $hash);
         // JdeJob::dispatch($this->request(), $hash);
         // KitJob::dispatch($this->request(), $hash);
         // NrgJob::dispatch($this->request(), $hash);
-        PekJob::dispatch($this->request(), $hash);
+        PekJob::dispatch($this->request(), $hash); // 1.8, 1.6, 2.7
         // PochtaJob::dispatch($this->request(), $hash);
-        VozovozJob::dispatch($this->request(), $hash);
+        VozovozJob::dispatch($this->request(), $hash); // 3.8, 0.8, 1.8
 
         $data = $this->toArray(Redis::get($hash));
 
@@ -77,8 +77,9 @@ class JobTkTest extends TestCase
         assertArrayHasKey('baikal', $data['results']);
         assertArrayHasKey('ss', $data['results']['baikal']);
 
-        assertArrayHasKey('boxberry', $data['results']);
-        assertArrayHasKey('ss', $data['results']['boxberry']);
+        // ! blocked
+        // assertArrayHasKey('boxberry', $data['results']);
+        // assertArrayHasKey('ss', $data['results']['boxberry']);
 
         // assertArrayHasKey('cdek', $data['results']);
         // assertArrayHasKey('ss', $data['results']['cdek']);
@@ -129,7 +130,7 @@ class JobTkTest extends TestCase
             ],
             "companies" => [
                 "baikal",
-                "boxberry",
+                // "boxberry", // ! blocked
                 // "cdek",
                 "dellin",
                 // "dpd",
