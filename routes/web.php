@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\TestJob;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,4 +20,10 @@ Route::get('/', function () {
 
 Route::get('/i', function () {
     phpinfo();
+});
+
+Route::get('/test-assynch', function () {
+    TestJob::dispatch(3);
+    TestJob::dispatch(4);
+    TestJob::dispatch(5);
 });
