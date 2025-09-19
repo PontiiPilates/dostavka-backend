@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
         // засев терминалов компаний
         $this->call([
             TerminalBaikalSeeder::class,
-            TerminalBoxberrySeeder::class,
+            // TerminalBoxberrySeeder::class, // ! учётная запись заблокирована
             TerminalDellinSeeder::class,
             TerminalPekSeeder::class,
             TerminalVozovozSeeder::class,
