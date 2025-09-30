@@ -93,4 +93,15 @@ class Location extends Model
     {
         return $this->hasMany(TerminalVozovoz::class, 'location_id', 'id');
     }
+
+    public static function locationById(int $id)
+    {
+        $location = self::query()
+            ->leftJoin('countries', 'locations.country_id', 'countries.id')
+            ->where('locations.id', $id)
+            ->select('locations.name as location', 'countries.name as country')
+            ->first();
+
+        return $location->location . ', ' . mb_ucfirst(mb_strtolower($location->country));
+    }
 }

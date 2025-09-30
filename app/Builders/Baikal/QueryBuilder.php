@@ -106,6 +106,11 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
             $template = $deliveryType;
             $template["Cargo"] = ["CargoList" => $cargoList];
 
+            // отладка
+            if (env('SHOW_Q')) {
+                dump($template);
+            }
+
             Log::channel('requests')->info("Отправка запроса: " . $this->url . BaikalUrlType::Calculator->value, $template);
             $pools[] = $pool->as($type)->withBasicAuth($this->username, '')->get($this->url . BaikalUrlType::Calculator->value, $template);
         }

@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 namespace App\Builders\Vozovoz;
 
+use App\DTO\CalculationResultDto;
 use App\Enums\CompanyType;
+use App\Enums\Vozovoz\VozovozUrlType;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ResponseBuilder
 {
     private string $url;
+    private string $company;
 
     public function __construct()
     {
         $this->url = config('companies.vozovoz.url');
+        $this->company = CompanyType::Vozovoz->value;
     }
 
     /**
@@ -25,46 +30,41 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [
-            'company' => CompanyType::Vozovoz->value,
-            'types' => [],
-        ];
+        $result = CalculationResultDto::filler($this->company);
 
         foreach ($responses as $type => $response) {
             $response = $response->object();
 
-            // при наличии ошибки в ответе
-            try {
-                $this->checkResponseError($response);
-            } catch (\Throwable $th) {
+            // отладка
+            if (env('SHOW_Q')) {
+                dump($response);
+            }
+
+            if (isset($response->error)) {
+
+                $errorId = Str::random(10);
+
+                Log::channel('tk')->error(
+                    sprintf('Ошибка %s при обработке ответа: %s%s %s %s', $errorId, $this->url, VozovozUrlType::Price->value, __FILE__, __LINE__),
+                    [$response->error]
+                );
+
                 continue;
             }
 
-            $data['types'][$type][] = [
-                "tariff" => null,
-                "cost" => $response->response->price,
-                "days" => [
-                    "from" => $response->response->deliveryTime->from,
-                    "to" => $response->response->deliveryTime->to,
-                ]
-            ];
+            $result['data']['success'][$type] = CalculationResultDto::tariff(
+                '',
+                $response->response->price,
+                $response->response->deliveryTime->from,
+                $response->response->deliveryTime->to,
+            );
         }
 
-        return $data;
-    }
-
-    /**
-     * Проверка наличия ошибки в ответе: выбрасывает исключение и логирует данные при обнаружении ошибки в ответе.
-     * 
-     * @var object $response
-     * @return void
-     */
-    private function checkResponseError(object $response): void
-    {
-        if (isset($response->error)) {
-            $message = 'Ошибка при обработке ответа: ' . $this->url . ': ' . __FILE__;
-            Log::channel('tk')->error($message,  [$response->error]);
-            throw new Exception($message, 200);
+        // если нет успешных
+        if (empty($result['data']['success'])) {
+            throw new Exception(trans('messages.response.not_results'), 200);
+        } else {
+            return $result;
         }
     }
 }

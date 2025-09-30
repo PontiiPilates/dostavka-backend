@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Builders\Pek;
 
+use App\DTO\CalculationResultDto;
 use App\Enums\CompanyType;
 use App\Enums\Pek\PekTariffType;
 use App\Enums\Pek\PekUrlType;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ResponseBuilder
 {
     private string $url;
+    private string $company;
 
     private string|null $daysFrom = null;
     private string|null $daysTo = null;
@@ -20,6 +23,7 @@ class ResponseBuilder
     public function __construct()
     {
         $this->url = config('companies.pek.url') . PekUrlType::Calculate->value;
+        $this->company = CompanyType::Pek->value;
     }
 
     /**
@@ -30,10 +34,7 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [
-            'company' => CompanyType::Pek->value,
-            'types' => [],
-        ];
+        $result = CalculationResultDto::filler($this->company);
 
         $tariffs = [
             PekTariffType::AviaExpress->value => PekTariffType::AviaExpress->label(),
@@ -46,19 +47,26 @@ class ResponseBuilder
         foreach ($responses as $deliveryType => $response) {
             $response = $response->object();
 
-            // реакция на наличие ошибок запроса
-            try {
-                $this->checkResponseError($response);
-            } catch (\Throwable $th) {
-                continue;
+            // отладка
+            if (env('SHOW_Q')) {
+                dump($response);
             }
 
             foreach ($response->transfers as $tariff) {
 
-                // реакция на наличие ошибок при расчёте тарифа
-                try {
-                    $this->checkTariffError($tariff);
-                } catch (\Throwable $th) {
+                // данная компания способна вернуть ошибку по каждому тарифу
+                // в негативном случае пользователь может получить список, состоящий из одних ошибок
+                // если нет ни одного результата, то лучше возвращать одну ошибку
+                // остальное записывать в лог
+                if ($tariff->hasError === true) {
+
+                    $errorId = Str::random(10);
+
+                    Log::channel('tk')->error(
+                        sprintf('Ошибка %s при обработке ответа в тарифе %s: %s%s %s %s', $errorId, $tariffs[$tariff->type], $this->url, PekUrlType::Calculate->value, __FILE__, __LINE__),
+                        [$tariff->errorMessage]
+                    );
+
                     continue;
                 }
 
@@ -70,36 +78,20 @@ class ResponseBuilder
                     }
                 }
 
-                $data['types'][$deliveryType][] = [
-                    "tariff" => $tariffs[$tariff->type],
-                    "cost" => $tariff->costTotal ?? null,
-                    "days" => [
-                        "from" => $this->daysFrom,
-                        "to" => $this->daysTo,
-                    ]
-                ];
+                $result['data']['success'][$deliveryType][] = CalculationResultDto::tariff(
+                    $tariffs[$tariff->type],
+                    $tariff->costTotal ?? null,
+                    $this->daysFrom,
+                    $this->daysTo,
+                );
             }
         }
 
-        return $data;
-    }
-
-
-    private function checkTariffError($tariff)
-    {
-        if ($tariff->hasError === true) {
-            $message = 'Ошибка при обработке ответа: ' . $this->url;
-            Log::channel('tk')->error($message, [$tariff->errorMessage]);
-            throw new Exception($message, 500);
-        }
-    }
-
-    private function checkResponseError($response)
-    {
-        if (isset($response->error)) {
-            $message = 'Ошибка при обработке ответа: ' . $this->url;
-            Log::channel('tk')->error($message, [$response->error->fields]);
-            throw new Exception($message, 500);
+        // если нет успешных
+        if (empty($result['data']['success'])) {
+            throw new Exception(trans('messages.response.not_results'), 200);
+        } else {
+            return $result;
         }
     }
 

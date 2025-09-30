@@ -14,27 +14,45 @@ class TransactionService
     /**
      * Добавляет результат калькуляции.
      */
-    public function addCalculationResult($hash, $calculation)
+    public function addCalculationResult($hash, $company, $result, $errors = [])
     {
-        $calculation = (object) $calculation;
-
         $predis = Redis::connection()->client();
-        $data = $this->toObject($predis->get($hash));
+
+        $structure = $this->toArray($predis->get($hash));
+
+        // dump($result);
 
         try {
-            $predis->multi();                                                       // начало транзакции
-            $data->results = (array) $data->results;                                // чтобы сохранить свойство объекта как массив
+            $predis->multi(); // ! начало транзакции
 
-            $data->results[$calculation->company] = $calculation->types;
-
-            // если количество результатов достигло заявленного
-            if (count($data->results) >= $data->count) {
-                $data->complete = now();
-                $data->is_complete = true;
+            if (empty($errors)) {
+                $structure['results'][$company]['errors'] = $errors;
+                $structure['results'][$company]['success'] = $result['data']['success'];
+                $structure['results'][$company]['is_complete'] = $result['is_complete'];
+            } else {
+                // если получена ошибка, то result будет пуст
+                $structure['results'][$company]['errors'] = $errors;
+                $structure['results'][$company]['success'] = $result;
+                $structure['results'][$company]['is_complete'] = true;
             }
 
-            $predis->setex($hash, config('custom.expire'), $this->toJson($data));
-            $predis->exec();                                                        // окончание транзакции
+            // сбор информации о незавершенных результатах
+            $isCompleteCount = 0;
+            foreach ($structure['results'] as $company) {
+                if ($company['is_complete'] == false) {
+                    $isCompleteCount++;
+                }
+            }
+
+            // если не осталось незавершенных результатов
+            // то происходит установка закрывающих параметров
+            if ($isCompleteCount === 0) {
+                $structure['complete'] = now();
+                $structure['is_complete'] = true;
+            }
+
+            $predis->setex($hash, config('custom.expire'), $this->toJson($structure));
+            $predis->exec(); // ! окончание транзакции
         } catch (Exception $e) {
             $predis->discard();
             Log::channel('redis')->warning('Транзакция отклонена', [$e->getMessage()]);

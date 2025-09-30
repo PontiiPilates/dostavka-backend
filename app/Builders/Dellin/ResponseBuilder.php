@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Builders\Dellin;
 
+use App\DTO\CalculationResultDto;
 use App\Enums\CompanyType;
 use App\Enums\Dellin\DellinUrlType;
 use Exception;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ResponseBuilder
 {
@@ -17,9 +19,12 @@ class ResponseBuilder
     private $minDays;
     private $maxDays;
 
+    private string $company;
+
     public function __construct()
     {
         $this->url = config('companies.dellin.url');
+        $this->company = CompanyType::Dellin->value;
     }
 
     /**
@@ -30,46 +35,52 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [
-            'company' => CompanyType::Dellin->value,
-            'types' => [],
-        ];
+        $result = CalculationResultDto::filler($this->company);
 
         foreach ($responses as $key => $response) {
             $response = $response->object();
 
+            // отладка
+            if (env('SHOW_Q')) {
+                dump($response);
+            }
+
             $multiKey = explode(':', $key);
-            $type = $multiKey[0];
+            $deliveryType = $multiKey[0];
             $tariff = $multiKey[1];
 
-            // при наличии ошибки в ответе
-            try {
-                $this->checkResponseError($response);
-            } catch (\Throwable $th) {
+            // данная компания возвращает ответы по каждому тарифу в каждом способе доставки
+            // можно обработать каждый ответ и в случае ошибки вывести ее напротив тарифа
+            // однако в таком случае при негативном сценарии пользователь увидит список тарифив и ошибок в них
+            // в этой ситуации лучше показывать только доступные тарифы
+            // и если ни один из них недоступен, то выодить сообщение
+            if (isset($response->errors)) {
+
+                $errorId = Str::random(10);
+
+                Log::channel('tk')->error(
+                    sprintf('Ошибка %s при обработке ответа в тарифе %s: %s%s %s %s', $errorId, $tariff, $this->url, DellinUrlType::Calculator->value, __FILE__, __LINE__),
+                    [$response->errors]
+                );
+
                 continue;
             }
 
             $this->datePrepare($response);
 
-            $data['types'][$type][] = [
-                "tariff" => $tariff,
-                "cost" => $response->data->price ?? null,
-                "days" => [
-                    "from" => $this->minDays,
-                    "to" => $this->maxDays,
-                ]
-            ];
+            $result['data']['success'][$deliveryType][] = CalculationResultDto::tariff(
+                $tariff,
+                $response->data->price ?? '',
+                $this->minDays,
+                $this->maxDays,
+            );
         }
 
-        return $data;
-    }
-
-    private function checkResponseError($response)
-    {
-        if (isset($response->errors)) {
-            $message = 'Ошибка при обработке ответа: ' . $this->url . DellinUrlType::Calculator->value;
-            Log::channel('tk')->error($message,  $response->errors);
-            throw new Exception($message, 500);
+        // если нет успешных
+        if (empty($result['data']['success'])) {
+            throw new Exception(trans('messages.response.not_results'), 200);
+        } else {
+            return $result;
         }
     }
 

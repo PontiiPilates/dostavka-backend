@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace App\Builders\Baikal;
 
-use App\Builders\BaseBuilder;
+use App\DTO\CalculationResultDto;
 use App\Enums\Baikal\BaikalUrlType;
 use App\Enums\CompanyType;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
-class ResponseBuilder extends BaseBuilder
+class ResponseBuilder
 {
     private string $url;
+    private string $company;
 
     public function __construct()
     {
         $this->url = config('companies.baikal.url');
+        $this->company = CompanyType::Baikal->value;
     }
 
     /**
@@ -27,46 +30,41 @@ class ResponseBuilder extends BaseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [
-            'company' => CompanyType::Baikal->value,
-            'types' => [],
-        ];
+        $result = CalculationResultDto::filler($this->company);
 
         foreach ($responses as $type => $response) {
             $response = $response->object();
 
-            // при наличии ошибки в ответе
-            try {
-                $this->checkResponseError($response);
-            } catch (\Throwable $th) {
+            // отладка
+            if (env('SHOW_Q')) {
+                dump($response);
+            }
+
+            if (isset($response->error)) {
+
+                $errorId = Str::random(10);
+
+                Log::channel('tk')->error(
+                    sprintf('Ошибка %s при обработке ответа: %s%s %s %s', $errorId, $this->url, BaikalUrlType::Calculator->value, __FILE__, __LINE__),
+                    [$response->error]
+                );
+
                 continue;
             }
 
-            $data['types'][$type][] = [
-                "tariff" => 'Автоперевозка',
-                "cost" => $response->total,
-                "days" => [
-                    "from" => $response->transit->int,
-                    "to" => $response->transit->int,
-                ]
-            ];
+            $result['data']['success'][$type] = CalculationResultDto::tariff(
+                'Автоперевозка',
+                $response->total,
+                $response->transit->int,
+                $response->transit->int
+            );
         }
 
-        return $data;
-    }
-
-    /**
-     * Проверка наличия ошибки в ответе: выбрасывает исключение и логирует данные при обнаружении ошибки в ответе.
-     * 
-     * @var object $response
-     * @return void
-     */
-    private function checkResponseError(object $response): void
-    {
-        if (isset($response->error)) {
-            $message = 'Ошибка при обработке ответа: ' . $this->url . BaikalUrlType::Calculator->value . ': ' . __FILE__;
-            Log::channel('tk')->error($message,  [$response->error]);
-            throw new Exception($message, 500);
+        // если нет успешных
+        if (empty($result['data']['success'])) {
+            throw new Exception(trans('messages.response.not_results'), 200);
+        } else {
+            return $result;
         }
     }
 }

@@ -5,18 +5,23 @@ declare(strict_types=1);
 namespace App\Builders\Boxberry;
 
 use App\Builders\BaseBuilder;
+use App\DTO\CalculationResultDto;
 use App\Enums\Boxberry\BoxberryUrlType;
 use App\Enums\CompanyType;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ResponseBuilder extends BaseBuilder
 {
     private string $url;
 
+    private string $company;
+
     public function __construct()
     {
         $this->url = config('companies.boxberry.url');
+        $this->company = CompanyType::Boxberry->value;
     }
 
     /**
@@ -27,34 +32,45 @@ class ResponseBuilder extends BaseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [
-            'company' => CompanyType::Boxberry->value,
-            'types' => [],
-        ];
+        $result = CalculationResultDto::filler($this->company);
 
-        foreach ($responses as $type => $response) {
+        foreach ($responses as $deliveryType => $response) {
             $response = $response->object();
 
-            // при наличии ошибки в ответе
-            try {
-                $this->checkResponseError($response);
-            } catch (\Throwable $th) {
+            // отладка
+            if (env('SHOW_Q')) {
+                dump($response);
+            }
+
+            if ($response->error != false) {
+
+                $errorId = Str::random(10);
+
+                Log::channel('tk')->error(
+                    sprintf('Ошибка %s при обработке ответа: %s%s %s %s', $errorId, $this->url, BoxberryUrlType::DeliveryCalculation->value, __FILE__, __LINE__),
+                    [$response->error]
+                );
+
                 continue;
             }
 
             foreach ($response->result->DeliveryCosts as $item) {
-                $data['types'][$type][] = [
-                    "tariff" => 'Посылка',
-                    "cost" => $item->TotalPrice,
-                    "days" => [
-                        "from" => $item->DeliveryPeriod,
-                        "to" => $item->DeliveryPeriod,
-                    ]
-                ];
+
+                $result['data']['success'][$deliveryType][] = CalculationResultDto::tariff(
+                    'Посылка',
+                    $item->TotalPrice,
+                    $item->DeliveryPeriod,
+                    $item->DeliveryPeriod,
+                );
             }
         }
 
-        return $data;
+        // если нет успешных
+        if (empty($result['data']['success'])) {
+            throw new Exception(trans('messages.response.not_results'), 200);
+        } else {
+            return $result;
+        }
     }
 
     /**

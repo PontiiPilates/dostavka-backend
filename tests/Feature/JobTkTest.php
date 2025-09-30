@@ -75,38 +75,38 @@ class JobTkTest extends TestCase
         assertArrayHasKey('results', $data);
 
         assertArrayHasKey('baikal', $data['results']);
-        assertArrayHasKey('ss', $data['results']['baikal']);
+        assertArrayHasKey('ss', $data['results']['baikal']['success']);
 
         // ! blocked
         // assertArrayHasKey('boxberry', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['boxberry']);
+        // assertArrayHasKey('ss', $data['results']['boxberry']['success']);
 
         // assertArrayHasKey('cdek', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['cdek']);
+        // assertArrayHasKey('ss', $data['results']['cdek']['success']);
 
         assertArrayHasKey('dellin', $data['results']);
-        assertArrayHasKey('ss', $data['results']['dellin']);
+        assertArrayHasKey('ss', $data['results']['dellin']['success']);
 
         // assertArrayHasKey('dpd', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['dpd']);
+        // assertArrayHasKey('ss', $data['results']['dpd']['success']);
 
         // assertArrayHasKey('jde', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['jde']);
+        // assertArrayHasKey('ss', $data['results']['jde']['success']);
 
         // assertArrayHasKey('kit', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['kit']);
+        // assertArrayHasKey('ss', $data['results']['kit']['success']);
 
         // assertArrayHasKey('nrg', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['nrg']);
+        // assertArrayHasKey('ss', $data['results']['nrg']['success']);
 
         assertArrayHasKey('pek', $data['results']);
-        assertArrayHasKey('ss', $data['results']['pek']);
+        assertArrayHasKey('ss', $data['results']['pek']['success']);
 
         // assertArrayHasKey('pochta', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['pochta']);
+        // assertArrayHasKey('ss', $data['results']['pochta']['success']);
 
         assertArrayHasKey('vozovoz', $data['results']);
-        assertArrayHasKey('ss', $data['results']['vozovoz']);
+        assertArrayHasKey('ss', $data['results']['vozovoz']['success']);
     }
 
     private function request(): array
@@ -129,14 +129,14 @@ class JobTkTest extends TestCase
                 ],
             ],
             "companies" => [
-                "baikal",
+                // "baikal",
                 // "boxberry", // ! blocked
                 // "cdek",
                 "dellin",
                 // "dpd",
                 // "jde",
                 "pek",
-                "vozovoz",
+                // "vozovoz",
             ],
             "delivery_type" => [
                 0 => "ss",

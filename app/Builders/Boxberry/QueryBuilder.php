@@ -120,6 +120,11 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
                 "Version" => "2.0"
             ];
 
+            // отладка
+            if (env('SHOW_Q')) {
+                dump($template);
+            }
+
             Log::channel('requests')->info("Отправка запроса: " . $this->url, $template);
             $pools[] = $pool->as($type)->post($this->url, $template);
         }

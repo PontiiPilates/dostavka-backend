@@ -9,7 +9,6 @@ use App\Services\Clients\Tk\RestPoolClient;
 use App\Services\Redis\TransactionService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
 
 class DellinJob implements ShouldQueue
 {
@@ -23,6 +22,8 @@ class DellinJob implements ShouldQueue
     private RestPoolClient $client;
     private TransactionService $transaction;
 
+    private string $company;
+
     /**
      * Create a new job instance.
      */
@@ -34,21 +35,26 @@ class DellinJob implements ShouldQueue
         $this->responseBuilder = new ResponseBuilder();
         $this->client = new RestPoolClient();
         $this->transaction = new TransactionService();
+        $this->company = CompanyType::Dellin->value;
     }
-
+    
     /**
      * Execute the job.
-     */
+     * 
+     * В случае успеха, в транзакцию поступает результат калькуляции.
+     * В случае ошибки, в транзакцию поступает сообщение от exception, которое увидит пользователь.
+     * Эти exception помогают срезать 70-80% ошибок.
+     * В случае с ошибкой, которая возникла минуя предусмотренные случаи в queryBuilder, ее содержание будет записано в лог tk.
+    */
     public function handle(): void
     {
         $response = [];
         try {
             $responses = $this->client->send($this->request, $this->queryBuilder);
             $response = $this->responseBuilder->build($responses);
-            $this->transaction->addCalculationResult($this->hash, $response);
+            $this->transaction->addCalculationResult($this->hash, $this->company, $response);
         } catch (\Throwable $th) {
-            $message = 'Не удалось выполнить калькуляцию по ТК ' . CompanyType::Dellin->value . ': ';
-            Log::channel('tk')->warning($message, [$th->getMessage() . ': ' . $th->getFile() . ': ' . $th->getLine()]);
+            $this->transaction->addCalculationResult($this->hash, $this->company, [], $th->getMessage());
         }
     }
 }

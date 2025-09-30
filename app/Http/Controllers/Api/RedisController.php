@@ -15,7 +15,12 @@ class RedisController extends Controller
     {
         $get = json_decode(Redis::get($request->get), true);
 
-        return response()->json($get);
+        return [
+            'success' => true,
+            'message' => "",
+            'errors' => [],
+            'data' => $get,
+        ];
     }
 
     /**

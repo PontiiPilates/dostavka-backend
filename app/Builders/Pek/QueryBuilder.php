@@ -137,7 +137,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
                 "cargos" => $cargos,
             ];
 
-            // dd($template);
+            // отладка
+            if (env('SHOW_Q')) {
+                dump($template);
+            }
 
             Log::channel('tk')->info("Отправка запроса: " . $this->url, $template);
             $pools[] = $pool->as($type)->withBasicAuth($this->user, $this->password)->post($this->url, $template);

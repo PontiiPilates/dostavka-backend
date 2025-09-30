@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTO\CalculationResultDto;
 use App\Enums\CompanyType;
 use App\Enums\EnvironmentType;
 use App\Http\Controllers\Controller;
@@ -17,6 +18,7 @@ use App\Jobs\Tk\NrgJob;
 use App\Jobs\Tk\PekJob;
 use App\Jobs\Tk\PochtaJob;
 use App\Jobs\Tk\VozovozJob;
+use App\Models\Location;
 use App\Traits\Hash;
 use App\Traits\Json;
 use Exception;
@@ -46,15 +48,11 @@ class CalculateController extends Controller
             Redis::del($hash);
         }
 
-        // todo: преобразовать структуру в DTO, это уже сложившийся концепт
-        $structure = [
-            'count' => count($request->companies),
-            'request' => $request->all(),
-            'results' => [],
-            'begin' => now(),
-            'complete' => null,
-            'is_complete' => false,
-        ];
+        $structure = CalculationResultDto::top(
+            $request,
+            Location::locationById($request->from),
+            Location::locationById($request->to)
+        );
 
         // если результат уже существует, то выполнение завершается с выдачей этого результата
         try {
@@ -66,19 +64,35 @@ class CalculateController extends Controller
         Redis::setex($hash, config('custom.expire'), $this->toJson($structure));
 
         foreach ($request->companies as $company) {
-            match ($company) {
-                CompanyType::Baikal->value => BaikalJob::dispatch($request->all(), $hash),
-                // CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all(), $hash), // ! учётная запись заблокирована
-                CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash),
-                CompanyType::Dellin->value => DellinJob::dispatch($request->all(), $hash),
-                CompanyType::DPD->value => DpdJob::dispatch($request->all(), $hash),
-                CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash),
-                CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
-                CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash),
-                CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash),
-                CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash),
-                CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash),
-            };
+            if (env('SHOW_Q')) {
+                match ($company) {
+                    CompanyType::Baikal->value => BaikalJob::dispatchSync($request->all(), $hash),
+                    CompanyType::Boxberry->value => BoxberryJob::dispatchSync($request->all(), $hash), // ! учётная запись заблокирована
+                    // CompanyType::Cdek->value => CdekJob::dispatchSync($request->all(), $hash),
+                    CompanyType::Dellin->value => DellinJob::dispatchSync($request->all(), $hash),
+                    // CompanyType::DPD->value => DpdJob::dispatchSync($request->all(), $hash),
+                    // CompanyType::Jde->value => JdeJob::dispatchSync($request->all(), $hash),
+                    // CompanyType::Kit->value => KitJob::dispatchSync($request->all(), $hash),
+                    // CompanyType::Nrg->value => NrgJob::dispatchSync($request->all(), $hash),
+                    CompanyType::Pek->value => PekJob::dispatchSync($request->all(), $hash),
+                    // CompanyType::Pochta->value => PochtaJob::dispatchSync($request->all(), $hash),
+                    CompanyType::Vozovoz->value => VozovozJob::dispatchSync($request->all(), $hash),
+                };
+            } else {
+                match ($company) {
+                    CompanyType::Baikal->value => BaikalJob::dispatch($request->all(), $hash),
+                    CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all(), $hash), // ! учётная запись заблокирована
+                    // CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash),
+                    CompanyType::Dellin->value => DellinJob::dispatch($request->all(), $hash),
+                    // CompanyType::DPD->value => DpdJob::dispatch($request->all(), $hash),
+                    // CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash),
+                    // CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
+                    // CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash),
+                    CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash),
+                    // CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash),
+                    CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash),
+                };
+            }
         }
 
         return response()->json($this->responseStructure($hash));
@@ -99,6 +113,7 @@ class CalculateController extends Controller
         return [
             'success' => true,
             'message' => "",
+            'errors' => [],
             'data' => [
                 'transaction' => $hash
             ]
