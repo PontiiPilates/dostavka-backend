@@ -2,6 +2,9 @@
 
 env=$1
 
+echo "Перезапуск Supervisor..."
+supervisorctl restart all
+
 if [ "$env" == 'local' ]; then
 
     echo "Установка прав..."
@@ -14,6 +17,9 @@ else
     chown -R www-data:www-data storage/ bootstrap/cache/
 
 fi
+
+echo "Очистка кэша..."
+php artisan optimize:clear
 
 echo "Добавление начальных данных..."
 unzip -o resources/assets.zip -d ./
