@@ -39,10 +39,11 @@ class DatabaseSeeder extends Seeder
         // засев терминалов компаний
         $this->call([
             TerminalBaikalSeeder::class,
-            // TerminalBoxberrySeeder::class, // ! учётная запись заблокирована
+            // TerminalBoxberrySeeder::class, // ! учётная запись заблокирована (необходимо переписать на Яндекс Доставку)
             TerminalDellinSeeder::class,
             TerminalPekSeeder::class,
             TerminalVozovozSeeder::class,
+            TerminalDpdSeeder::class,
 
             // TerminalKitSeeder::class, // должен быть одним из последних (остаток 27400, в таблице 348)
             // TerminalJdeSeeder::class, // (остаток 132, в таблице 211)
@@ -51,13 +52,12 @@ class DatabaseSeeder extends Seeder
             // у данной тк хороший, системный список, его данные близки к эталонным и ложатся в основу построения гео-данных
             // данный сидер должен запускаться в первую очередь
             // дополняет данные 63232 элементами
-            // TerminalDpdSeeder::class,
 
             // у данной тк приемлемый список
             // однако данные списка регионов расходятся со списком городов в части наименования регионов
             // TerminalCdekSeeder::class,
 
-            // TariffPochtaSeeder::class, // ото вообще не локации, просто тарифы почты россии
+            // TariffPochtaSeeder::class, // это вообще не локации, просто тарифы почты россии
 
         ]);
 

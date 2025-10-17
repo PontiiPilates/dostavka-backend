@@ -64,35 +64,19 @@ class CalculateController extends Controller
         Redis::setex($hash, config('custom.expire'), $this->toJson($structure));
 
         foreach ($request->companies as $company) {
-            if (env('SHOW_Q')) {
-                match ($company) {
-                    CompanyType::Baikal->value => BaikalJob::dispatchSync($request->all(), $hash),
-                    CompanyType::Boxberry->value => BoxberryJob::dispatchSync($request->all(), $hash), // ! учётная запись заблокирована
-                    // CompanyType::Cdek->value => CdekJob::dispatchSync($request->all(), $hash),
-                    CompanyType::Dellin->value => DellinJob::dispatchSync($request->all(), $hash),
-                    // CompanyType::DPD->value => DpdJob::dispatchSync($request->all(), $hash),
-                    // CompanyType::Jde->value => JdeJob::dispatchSync($request->all(), $hash),
-                    // CompanyType::Kit->value => KitJob::dispatchSync($request->all(), $hash),
-                    // CompanyType::Nrg->value => NrgJob::dispatchSync($request->all(), $hash),
-                    CompanyType::Pek->value => PekJob::dispatchSync($request->all(), $hash),
-                    // CompanyType::Pochta->value => PochtaJob::dispatchSync($request->all(), $hash),
-                    CompanyType::Vozovoz->value => VozovozJob::dispatchSync($request->all(), $hash),
-                };
-            } else {
-                match ($company) {
-                    CompanyType::Baikal->value => BaikalJob::dispatch($request->all(), $hash),
-                    CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all(), $hash), // ! учётная запись заблокирована
-                    // CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash),
-                    CompanyType::Dellin->value => DellinJob::dispatch($request->all(), $hash),
-                    // CompanyType::DPD->value => DpdJob::dispatch($request->all(), $hash),
-                    // CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash),
-                    // CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
-                    // CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash),
-                    CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash),
-                    // CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash),
-                    CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash),
-                };
-            }
+            match ($company) {
+                CompanyType::Baikal->value => BaikalJob::dispatch($request->all(), $hash),
+                CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all(), $hash), // ! учётная запись заблокирована
+                // CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash),
+                CompanyType::Dellin->value => DellinJob::dispatch($request->all(), $hash),
+                CompanyType::DPD->value => DpdJob::dispatch($request->all(), $hash),
+                // CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash),
+                // CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
+                // CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash),
+                CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash),
+                // CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash),
+                CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash),
+            };
         }
 
         return response()->json($this->responseStructure($hash));

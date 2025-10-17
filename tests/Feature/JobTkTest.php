@@ -58,7 +58,7 @@ class JobTkTest extends TestCase
         // BoxberryJob::dispatch($this->request(), $hash); // ! bocked
         // CdekJob::dispatch($this->request(), $hash);
         DellinJob::dispatch($this->request(), $hash); // 4.0, 4.8, 5.7
-        // DpdJob::dispatch($this->request(), $hash);
+        DpdJob::dispatch($this->request(), $hash);
         // JdeJob::dispatch($this->request(), $hash);
         // KitJob::dispatch($this->request(), $hash);
         // NrgJob::dispatch($this->request(), $hash);
@@ -87,8 +87,8 @@ class JobTkTest extends TestCase
         assertArrayHasKey('dellin', $data['results']);
         assertArrayHasKey('ss', $data['results']['dellin']['success']);
 
-        // assertArrayHasKey('dpd', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['dpd']['success']);
+        assertArrayHasKey('dpd', $data['results']);
+        assertArrayHasKey('ss', $data['results']['dpd']['success']);
 
         // assertArrayHasKey('jde', $data['results']);
         // assertArrayHasKey('ss', $data['results']['jde']['success']);

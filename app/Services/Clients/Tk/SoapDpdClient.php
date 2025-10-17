@@ -2,7 +2,7 @@
 
 namespace App\Services\Clients\Tk;
 
-use App\Enums\DPD\DpdUrlType;
+use App\Enums\Dpd\DpdUrlType;
 use SoapClient;
 
 class SoapDpdClient

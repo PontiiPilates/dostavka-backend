@@ -2,108 +2,132 @@
 
 namespace Database\Seeders\Tk;
 
-use App\Enums\DPD\DpdFileType;
-use App\Models\Country;
-use App\Models\Location;
+use App\Enums\Dpd\DpdFileType;
+use App\Enums\LocationType;
 use App\Models\Region;
 use App\Models\Tk\TerminalDpd;
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 
 class TerminalDpdSeeder extends Seeder
 {
+    private array $disabledTypes = [
+        'тер',
+        'снт',
+        'промзона',
+        'кв-л',
+        'жилрайон',
+        'п/ст',
+        'ст',
+        'свх',
+        'отд',
+        'р-н',
+        'рзд',
+        'у',
+        'ж/д_оп',
+        'массив',
+        'нп',
+        'м',
+        'п/о',
+        'автодорога',
+        'ж/д_будка',
+        'ж/д_ст',
+    ];
+
     public function run(): void
     {
-        // особенностью данной тк является указание регионов, в которых отсутствует принадлежность к краю, области, республике и т.д.
-        // зато есть код самого региона
-        // что касается списка, то он вполне ёмкий и системмный
+        // особенности:
+        // указание кодов регионов
+        // отсутствие принадлежности к районам
+        // системный и емкий список
 
-        $dataCitiesCashPay = Storage::json(DpdFileType::CitiesCashPay->value); // города с доставкой наложенным платежом
-        $dataParcelShops = Storage::json(DpdFileType::ParcelShops->value); // пункты выдачи с информацией об ограничениях
-        $dataTerminalsSelfDelivery2 = Storage::json(DpdFileType::TerminalsSelfDelivery2->value); // пункты выдачи без ограничений по габаритам
+        // города с доставкой наложенным платежом
+        $dataCitiesCashPay = Storage::json(DpdFileType::CitiesCashPay->value);
 
-        $this->seeding($dataCitiesCashPay);
-        // $this->seeding($dataParcelShops);
-        // $this->seeding($dataTerminalsSelfDelivery2);
-    }
+        $iterable = 0;
+        $timeStart = Carbon::now();
 
-    private function seeding($data): void
-    {
-        $countLocation = 0;
-        $countTerminal = 0;
-        foreach ($data['return'] as $city) {
+        TerminalDpd::truncate();
+
+        foreach ($dataCitiesCashPay['return'] as $city) {
             $city = (object) $city;
 
-            // обрабатывает ситуацию, когда код региона представлен одним знаком
-            // такой код региона должен быть указан с нулём в качестве первого знака
+            // если обнаружена принадлежность к нежелательным типам территорий
+            if (in_array($city->abbreviation, $this->disabledTypes)) {
+                continue;
+            }
+
+            $region = null;
+            $federal = false;
+
+            // если обнаружена принадлежность к территиории федерального значения
+            if ($city->cityName == 'Санкт-Петербург' || $city->cityName == 'Москва' || $city->cityName == 'Севастополь') {
+                $region = $city->cityName;
+                $federal = true;
+            }
+
+            // обработка ситуации, когда код региона представлен одним знаком
+            // такой код должен быть указан с нулём впереди
             strlen($city->regionCode) == 1
                 ? $regionCode = '0' . $city->regionCode
                 : $regionCode = $city->regionCode;
 
-            // поиск локации в базе данных
-            $location = Location::query()
-                ->where('name', $city->cityName)
-                ->whereHas('region', function ($query) use ($regionCode) {
-                    $query->where('code', $regionCode);
-                })
-                ->whereHas('country', function ($query) use ($city) {
-                    $query->where('alpha2', $city->countryCode);
-                })->first();
+            // определение территориальной принадлежности
+            $region = Region::where('code', $regionCode)->first()->name;
 
-            // если локация не обнаружена, то происходит ее добавление и добавление терминала
-            if (!$location) {
-                $location = $this->createLocation($city, $regionCode);
-                $this->createTerminal($city, $regionCode, $location);
-
-                $countLocation++;
-                $countTerminal++;
-                continue;
-            }
-
-            // если локация обнаружена, то проиисходит добавление терминала и обновление индексов
-            $this->createTerminal($city, $regionCode, $location);
-
-            $location->update([
-                'index_min' => isset($city->indexMin) && !empty($city->indexMin) ? $city->indexMin : null,
-                'index_max' => isset($city->indexMax) && !empty($city->indexMax) ? $city->indexMax : null,
-            ]);
-
-            $countTerminal++;
-        }
-
-        // в рамках метода dataCitiesCashPay происходит:
-        // добавление терминалов
-        // добавление локаций
-
-        dump("Добавлено $countLocation новых населенных пунктов");
-        dump("Добавлено $countTerminal терминалов");
-    }
-
-    private function createLocation($city, $regionCode): Location
-    {
-        return Location::create(
-            [
-                'country_id' => Country::select('id')->where('alpha2', $city->countryCode)->first()->id,
-                'region_id' => Region::select('id')->where('code', $regionCode)->first()->id,
-                'name' => $city->cityName,
-                'type' => $city->abbreviation,
-                'index_min' => isset($city->indexMin) && !empty($city->indexMin) ? $city->indexMin : null,
-                'index_max' => isset($city->indexMax) && !empty($city->indexMax) ? $city->indexMax : null,
-            ]
-        );
-    }
-
-    private function createTerminal($city, $regionCode, $location): void
-    {
-        TerminalDpd::updateOrCreate(
-            ['identifier' => $city->cityId],
-            [
-                'location_id' => $location->id,
+            TerminalDpd::create([
                 'identifier' => $city->cityId,
                 'name' => $city->cityName,
-                'dirty' => $city->abbreviation . '. ' . $city->cityName . ', ' . $city->regionName . ', код региона ' . $regionCode,
-            ]
-        );
+                'type' => $this->correctorType($city->abbreviation),
+                'region' => $region,
+                'federal' => $federal,
+                'country' => $city->countryCode,
+            ]);
+
+            $iterable++;
+        }
+
+        $timeEnd = Carbon::now();
+        $executionTime = $timeStart->diffInSeconds($timeEnd);
+        $executionTime = number_format((float) $executionTime, 1, '.');
+
+        $this->command->info("Добавлено $iterable терминалов, $executionTime сек.");
+    }
+
+    /**
+     * Возвращает чистое имя типа.
+     */
+    private function correctorType(string $type): string
+    {
+        switch ($type) {
+            case 'г':
+                return LocationType::Town->value;
+            case 'п':
+                return LocationType::Township->value;
+            case 'рп':
+                return LocationType::JobVillage->value;
+            case 'с':
+                return LocationType::Village->value;
+            case 'мкр':
+                return LocationType::MicroDistrict->value;
+            case 'д':
+                return LocationType::Hamlet->value;
+            case 'дп':
+                return LocationType::CottageVillage->value;
+            case 'х':
+                return LocationType::Farmstead->value;
+            case 'сл':
+                return LocationType::Sloboda->value;
+            case 'ст-ца':
+                return LocationType::Stanitsa->value;
+            case 'кп':
+                return LocationType::ResortVillage->value;
+            case 'с/п':
+                return LocationType::RualVillage->value;
+            default:
+                return $type;
+        }
     }
 }

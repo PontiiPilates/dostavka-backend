@@ -4,7 +4,7 @@ namespace App\Builders\Dpd;
 
 use App\Builders\BaseBuilder;
 use App\Enums\DeliveryType;
-use App\Enums\DPD\DpdUrlType;
+use App\Enums\Dpd\DpdUrlType;
 use App\Models\Location;
 use Exception;
 use Illuminate\Http\Client\Pool;
@@ -120,7 +120,7 @@ class QueryBuilder extends BaseBuilder
 
             $pool[$type] = $template;
 
-            Log::channel('requests')->info("Отправка запроса: " . $this->url, $template);
+            Log::channel('requests')->info("Отправка запроса: " . $this->url . DpdUrlType::Calculator->value, $template);
         }
 
         return $pool;

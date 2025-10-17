@@ -53,6 +53,7 @@ class TerminalDellinSeeder extends Seeder
                                 break;
                             }
 
+                            // если обнаружена региональная принадлежность
                             if (
                                 str_contains($territory, 'край')
                                 || str_contains($territory, 'Респ')

@@ -13,7 +13,7 @@ enum  LocationType: string
     case UrbanVillage = 'городской посёлок';
     case Town = 'город';
     case AgroTown = 'агрогородок';
-    case Zato = 'ЗАТО';
+    case Zato = 'зато';
     case SmallTown = 'городок';
     case Hamlet = 'деревня';
     case Township = 'посёлок';
@@ -25,11 +25,11 @@ enum  LocationType: string
     case Aul = 'аул';
     case JobVillage = 'рабочий посёлок';
     case CottageVillage = 'дачный посёлок';
-    case Pgt = 'ПГТ';
+    case Pgt = 'пгт';
     case MicroDistrict = 'микрорайон';
     case ResidentialComplex = 'жилой комплекс';
-    case Snt = 'СНТ';
-    case Spk = 'СПК';
+    case Snt = 'снт';
+    case Spk = 'спк';
     case Stanitsa = 'станица';
-    case Station = 'станция';
+    case ResortVillage = 'курортный посёлок';
 }

@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     supervisor
 
 # Install system dependencies
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd soap
 
 # Install redis
 RUN pecl install redis && docker-php-ext-enable redis

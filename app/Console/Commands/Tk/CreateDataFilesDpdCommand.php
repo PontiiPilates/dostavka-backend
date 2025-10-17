@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Tk;
 
-use App\Enums\DPD\DpdFileType;
+use App\Enums\Dpd\DpdFileType;
 use App\Services\Clients\Tk\SoapDpdClient;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;

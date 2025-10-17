@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Enums\DPD;
+namespace App\Enums\Dpd;
 
 enum DpdUrlType: string
 {
