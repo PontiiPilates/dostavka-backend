@@ -3,7 +3,9 @@
 namespace App\Builders\Cdek;
 
 use App\Builders\BaseBuilder;
+use App\Enums\Cdek\CdekDeliveryType;
 use App\Enums\Cdek\CdekUrlType;
+use App\Enums\DeliveryType;
 use App\Interfaces\RequestBuilderInterface;
 use App\Models\Location;
 use App\Services\Tk\TokenCdekService;
@@ -13,8 +15,12 @@ use Illuminate\Support\Facades\Log;
 
 class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 {
-    private string $url;
     private string $token;
+
+    private string $urlTarif;
+    private string $urlList;
+
+    private array $tariffCodes;
 
     private TokenCdekService $tokenCdecService;
 
@@ -22,7 +28,8 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
     {
         $this->tokenCdecService = new TokenCdekService();
 
-        $this->url = config('companies.cdek.url') . CdekUrlType::TariffList->value;
+        $this->urlTarif = config('companies.cdek.url') . CdekUrlType::Tariff->value;
+        $this->urlList = config('companies.cdek.url') . CdekUrlType::TariffList->value;
         $this->token = $this->tokenCdecService->getActualToken();
 
         // выявленные ограничения
@@ -31,6 +38,19 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
         $this->limitWidth = (int) 1000;                 // см
         $this->limitHeight = (int) 1000;                // см
         $this->limitInsurance = (float) 1000000000000;  // руб
+
+        $this->tariffCodes = [
+            DeliveryType::Dd->value => CdekDeliveryType::Dd->value,
+            DeliveryType::Ds->value => CdekDeliveryType::Ds->value,
+            DeliveryType::Sd->value => CdekDeliveryType::Sd->value,
+            DeliveryType::Ss->value => CdekDeliveryType::Ss->value,
+            DeliveryType::Tt->value => CdekDeliveryType::Tt->value,
+            DeliveryType::Dp->value => CdekDeliveryType::Dp->value,
+            DeliveryType::Sp->value => CdekDeliveryType::Sp->value,
+            DeliveryType::Pd->value => CdekDeliveryType::Pd->value,
+            DeliveryType::Ps->value => CdekDeliveryType::Ps->value,
+            DeliveryType::Pp->value => CdekDeliveryType::Pp->value,
+        ];
     }
 
     /**
@@ -43,6 +63,9 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
      */
     public function build(array $request, Pool $pool): array
     {
+        // особенности:
+        // данная тк производит расчёт как по конкретному тарифу, так и по всем возможным
+
         $request = (object) $request;
 
         // проверка наложенного платежа
@@ -67,7 +90,24 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
             throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
-        $places = [];
+        // если выбран способ доставки, то расчет по конкретному тарифу, иначе по всем возможным
+        if (isset($request->delivery_type)) {
+            foreach ($request->delivery_type as $type) {
+                $template = $this->template($request, $from, $to, $type);
+                Log::channel('requests')->info("Отправка запроса: " . $this->urlTarif, $template);
+                $pools[] = $pool->as($type)->withToken($this->token)->post($this->urlTarif, $template);
+            }
+        } else {
+            $template = $this->template($request, $from, $to);
+            Log::channel('requests')->info("Отправка запроса: " . $this->urlList, $template);
+            $pools[] = $pool->withToken($this->token)->post($this->urlList, $template);
+        }
+
+        return $pools;
+    }
+
+    private function places($request)
+    {
         foreach ($request->places as $place) {
 
             $place = (object) $place;
@@ -94,9 +134,17 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
             ];
         }
 
-        $template = [
+        return $places;
+    }
+
+    private function template($request, $from, $to, $type = null)
+    {
+        return array_filter([
             "date" => (string) $request->shipment_date . 'T00:00:00+0000',
             "lang" => "rus",
+            "tariff_code" => isset($request->delivery_type)
+                ? $this->tariffCodes[$type]
+                : null,
             "from_location" => [
                 "code" => (int) $from->identifier
             ],
@@ -109,12 +157,7 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
                     "parameter" => (string) ($request->insurance ?? 0)
                 ]
             ],
-            "packages" => (array) $places,
-        ];
-
-        Log::channel('requests')->info("Отправка запроса: " . $this->url . CdekUrlType::TariffList->value, $template);
-        $pools[] = $pool->withToken($this->token)->post($this->url, $template);
-
-        return $pools;
+            "packages" => (array) $this->places($request),
+        ]);
     }
 }

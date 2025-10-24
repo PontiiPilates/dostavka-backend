@@ -56,7 +56,7 @@ class JobTkTest extends TestCase
 
         BaikalJob::dispatch($this->request(), $hash); // 2.1, 2.1, 2.3
         // BoxberryJob::dispatch($this->request(), $hash); // ! bocked
-        // CdekJob::dispatch($this->request(), $hash);
+        CdekJob::dispatch($this->request(), $hash);
         DellinJob::dispatch($this->request(), $hash); // 4.0, 4.8, 5.7
         DpdJob::dispatch($this->request(), $hash);
         // JdeJob::dispatch($this->request(), $hash);
@@ -81,8 +81,8 @@ class JobTkTest extends TestCase
         // assertArrayHasKey('boxberry', $data['results']);
         // assertArrayHasKey('ss', $data['results']['boxberry']['success']);
 
-        // assertArrayHasKey('cdek', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['cdek']['success']);
+        assertArrayHasKey('cdek', $data['results']);
+        assertArrayHasKey('ss', $data['results']['cdek']['success']);
 
         assertArrayHasKey('dellin', $data['results']);
         assertArrayHasKey('ss', $data['results']['dellin']['success']);
@@ -112,8 +112,8 @@ class JobTkTest extends TestCase
     private function request(): array
     {
         return [
-            "from" => 212,
-            "to" => 169,
+            "from" => 233,
+            "to" => 277,
             "places" => [
                 0 => [
                     "weight" => "10",
@@ -129,14 +129,14 @@ class JobTkTest extends TestCase
                 ],
             ],
             "companies" => [
-                // "baikal",
+                "baikal",
                 // "boxberry", // ! blocked
-                // "cdek",
+                "cdek",
                 "dellin",
-                // "dpd",
+                "dpd",
                 // "jde",
                 "pek",
-                // "vozovoz",
+                "vozovoz",
             ],
             "delivery_type" => [
                 0 => "ss",
