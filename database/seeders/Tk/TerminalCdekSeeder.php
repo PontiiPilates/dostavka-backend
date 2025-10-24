@@ -2,141 +2,199 @@
 
 namespace Database\Seeders\Tk;
 
-use App\Enums\Cdek\CdekUrlType;
-use App\Models\Country;
-use App\Models\Location;
 use App\Models\Region;
 use App\Models\Tk\TerminalCdek;
-use App\Services\Tk\TokenCdekService;
+use App\Traits\Json;
+use App\Traits\Utilits;
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class TerminalCdekSeeder extends Seeder
 {
-    private array $unfind = [];
+    use Utilits, Json;
+
+    private array $saveIncorrectRegion = [];
+    private array $saveWithouthRegion = [];
+    private array $saveWithouthCountry = [];
+
+    private array $wrongRegionNames = [];
+    private array $rightRegionNames = [];
+
+    private $progressFile = 'assets/geo/tk/cdek/progress.json';
+
+    private $currentFile = 0;
+
 
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        // при всей порядочности, список не содержит типа населенного пункта
-        // также выяснилось, что список регионов расходится со списком городов в части наименования и кодов регионов
-        // очевидно, что список городов ограничен 1000 элементов, но в документации не описаны параметры смены страниц
+        // особенности:
+        // не содержит типа населённого пункта
+        // нельзя получить список сразу всех населенных пунктов
+        // команда php artisan app:create-data-files-cdek обеспечивает сборку файлов данных из множества запросов
 
-        $tokenCdecService = new TokenCdekService();
-        $token = $tokenCdecService->getActualToken();
+        // todo: некоторые названия содержат тип в скобках, распарсить и поместить их в тип
+        // todo: в виду отсутствия типов - выполнять в последнюю очередь
+        // todo: постараться не дополнять, а лишь прописывать уже имеющиеся локации в список, с которым работает СДЕК
 
-        $response = Http::withToken($token)->get($tokenCdecService->url . CdekUrlType::Cities->value);
+        $dataFiles = Storage::files('assets/geo/tk/cdek/data-files');
 
-        $countLocation = 0;
-        $countRegion = 0;
-        $countTerminal = 0;
-
-        foreach ($response->object() as $city) {
-
-            // обработка ситуации, когда отсутствует регион в данных от СДЕК
-            if (!isset($city->region)) {
-                continue;
-            }
-
-            $country = Country::where('alpha2', $city->country_code)->first();
-
-            // корректировка наименования региона
-            $correctionList = $this->correctionList();
-            if (array_key_exists($city->region, $correctionList)) {
-                $city->region = $correctionList[$city->region];
-            }
-
-            $region = Region::where('name', $city->region)->first();
-
-            // если регион не обнаружен, то происходит его добавление
-            if (!$region) {
-                $this->unfind[] = "$city->country, регион: $city->region";
-                $region = $this->createRegion($country, $city->region);
-                $countRegion++;
-            }
-
-            $location = Location::query()
-                ->where('name', $city->city)
-                ->whereHas('region', function ($query) use ($city) {
-                    $query->where('name', $city->region);
-                })
-                ->whereHas('country', function ($query) use ($city) {
-                    $query->where('alpha2', $city->country_code);
-                })->first();
-
-            // если локация не обнаружена, то происходит ее добавление и добавление терминала
-            if (!$location) {
-                $location = $this->createLocation($country, $region, $city);
-                $this->createTerminal($city, $location);
-
-                $countLocation++;
-                $countTerminal++;
-
-                continue;
-            }
-
-            // если локация и регион обнаружены, то проиисходит просто добавление терминала
-            $this->createTerminal($city, $location);
-
-            $countTerminal++;
+        // если data-файлы не существуют
+        if (count($dataFiles) == 0) {
+            $this->command->warn('Сначала необходимо создать data-файлы: docker-compose exec app php artisan app:create-data-files-cdek');
+            return;
         }
 
-        // в рамках метода cities происходит:
-        // добавление регионов
-        // добавление локаций
-        // добавление терминалов
+        // получение данных о процессе наполнения
+        $progress = Storage::get($this->progressFile);
+        $progress = $this->toObject($progress);
 
-        dump("Добавлено $countRegion новых регионов");
-        dump("Добавлено $countLocation новых населенных пунктов");
-        dump("Добавлено $countTerminal терминалов");
+        // если засев начинается с нуля, то очистка таблицы
+        if ($progress->seeding === 0) {
+            TerminalCdek::truncate();
+        }
+
+        $countFiles = 0;
+        $countDataFiles = count($dataFiles);
+        for ($i = $progress->seeding; $i <= $progress->download->page; $i++) {
+
+            $page = $this->numerator($i);
+            $locations = Storage::json("assets/geo/tk/cdek/data-files/cdek_$page.json");
+
+            $iterable = 0;
+            $timeStart = Carbon::now();
+
+            foreach ($locations as $location) {
+                $location = (object) $location;
+
+                $federal = false;
+                $region = null;
+
+                // некоторые элементы могут не содержать принадлежность к региону
+                if (!isset($location->country_code)) {
+                    $this->saveWithouthCountry[] = $location->code;
+                    continue;
+                }
+
+                // если не россия и не ближнее зарубежье
+                if (!in_array($location->country_code, ["RU", "KZ", "KG", "BY", "AM"])) {
+                    continue;
+                }
+
+                // если обнаружена принадлежность к территиории федерального значения
+                if ($location->city == 'Санкт-Петербург' || $location->city == 'Москва' || $location->city == 'Севастополь') {
+                    $region = $location->city;
+                    $federal = true;
+                }
+
+                // некоторые элементы могут не содержать принадлежность к региону
+                if (!isset($location->region)) {
+                    $this->saveIncorrectRegion[] = $location->city;
+                    continue;
+                }
+
+                // нежелательные регионы
+                if ($location->region === 'Фиктивный') {
+                    continue;
+                }
+
+                $regionName = $this->regionCorrector($location->region);
+                $regionModel = Region::where('name', $regionName)->first();
+
+                if ($regionModel) {
+                    $region = $regionModel->name;
+                } else {
+                    $region = $location->region;
+                    $this->saveIncorrectRegion[] = $location->region;
+                }
+
+                // данные содержат повторяющиеся локации
+                TerminalCdek::updateOrCreate(
+                    [
+                        'identifier' => $location->code,
+                    ],
+                    [
+                        'identifier' => $location->code,
+                        'name' => $location->city,
+                        'region' => $region,
+                        'federal' => $federal,
+                        'country' => $location->country_code
+                    ]
+                );
+
+                $iterable++;
+            }
+
+            $countFiles++;
+
+            $timeEnd = Carbon::now();
+            $executionTime = $timeStart->diffInSeconds($timeEnd);
+            $executionTime = number_format((float) $executionTime, 1, '.');
+
+            $this->command->info("Добавлено $iterable терминалов, $countFiles/$countDataFiles $executionTime сек.");
+
+            // сохранение прогресса о наполнении базы данными
+            $progress->seeding = $page;
+            Storage::put($this->progressFile, json_encode($progress));
+
+            // ограничение числа обрабатываемых файлов
+            if ($i > 30) {
+                break;
+            }
+        }
     }
 
-    private function correctionList(): array
+    /**
+     * Корректировка наименования региона.
+     */
+    private function regionCorrector($regionName): string
     {
-        return [
-            'Удмуртия' => 'Удмуртская Республика',
-            'Дагестан' => 'Республика Дагестан',
-            'Мордовия' => 'Республика Мордовия',
-            'Татарстан' => 'Республика Татарстан',
-            'Марий Эл' => 'Республика Марий Эл',
-            'Кабардино-Балкария' => 'Кабардино-Балкарская Республика',
+        $regionName = str_replace(['город '], '', $regionName);
+
+        $regionName = trim($regionName);
+
+        $wrongRegionNames = [
+            1 => 'Марий Эл',
+            2 => 'Татарстан',
+            3 => 'Калмыкия',
+            4 => 'Удмуртия',
+            5 => 'Кемеровская область - Кузбасс',
+            6 => 'Адыгея',
+            7 => 'Мордовия',
+            8 => 'Дагестан',
+            9 => 'Ингушетия',
+            10 => 'Кабардино-Балкария',
+            11 => 'Карачаево-Черкесия',
         ];
+
+        $rightRegionNames = [
+            1 => 'Республика Марий Эл',
+            2 => 'Республика Татарстан',
+            3 => 'Республика Калмыкия',
+            4 => 'Удмуртская Республика',
+            5 => 'Кемеровская область',
+            6 => 'Республика Адыгея',
+            7 => 'Республика Мордовия',
+            8 => 'Республика Дагестан',
+            9 => 'Республика Ингушетия',
+            10 => 'Кабардино-Балкарская Республика',
+            11 => 'Карачаево-Черкесская Республика',
+        ];
+
+        $key = array_search($regionName, $wrongRegionNames);
+        if ($key >= 1) {
+            return $rightRegionNames[$key];
+        } else {
+            return $regionName;
+        }
     }
 
-    private function createLocation($country, $region, $city): Location
+    private function unique()
     {
-        return Location::create(
-            [
-                'country_id' => $country->id,
-                'region_id' => $region->id,
-                'name' => $city->city,
-            ]
-        );
-    }
-
-    private function createTerminal($city, $location): void
-    {
-        TerminalCdek::create(
-            [
-                'location_id' => $location->id,
-                'identifier' => $city->code,
-                'name' => $city->city,
-                'dirty' => $city->city . ': ' . ($city->region ?? '') . ', ' . ($city->sub_region ?? ''),
-            ]
-        );
-    }
-
-
-    private function createRegion($country, $regionName): Region
-    {
-        return Region::create(
-            [
-                'country_id' => $country->id,
-                'name' => $regionName,
-            ]
-        );
+        return array_unique([]);
     }
 }
