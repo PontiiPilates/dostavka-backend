@@ -40,11 +40,6 @@ class ResponseBuilder
         foreach ($responses as $key => $response) {
             $response = $response->object();
 
-            // отладка
-            if (env('SHOW_Q')) {
-                dump($response);
-            }
-
             $multiKey = explode(':', $key);
             $deliveryType = $multiKey[0];
             $tariff = $multiKey[1];

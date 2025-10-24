@@ -20,7 +20,7 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
     public function __construct()
     {
-        $this->url = config('companies.dellin.url');
+        $this->url = config('companies.dellin.url') . DellinUrlType::Calculator->value;
         $this->token = config('companies.dellin.token');
 
         // выявленные ограничения
@@ -174,7 +174,7 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
                 }
 
                 Log::channel('requests')->info("Отправка запроса: " . $this->url, $template);
-                $pools[] = $pool->as($type . ":$tariff")->post($this->url . DellinUrlType::Calculator->value, $template);
+                $pools[] = $pool->as($type . ":$tariff")->post($this->url, $template);
             }
         }
 

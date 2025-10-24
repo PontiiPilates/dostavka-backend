@@ -4,20 +4,42 @@ declare(strict_types=1);
 
 namespace App\Builders\Cdek;
 
+use App\DTO\CalculationResultDto;
 use App\Enums\Cdek\CdekDeliveryType;
 use App\Enums\Cdek\CdekUrlType;
 use App\Enums\CompanyType;
 use App\Enums\DeliveryType;
-use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ResponseBuilder
 {
-    private string $url;
+    private string $urlTarif;
+    private string $urlList;
+
+    private string $company;
+
+    private array $tariffCodes;
 
     public function __construct()
     {
-        $this->url = config('companies.boxberry.url');
+        $this->urlTarif = config('companies.cdek.url') . CdekUrlType::Tariff->value;
+        $this->urlList = config('companies.cdek.url') . CdekUrlType::TariffList->value;
+
+        $this->company = CompanyType::Cdek->value;
+
+        $this->tariffCodes = [
+            CdekDeliveryType::Dd->value => DeliveryType::Dd->value,
+            CdekDeliveryType::Ds->value => DeliveryType::Ds->value,
+            CdekDeliveryType::Sd->value => DeliveryType::Sd->value,
+            CdekDeliveryType::Ss->value => DeliveryType::Ss->value,
+            CdekDeliveryType::Tt->value => DeliveryType::Tt->value,
+            CdekDeliveryType::Dp->value => DeliveryType::Dp->value,
+            CdekDeliveryType::Sp->value => DeliveryType::Sp->value,
+            CdekDeliveryType::Pd->value => DeliveryType::Pd->value,
+            CdekDeliveryType::Ps->value => DeliveryType::Ps->value,
+            CdekDeliveryType::Pp->value => DeliveryType::Pp->value,
+        ];
     }
 
     /**
@@ -28,66 +50,52 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [
-            'company' => CompanyType::Cdek->value,
-            'types' => [],
-        ];
+        // особенность данного обработчика в наличии двух сценариев ответа
+        // один предлагает возможные варианты доставки
+        // второй возвращает только жёстко определённые
 
-        foreach ($responses as $response) {
+        $result = CalculationResultDto::filler($this->company);
+
+        foreach ($responses as $key => $response) {
             $response = $response->object();
 
-            // при наличии ошибки в ответе
-            try {
-                $this->checkResponseError($response);
-            } catch (\Throwable $th) {
+            // todo: возможно эта обработка должна находиться не здесь/не только здесь
+            if (isset($response->errors)) {
+                $errorId = Str::random(10);
+
+                Log::channel('tk')->error(
+                    sprintf('Ошибка %s при обработке ответа: %s %s %s', $errorId, $this->urlList, __FILE__, __LINE__),
+                    [$response->errors]
+                );
+
                 continue;
             }
 
-            $types = [
-                CdekDeliveryType::Dd->value => DeliveryType::Dd->value,
-                CdekDeliveryType::Ds->value => DeliveryType::Ds->value,
-                CdekDeliveryType::Sd->value => DeliveryType::Sd->value,
-                CdekDeliveryType::Ss->value => DeliveryType::Ss->value,
-                CdekDeliveryType::Tt->value => DeliveryType::Tt->value,
-                CdekDeliveryType::Dp->value => DeliveryType::Dp->value,
-                CdekDeliveryType::Sp->value => DeliveryType::Sp->value,
-                CdekDeliveryType::Pd->value => DeliveryType::Pd->value,
-                CdekDeliveryType::Ps->value => DeliveryType::Ps->value,
-                CdekDeliveryType::Pp->value => DeliveryType::Pp->value,
-            ];
-
-            foreach ($response->tariff_codes as $tariff) {
-                $type = $types[$tariff->delivery_mode];
-
-                $data['types'][$type][] = [
-                    "tariff" => $tariff->tariff_name,
-                    "cost" => $tariff->delivery_sum,
-                    "days" => [
-                        "from" => $tariff->calendar_min,
-                        "to" => $tariff->calendar_max,
-                    ]
-                ];
+            // если не выбран способ доставки и компания предлагает варианты
+            if (isset($response->tariff_codes)) {
+                foreach ($response->tariff_codes as $tariff) {
+                    $deliveryType = $this->tariffCodes[$tariff->delivery_mode];
+                    $result = $this->template($result, $deliveryType, $tariff);
+                }
+            } else {
+                // если способ доставки жёстко определён
+                // todo: добавить обработку ошибки при жестко определенном тарифе
+                $result = $this->template($result, $key, $response);
             }
         }
 
-        return $data;
+        return $result;
     }
 
-    /**
-     * Проверка наличия ошибок в ответе.
-     */
-    private function checkResponseError($response): void
+    private function template($result, $deliveryType, $tariff)
     {
-        if (empty($response->tariff_codes)) {
-            $message = 'Ошибка при обработке ответа: (обнаружена при отсутствии тарифов для груза с такими параметрами)' . $this->url . ': ' . CdekUrlType::TariffList->value . ': ' . __FILE__;
-            Log::channel('tk')->error($message);
-            throw new Exception($message, 500);
-        }
+        $result['data']['success'][$deliveryType][] = CalculationResultDto::tariff(
+            $tariff->tariff_name ?? DeliveryType::{mb_ucfirst($deliveryType)}->label(),
+            $tariff->delivery_sum,
+            $tariff->calendar_min,
+            $tariff->calendar_max,
+        );
 
-        if (isset($response->requests[0]->errors)) {
-            $message = 'Ошибка при обработке ответа: ' . $this->url . ': ' . CdekUrlType::TariffList->value . ': ' . __FILE__;
-            Log::channel('tk')->error($message, [$response->requests[0]->errors]);
-            throw new Exception($message, 500);
-        }
+        return $result;
     }
 }
