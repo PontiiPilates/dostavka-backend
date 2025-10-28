@@ -44,8 +44,8 @@ class DatabaseSeeder extends Seeder
             TerminalPekSeeder::class,
             TerminalVozovozSeeder::class,
             TerminalDpdSeeder::class,
+            TerminalKitSeeder::class,
 
-            // TerminalKitSeeder::class, // должен быть одним из последних (остаток 27400, в таблице 348)
             // TerminalJdeSeeder::class, // (остаток 132, в таблице 211)
             // TerminalNrgSeeder::class, // должен быть одним из последних, грязная принадлежность к регионам (остаток 4723, в таблице 363)
             // TariffPochtaSeeder::class, // это вообще не локации, просто тарифы почты россии

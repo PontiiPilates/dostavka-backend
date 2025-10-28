@@ -53,6 +53,8 @@ class BaseBuilder
      */
     protected function checkDeliveryType(object $request): array
     {
+        // todo: добавить остальные способы доставки, поскольку логика такова что
+        // todo: если ни один не выбран, то предлагаются все, если выбран конкретный, то только он
         if (!isset($request->delivery_type)) {
             return [DeliveryType::Ss->value];
         }
