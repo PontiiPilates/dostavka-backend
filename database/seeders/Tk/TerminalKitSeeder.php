@@ -3,52 +3,295 @@
 namespace Database\Seeders\Tk;
 
 use App\Enums\Kit\KitUrlType;
-use App\Models\Location;
+use App\Models\Region;
 use App\Models\Tk\TerminalKit;
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Http;
 
 class TerminalKitSeeder extends Seeder
 {
-    private array $candidatsToUpdate = [];
-
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        $url = config('companies.kit.url');
+        // особенность списка данной тк в том, что он содержит дубли
+
+        $url = config('companies.kit.url') . KitUrlType::City->value;
         $token = config('companies.kit.token');
 
-        $response = Http::withToken($token)->get($url . KitUrlType::City->value);
+        $response = Http::withToken($token)->get($url);
 
-        // особенность данного списка в том, что он содержит дубли
-        // поэтому имеет смысл перед добавлением добавить проверку на exists
-        // или же сделать updateOrCreate
+        TerminalKit::truncate();
+
+        $iterable = 0;
+        $timeStart = Carbon::now();
 
         foreach ($response->object() as $city) {
 
-            $location = Location::query()
-                ->where('name', $city->name)
-                ->whereHas('country', function ($query) use ($city) {
-                    $query->where('alpha2', $city->country_code);
-                })->first();
+            $region = null;
+            $federal = false;
 
-            // если локация не обнаружена, то она попадает в список кандидатов на парсинг
-            if (!$location) {
-                $this->candidatsToUpdate[] = $city->name . ': ' . $city->type . ' ' . $city->country_code;
+            // пропускать элемент, если тип локации принадлежит к нежелательному или отсутствует
+            if (in_array($city->type, $this->disallowTypeNames()) || empty($city->type)) {
                 continue;
             }
 
-            TerminalKit::create([
-                'location_id' => $location->id,
-                'identifier' => $city->code,
-                'name' => $city->name,
-                'dirty' => null,
-            ]);
+            // пропускать элемент, если локация принадлежит к нежелательной или отсутствует
+            if (in_array($city->name, $this->disallowLocationNames()) || empty($city->name)) {
+                continue;
+            }
+
+            // если есть принадлежность к городу федерального значения
+            if ($city->name == 'Санкт-Петербург' || $city->name == 'Москва' || $city->name == 'Севастополь') {
+                $region = $city->name;
+                $federal = true;
+            }
+
+            // получение принадлежности к региону
+            $region = Region::where('code', $city->region_code)
+                ->whereHas('country', function ($query) use ($city) {
+                    $query->where('alpha2', $city->country_code);
+                })
+                ->first();
+
+            TerminalKit::updateOrCreate(
+                [
+                    'identifier' => $city->code, // в данных встречаются дубли (331)
+                ],
+                [
+                    'identifier' => $city->code,
+                    'name' => $city->name,
+                    'type' => $city->type,
+                    'region' => $region?->name, // может быть null
+                    'federal' => $federal,
+                    'country' => $city->country_code,
+                ]
+            );
+
+            $iterable++;
         }
 
-        dump('Следующие локации остались не добавленными: ', $this->candidatsToUpdate);
+        $timeEnd = Carbon::now();
+        $executionTime = $timeStart->diffInSeconds($timeEnd);
+        $executionTime = number_format((float) $executionTime, 1, '.');
+
+        $this->command->info("Добавлено $iterable терминалов, $executionTime сек.");
+    }
+
+    /**
+     * Нежелательные наименования локаций
+     */
+    private function disallowLocationNames(): array
+    {
+        // все, которые содержат любые символы помимо букв кириллического алфавита
+        // SELECT * FROM terminals_kit WHERE name REGEXP '[^А-ЯЁа-яё .,()\-]'
+
+        return [
+            'ж/д станции Высокая Гора',
+            'ж/д разъезда Куркачи',
+            'ж/д разъезда Киндери',
+            'свх Масловский 1 отделение',
+            'Сторожевое 1-е',
+            'Октябрьское-2',
+            '3307 км. Платформа',
+            'сдт Шинник-1',
+            'Хрустальная ж/д',
+            'д/о Золотой Пляж',
+            'Южноуральская ГРЭС-2',
+            'Ж/д разъезд N20',
+            'д/о Вороново',
+            'Платформа 69 км',
+            'ТЭЦ-3',
+            'д/о Велегож',
+            'сдт Птицевод-2',
+            '107 км',
+            'сдт Мечта-2',
+            'отделения N3 ОПХ КНИИСХ',
+            'Парца(Явасское с/п)',
+            'Областной с/х опытной станции',
+            'НСТ Мебельщик 2',
+            'Подстанция-500',
+            'Массив Орехово-Северное ДПК5Петрогр р-на',
+            'СНТ Домостроитель-1',
+            '4-е Отделение ГСС',
+            'Лаговщина(Некрасовская с/а)',
+            'ж/д Пахомово',
+            'СУ-847',
+            'свх Новоусманский 1 отделение',
+            'ж/д станции Калейкино',
+            'СДТ Крутушка-1',
+            '2-го участка института им Докучаева',
+            'свх Новоусманский 2 отделение',
+            'Обухов N7',
+            'сдт Любитель-4',
+            'отделения N2 СКЗНИИСиВ',
+            'Филит-1 СНТ',
+            'Ивановка(Телятниковское с/п)',
+            'Санатория Юматово имени 15-летия БАССР',
+            '№ 7 ПМЗ',
+            'СНТ Железнодорожник-6',
+            'Шахты № 35',
+            'д/о Лопасня',
+            'СОТ Восход-2',
+            'СНТ Восход-2',
+            'СНТ Лесовод-2',
+            'СУ-934',
+            'СНТ Вега-88',
+            'Дача 51',
+            'Дорожно-ремонтного пункта 3',
+            'СНТ Шинник-1',
+            'отделения N3 СКЗНИИСиВ',
+            '24 км',
+            'СДТ Овощник-2',
+            'ж/д разъезда Базаровка',
+            'Разъезд 189 км',
+            'Им 2-ой Пятилетки',
+            'НИИОХ',
+            'санатория им Герцена',
+            'СНТ Полиграфмаш массива Тубников Бор',
+            'пансионата Полушкино',
+            'база МТС АО Каражанбас',
+        ];
+    }
+
+    /**
+     * Нежелательные типы локаций
+     */
+    private function disallowTypeNames(): array
+    {
+        // все типы локаций
+        // SELECT type FROM `terminals_kit` GROUP BY type
+
+        return [
+            'терр.',
+            'Населе',
+            'Промзо',
+            'Сельсо',
+            'Курорт',
+            'Разъез',
+            'Железн',
+            'Почино',
+            'Рудник',
+            'тов.',
+            'р-н',
+            'район',
+            'Кварта',
+            'Местеч',
+            'Массив',
+            'террит',
+            'пр.зн.',
+            'Планир',
+            'Шахта',
+            'Урочищ',
+            'вахтов',
+            'местор',
+            'Городо',
+            'Почтов',
+            'СНТ',
+            'ДНП',
+            'Заимка',
+            'электр',
+            'Разрез',
+            'Томь-У',
+            'санато',
+            'Выселк',
+            'Улус',
+            'Казинк',
+            'НП',
+            'Легино',
+            'Коттед',
+            'Москов',
+            'СНТ Ив',
+            'ДНП Зе',
+            'Павлов',
+            'Зона',
+            'СНП',
+            'жилой',
+            'ТСН',
+            'дачный',
+            'СТ',
+            'приста',
+            'садовы',
+            'Cадово',
+            'СНТСН',
+            'АЭС',
+            'аэродр',
+            'ДНТ',
+            'Коллек',
+            'садово',
+            'ДПК',
+            'Ассоци',
+            'СТД',
+            '174 км',
+            'Ж/К',
+            'СНТ Ку',
+            'СНТ Ко',
+            'СНТ Пр',
+            'ЛПХ',
+            'аэропо',
+            'СО',
+            'СУ',
+            'Теплич',
+            'СДТ',
+            'Полиго',
+            'авто.',
+            'НТ',
+            'ПСК',
+            'СПГ',
+            'СНО',
+            'Кв-Л',
+            'Микр',
+            'СНТ Се',
+            'Товари',
+            'СОТ',
+            'СПК',
+            'Террио',
+            'Зона о',
+            'ПСОК',
+            'СОНТ',
+            'ДНТСН',
+            'СОК',
+            'ПСДК',
+            '12 км',
+            'муници',
+            'ТОС',
+            'ТСН СН',
+            'База о',
+            'Аал',
+            'сельск',
+            'ЖСТ',
+            'Cадовы',
+            'нп.',
+            'ДТ',
+            'КП',
+            'поселе',
+            'НСТ По',
+            'Cельск',
+            'Клубны',
+            'АДНП',
+            'Загоро',
+            'НПТ',
+            'Участо',
+            'ДТСН',
+            'Cовхоз',
+            'промыш',
+            'эко-по',
+            'СТСН',
+            'индуст',
+            'ПКС',
+            'ТЗ СНТ',
+            'ПЛК',
+            'КНСТ',
+            'Заозёр',
+            'жк',
+            'мкр.',
+            'мкр',
+            'микрор',
+            'Местор',
+            'Район',
+        ];
     }
 }

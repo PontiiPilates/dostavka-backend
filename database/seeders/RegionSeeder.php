@@ -16,6 +16,10 @@ class RegionSeeder extends Seeder
     {
         $files = [
             'RU',
+            'BY',
+            'KZ',
+            'KG',
+            'CN',
         ];
 
         foreach ($files as $country) {

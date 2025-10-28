@@ -5,18 +5,22 @@ declare(strict_types=1);
 namespace App\Builders\Kit;
 
 use App\Builders\BaseBuilder;
+use App\DTO\CalculationResultDto;
 use App\Enums\CompanyType;
 use App\Enums\Kit\KitUrlType;
-use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ResponseBuilder extends BaseBuilder
 {
     private string $url;
 
+    private string $company;
+
     public function __construct()
     {
-        $this->url = config('companies.baikal.url');
+        $this->url = config('companies.baikal.url') . KitUrlType::Calculate->value;
+        $this->company = CompanyType::Kit->value;
     }
 
     /**
@@ -27,55 +31,34 @@ class ResponseBuilder extends BaseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [
-            'company' => CompanyType::Kit->value,
-            'types' => [],
-        ];
+        $result = CalculationResultDto::filler($this->company);
 
         foreach ($responses as $type => $response) {
             $response = $response->object();
 
             // при наличии ошибки в ответе
-            try {
-                $this->checkResponseError($response);
-            } catch (\Throwable $th) {
+            if (isset($response->validate) || gettype($response) == 'string') {
+                $errorId = Str::random(10);
+
+                Log::channel('tk')->error(
+                    sprintf('Ошибка %s при обработке ответа: %s %s %s', $errorId, $this->url, __FILE__, __LINE__),
+                    [$response->errors]
+                );
+
                 continue;
             }
 
             foreach ($response[0] as $item) {
 
-                $data['types'][$type][] = [
-                    "tariff" => $item->name,
-                    "cost" => $item->cost,
-                    "days" => [
-                        "from" => $item->time,
-                        "to" => $item->time,
-                    ]
-                ];
+                $result['data']['success'][$type][] = CalculationResultDto::tariff(
+                    $item->name,
+                    $item->cost,
+                    $item->time,
+                    $item->time,
+                );
             }
         }
 
-        return $data;
-    }
-
-    /**
-     * Проверка наличия ошибки в ответе: выбрасывает исключение и логирует данные при обнаружении ошибки в ответе.
-     * 
-     * @var $response
-     * @return void
-     */
-    private function checkResponseError($response): void
-    {
-        if (gettype($response) == 'string') {
-            $message = 'Ошибка при обработке ответа: ' . $this->url . KitUrlType::Calculate->value . ': ' . __FILE__;
-            Log::channel('tk')->error($message,  [$response]);
-            throw new Exception($message, 500);
-        }
-
-        if (isset($response->validate) || gettype($response) == 'string') {
-            $message = 'Ошибка при обработке ответа: ' . $this->url . KitUrlType::Calculate->value . ': ' . __FILE__;
-            Log::channel('tk')->error($message,  [$response->validate]);
-            throw new Exception($message, 500);
-        }
+        return $result;
     }
 }

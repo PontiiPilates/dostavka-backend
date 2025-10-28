@@ -61,6 +61,7 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
             $from = Location::find($request->from)->terminalsKit()->firstOrFail();
             $to = Location::find($request->to)->terminalsKit()->firstOrFail();
         } catch (\Throwable $th) {
+            dd($th);
             throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 
@@ -74,12 +75,15 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
                 $place = (object) $place;
 
+                // калькулятор должен работать как с передачей параметра объёма так и без него
                 $gabarits = (object) [
                     'weight' => (int) $place->weight,   // вес, грамм
                     'length' => (int) $place->length,   // длина, см
                     'width' => (int) $place->width,     // ширина, см
                     'height' => (int) $place->height,   // высота, см
-                    'volume' => (float) $place->volume, // м3
+                    'volume' => isset($place->volume)
+                        ? (float) $place->volume        // м3
+                        : null,
                 ];
 
                 // проверка габаритов
