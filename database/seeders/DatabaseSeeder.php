@@ -44,16 +44,14 @@ class DatabaseSeeder extends Seeder
             TerminalPekSeeder::class,
             TerminalVozovozSeeder::class,
             TerminalDpdSeeder::class,
-            TerminalKitSeeder::class,
+            TerminalKitSeeder::class, // дополняет базу локаций/регионов, грязные типы/региональность
 
-            // TerminalJdeSeeder::class, // (остаток 132, в таблице 211)
+            
             // TerminalNrgSeeder::class, // должен быть одним из последних, грязная принадлежность к регионам (остаток 4723, в таблице 363)
             // TariffPochtaSeeder::class, // это вообще не локации, просто тарифы почты россии
-
-            // в последнюю очередь
-            // локации не имеют типизации, пусть дополняют список, а не образуют его
-            // todo: огромное количество - сократить до основных локаций
-            TerminalCdekSeeder::class,
+            
+            // TerminalCdekSeeder::class, // только регистрирует собственные, нет типов, бигдата
+            TerminalJdeSeeder::class, // только регистрирует собственные, нет типов, грязная региональность
         ]);
 
         // финализация таблицы локаций

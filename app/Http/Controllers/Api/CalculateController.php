@@ -66,12 +66,11 @@ class CalculateController extends Controller
         foreach ($request->companies as $company) {
             match ($company) {
                 CompanyType::Baikal->value => BaikalJob::dispatch($request->all(), $hash),
-                CompanyType::Boxberry->value => BoxberryJob::dispatch($request->all(), $hash), // ! учётная запись заблокирована
                 CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash),
                 CompanyType::Dellin->value => DellinJob::dispatch($request->all(), $hash),
                 CompanyType::DPD->value => DpdJob::dispatch($request->all(), $hash),
-                // CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash),
-                CompanyType::Kit->value => KitJob::dispatchSync($request->all(), $hash),
+                CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash),
+                CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
                 // CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash),
                 CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash),
                 // CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash),

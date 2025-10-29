@@ -61,7 +61,6 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
             $from = Location::find($request->from)->terminalsKit()->firstOrFail();
             $to = Location::find($request->to)->terminalsKit()->firstOrFail();
         } catch (\Throwable $th) {
-            dd($th);
             throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }
 

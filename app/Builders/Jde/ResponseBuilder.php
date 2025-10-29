@@ -4,14 +4,25 @@ declare(strict_types=1);
 
 namespace App\Builders\Jde;
 
+use App\DTO\CalculationResultDto;
 use App\Enums\CompanyType;
 use App\Enums\Jde\JdeTariffType;
 use App\Enums\Jde\JdeUrlType;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ResponseBuilder
 {
+    private string $url;
+    private string $company;
+
+    public function __construct()
+    {
+        $this->url = config('companies.jde.url') . JdeUrlType::Calculator->value;
+        $this->company = CompanyType::Jde->value;
+    }
+
     /**
      * Обеспечивает сборку требуемой структуры ответа.
      * 
@@ -20,10 +31,7 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [
-            'company' => CompanyType::Jde->value,
-            'types' => [],
-        ];
+        $result = CalculationResultDto::filler($this->company);
 
         foreach ($responses as $key => $response) {
             $response = $response->object();
@@ -32,12 +40,8 @@ class ResponseBuilder
             $type = $multiKey[0];
             $tariff = $multiKey[1];
 
-            // при наличии ошибки в ответе
-            try {
-                $this->checkResponseError($response);
-            } catch (\Throwable $th) {
-                continue;
-            }
+            // обработка ошибок
+            $this->checkResponseError($response);
 
             $tariffs = [
                 JdeTariffType::Combined->value => JdeTariffType::Combined->label(),
@@ -47,34 +51,39 @@ class ResponseBuilder
                 // JdeTariffType::Courier->value =>  JdeTariffType::Courier->label(), // не обслуживается
             ];
 
-            $data['types'][$type][] = [
-                "tariff" => $tariffs[$tariff],
-                "cost" => $response->price,
-                "days" => [
-                    "from" => $response->mindays,
-                    "to" => $response->maxdays,
-                ]
-            ];
+            $result['data']['success'][$type] = CalculationResultDto::tariff(
+                $tariffs[$tariff],
+                $response->price,
+                $response->mindays,
+                $response->maxdays,
+            );
         }
 
-        return $data;
+        // если нет успешных
+        if (empty($result['data']['success'])) {
+            throw new Exception(trans('messages.response.not_results'), 200);
+        } else {
+            return $result;
+        }
     }
 
     private function checkResponseError($response)
     {
-        $url = config('companies.jde.url') . JdeUrlType::Calculator->value;
-
         if (isset($response->error)) {
-            $message = 'Ошибка при обработке ответа: ' . $url;
-            Log::channel('tk')->error($message, [$response->error]);
-            throw new Exception($message, 500);
+            $errorId = Str::random(10);
+            Log::channel('tk')->error(
+                sprintf('Ошибка %s при обработке ответа: %s%s %s %s', $errorId, $this->company, $this->url, __FILE__, __LINE__),
+                [$response->error]
+            );
         }
 
         foreach ($response->services as $service) {
             if (isset($service->error)) {
-                $message = 'Ошибка при обработке ответа: ' . $url;
-                Log::channel('tk')->error($message, [$response->services[0]->error]);
-                throw new Exception($message, 500);
+                $errorId = Str::random(10);
+                Log::channel('tk')->error(
+                    sprintf('Ошибка %s при обработке ответа: %s%s %s %s', $errorId, $this->company, $this->url, __FILE__, __LINE__),
+                    [$response->services[0]->error]
+                );
             }
         }
     }

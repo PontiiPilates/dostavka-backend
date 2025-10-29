@@ -8,6 +8,7 @@ use App\Enums\Jde\JdeTariffType;
 use App\Enums\Jde\JdeUrlType;
 use App\Interfaces\RequestBuilderInterface;
 use App\Models\Location;
+use App\Models\Tk\TerminalJde;
 use Exception;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Request;
@@ -59,8 +60,16 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $from = Location::find($request->from)->terminalsJde()->firstOrFail();
-            $to = Location::find($request->to)->terminalsJde()->firstOrFail();
+            // первый терминал с возможностью принятия груза
+            $from = TerminalJde::where('acceptance', true)
+                ->whereHas('location', function ($query) use ($request) {
+                    $query->where('id', $request->from);
+                })->firstOrFail();
+            // первый терминал с возможностью выдачи груза
+            $to = TerminalJde::where('issue', true)
+                ->whereHas('location', function ($query) use ($request) {
+                    $query->where('id', $request->to);
+                })->firstOrFail();
         } catch (\Throwable $th) {
             throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }

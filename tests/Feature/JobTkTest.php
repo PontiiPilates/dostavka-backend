@@ -55,12 +55,11 @@ class JobTkTest extends TestCase
         Redis::setex($hash, config('custom.expire'), $this->toJson($structure));
 
         BaikalJob::dispatch($this->request(), $hash); // 2.1, 2.1, 2.3
-        // BoxberryJob::dispatch($this->request(), $hash); // ! bocked
         CdekJob::dispatch($this->request(), $hash);
         DellinJob::dispatch($this->request(), $hash); // 4.0, 4.8, 5.7
         DpdJob::dispatch($this->request(), $hash);
-        // JdeJob::dispatch($this->request(), $hash);
-        // KitJob::dispatch($this->request(), $hash);
+        JdeJob::dispatch($this->request(), $hash);
+        KitJob::dispatch($this->request(), $hash);
         // NrgJob::dispatch($this->request(), $hash);
         PekJob::dispatch($this->request(), $hash); // 1.8, 1.6, 2.7
         // PochtaJob::dispatch($this->request(), $hash);
@@ -77,10 +76,6 @@ class JobTkTest extends TestCase
         assertArrayHasKey('baikal', $data['results']);
         assertArrayHasKey('ss', $data['results']['baikal']['success']);
 
-        // ! blocked
-        // assertArrayHasKey('boxberry', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['boxberry']['success']);
-
         assertArrayHasKey('cdek', $data['results']);
         assertArrayHasKey('ss', $data['results']['cdek']['success']);
 
@@ -90,11 +85,11 @@ class JobTkTest extends TestCase
         assertArrayHasKey('dpd', $data['results']);
         assertArrayHasKey('ss', $data['results']['dpd']['success']);
 
-        // assertArrayHasKey('jde', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['jde']['success']);
+        assertArrayHasKey('jde', $data['results']);
+        assertArrayHasKey('ss', $data['results']['jde']['success']);
 
-        // assertArrayHasKey('kit', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['kit']['success']);
+        assertArrayHasKey('kit', $data['results']);
+        assertArrayHasKey('ss', $data['results']['kit']['success']);
 
         // assertArrayHasKey('nrg', $data['results']);
         // assertArrayHasKey('ss', $data['results']['nrg']['success']);
@@ -130,12 +125,13 @@ class JobTkTest extends TestCase
             ],
             "companies" => [
                 "baikal",
-                // "boxberry", // ! blocked
                 "cdek",
                 "dellin",
                 "dpd",
-                // "jde",
+                "jde",
+                "kit",
                 "pek",
+                "pochta",
                 "vozovoz",
             ],
             "delivery_type" => [
