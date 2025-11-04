@@ -4,13 +4,17 @@ namespace App\Enums;
 
 enum  LocationType: string
 {
-    case AgroTown = 'агрогородок';
+    // типы регионов
     case Area = 'область';
-    case Aul = 'аул';
     case AutonomousRegion = 'автономный округ';
-    case CottageVillage = 'дачный посёлок';
     case District = 'район';
     case Edge = 'край';
+    case Republic = 'Республика';
+
+        // типы локаций
+    case AgroTown = 'агрогородок';
+    case Aul = 'аул';
+    case CottageVillage = 'дачный посёлок';
     case Farmstead = 'хутор';
     case Hamlet = 'деревня';
     case Island = 'остров';
@@ -18,7 +22,6 @@ enum  LocationType: string
     case Locality = 'населённый пункт';
     case MicroDistrict = 'микрорайон';
     case Pgt = 'пгт';
-    case Republic = 'Республика';
     case ResidentialComplex = 'жилой комплекс';
     case ResortVillage = 'курортный посёлок';
     case RualVillage = 'сельское поселение';
@@ -27,6 +30,7 @@ enum  LocationType: string
     case Snt = 'снт';
     case Spk = 'спк';
     case Stanitsa = 'станица';
+    case StateFarm = 'совхоз';
     case Town = 'город';
     case Township = 'посёлок';
     case UrbanVillage = 'городской посёлок';

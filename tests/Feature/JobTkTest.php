@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Jobs\Tk\BaikalJob;
-use App\Jobs\Tk\BoxberryJob;
 use App\Jobs\Tk\CdekJob;
 use App\Jobs\Tk\DellinJob;
 use App\Jobs\Tk\DpdJob;
@@ -60,7 +59,7 @@ class JobTkTest extends TestCase
         DpdJob::dispatch($this->request(), $hash);
         JdeJob::dispatch($this->request(), $hash);
         KitJob::dispatch($this->request(), $hash);
-        // NrgJob::dispatch($this->request(), $hash);
+        NrgJob::dispatch($this->request(), $hash); // 1.7, 1.7, 1.6
         PekJob::dispatch($this->request(), $hash); // 1.8, 1.6, 2.7
         // PochtaJob::dispatch($this->request(), $hash);
         VozovozJob::dispatch($this->request(), $hash); // 3.8, 0.8, 1.8
@@ -91,8 +90,8 @@ class JobTkTest extends TestCase
         assertArrayHasKey('kit', $data['results']);
         assertArrayHasKey('ss', $data['results']['kit']['success']);
 
-        // assertArrayHasKey('nrg', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['nrg']['success']);
+        assertArrayHasKey('nrg', $data['results']);
+        assertArrayHasKey('ss', $data['results']['nrg']['success']);
 
         assertArrayHasKey('pek', $data['results']);
         assertArrayHasKey('ss', $data['results']['pek']['success']);

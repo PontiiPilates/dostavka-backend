@@ -30,7 +30,6 @@ class FinalizerLocationSeeder extends Seeder
     {
         $companys = [
             CompanyType::Baikal->value => TerminalBaikal::class,
-            CompanyType::Boxberry->value => TerminalBoxberry::class,
             CompanyType::Cdek->value => TerminalCdek::class,
             CompanyType::Dellin->value => TerminalDellin::class,
             CompanyType::DPD->value => TerminalDpd::class,

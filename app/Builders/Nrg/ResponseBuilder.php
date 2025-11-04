@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Builders\Nrg;
 
+use App\DTO\CalculationResultDto;
 use App\Enums\CompanyType;
 use App\Enums\DeliveryType;
 use App\Enums\Nrg\NrgUrlType;
-use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ResponseBuilder
 {
     private string $url;
+    private string $company;
 
     private $daysFrom;
     private $daysTo;
@@ -21,6 +22,7 @@ class ResponseBuilder
     public function __construct()
     {
         $this->url = config('companies.nrg.url') . NrgUrlType::Price->value;
+        $this->company = CompanyType::Nrg->value;
     }
 
     /**
@@ -31,28 +33,35 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [
-            'company' => CompanyType::Nrg->value,
-            'types' => [],
-        ];
+        $result = CalculationResultDto::filler($this->company);
 
         foreach ($responses as $type => $response) {
 
             $response = $response->object();
 
             // реакция на наличие ошибки запроса
-            try {
-                $this->checkResponseError($response);
-            } catch (\Throwable $th) {
+            if (isset($response->code) && isset($response->message)) {
+                $errorId = Str::random(10);
+
+                Log::channel('tk')->error(
+                    sprintf('Ошибка %s при обработке ответа: %s %s %s', $errorId, $this->url, __FILE__, __LINE__),
+                    [$response->extraInfo]
+                );
+
                 continue;
             }
 
             foreach ($response->transfer as $tariff) {
 
                 // реакция на наличие ошибки тарифа
-                try {
-                    $this->checkTariffError($tariff);
-                } catch (\Throwable $th) {
+                if (isset($tariff->hasError) && $tariff->hasError === true) {
+                    $errorId = Str::random(10);
+
+                    Log::channel('tk')->error(
+                        sprintf('Ошибка %s при обработке ответа: %s %s %s', $errorId, $this->url, __FILE__, __LINE__),
+                        [$tariff->errorMessage]
+                    );
+
                     continue;
                 }
 
@@ -80,34 +89,16 @@ class ResponseBuilder
 
                 $this->parseDate($tariff->interval);
 
-                $data['types'][$type][] = [
-                    "tariff" => $tariff->type,
-                    "cost" => $cost,
-                    "days" => [
-                        "from" => $this->daysFrom,
-                        "to" => $this->daysTo ?? null,
-                    ]
-                ];
+                $result['data']['success'][$type][] = CalculationResultDto::tariff(
+                    $tariff->type,
+                    $cost,
+                    $this->daysFrom,
+                    $this->daysTo ?? null,
+                );
             }
         }
 
-        return $data;
-    }
-
-    private function checkTariffError($tariff)
-    {
-        if (isset($tariff->hasError) && $tariff->hasError === true) {
-            Log::channel('tk')->error('Ошибка при обработке ответа: ' . $this->url, [$tariff->errorMessage]);
-            throw new Exception("Ошибка при обработке ответа. Тариф содержит ошибку и будет исключён из итоговой сводки.", 500);
-        }
-    }
-
-    private function checkResponseError($response)
-    {
-        if (isset($response->code) && isset($response->message)) {
-            Log::channel('tk')->error('Ошибка при обработке ответа: ' . $this->url, [$response->extraInfo]);
-            throw new Exception('Ошибка при обработке ответа. Ответ содержит ошибку и будет исключён из итоговой сводки', 500);
-        }
+        return $result;
     }
 
     private function parseDate($interval)

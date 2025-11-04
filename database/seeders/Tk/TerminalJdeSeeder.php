@@ -18,7 +18,7 @@ class TerminalJdeSeeder extends Seeder
     use Logger;
 
     /**
-     * Принцип парсинга:
+     * Принципы парсинга:
      * поскольку локаций немного и список не образующий,
      * то имеет смысл проверить наличие локаций в базе,
      * они наверняка уже есть из более качественных списков,
@@ -95,7 +95,7 @@ class TerminalJdeSeeder extends Seeder
                                 'location_id' => $location->id,
                                 'identifier' => $terminal->code,
                                 'name' => $terminal->city,
-                                'region' => $location->region,
+                                'region' => $location->region->name,
                                 'federal' => $federal,
                                 'issue' => true, // выдача
                             ]

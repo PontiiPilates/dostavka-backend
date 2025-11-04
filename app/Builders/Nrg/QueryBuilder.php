@@ -55,7 +55,7 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
             throw $th;
         }
 
-        // проверка корректности получения идентификатора населённого пункта
+        // проверка корректности получения идентификатора населённого пу$toа
         try {
             $from = Location::find($request->from)->terminalsNrg()->firstOrFail();
             $to = Location::find($request->to)->terminalsNrg()->firstOrFail();
@@ -111,8 +111,7 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
                 "idClient" => 0,
             ];
 
-            Log::channel('tk')->info("Отправка запроса: " . $this->url, $template);
-
+            Log::channel('requests')->info("Отправка запроса: " . $this->url, $template);
             $pools[] = $pool->as($type)->withHeaders(['NrgApi-DevToken' => $this->token])->post($this->url, $template);
         }
 
