@@ -84,6 +84,8 @@ class TerminalDpdSeeder extends Seeder
                 'region' => $region,
                 'federal' => $federal,
                 'country' => $city->countryCode,
+                'index_min' => $city->indexMin ?? null,
+                'index_max' => $city->indexMax ?? null,
             ]);
 
             $iterable++;

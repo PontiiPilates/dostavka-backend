@@ -61,7 +61,7 @@ class JobTkTest extends TestCase
         KitJob::dispatch($this->request(), $hash);
         NrgJob::dispatch($this->request(), $hash); // 1.7, 1.7, 1.6
         PekJob::dispatch($this->request(), $hash); // 1.8, 1.6, 2.7
-        // PochtaJob::dispatch($this->request(), $hash);
+        PochtaJob::dispatch($this->request(), $hash); // 7.6
         VozovozJob::dispatch($this->request(), $hash); // 3.8, 0.8, 1.8
 
         $data = $this->toArray(Redis::get($hash));
@@ -96,8 +96,8 @@ class JobTkTest extends TestCase
         assertArrayHasKey('pek', $data['results']);
         assertArrayHasKey('ss', $data['results']['pek']['success']);
 
-        // assertArrayHasKey('pochta', $data['results']);
-        // assertArrayHasKey('ss', $data['results']['pochta']['success']);
+        assertArrayHasKey('pochta', $data['results']);
+        assertArrayHasKey('ss', $data['results']['pochta']['success']);
 
         assertArrayHasKey('vozovoz', $data['results']);
         assertArrayHasKey('ss', $data['results']['vozovoz']['success']);

@@ -4,18 +4,23 @@ declare(strict_types=1);
 
 namespace App\Builders\Pochta;
 
+use App\DTO\CalculationResultDto;
 use App\Enums\CompanyType;
 use App\Enums\Pochta\PochtaUrlType;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+
 
 class ResponseBuilder
 {
     private string $url;
+    private string $company;
 
     public function __construct()
     {
         $this->url = config('companies.pochta.url') . PochtaUrlType::Calculate->value;
+        $this->company = CompanyType::Pochta->value;
     }
 
     /**
@@ -26,50 +31,39 @@ class ResponseBuilder
      */
     public function build(array $responses): array
     {
-        $data = [
-            'company' => CompanyType::Pochta->value,
-            'types' => [],
-        ];
+        $result = CalculationResultDto::filler($this->company);
 
         foreach ($responses as $key => $response) {
             $response = $response->object();
 
             $multiKey = explode(':', $key);
-            $type = $multiKey[0];
+            $deliveryType = $multiKey[0];
             $tariff = $multiKey[1];
 
-            // при наличии ошибки в ответе
-            try {
-                $this->checkResponseError($response);
-            } catch (\Throwable $th) {
+            if (isset($response->errors)) {
+                $errorId = Str::random(10);
+
+                Log::channel('tk')->error(
+                    sprintf('Ошибка %s при обработке ответа: %s %s %s', $errorId, $this->url, __FILE__, __LINE__),
+                    [$response->errors]
+                );
+
                 continue;
             }
 
-            $data['types'][$type][] = [
-                "tariff" => $response->name,
-                "cost" => isset($response->paynds) ? $response->paynds / 100 : null,
-                "days" => [
-                    "from" => $response->delivery->min ?? null,
-                    "to" => $response->delivery->max ?? null,
-                ]
-            ];
+            $result['data']['success'][$deliveryType][] = CalculationResultDto::tariff(
+                $response->name,
+                isset($response->paynds) ? $response->paynds / 100 : null,
+                $response->delivery->min ?? null,
+                $response->delivery->max ?? null,
+            );
         }
 
-        return $data;
-    }
-
-    /**
-     * Проверка наличия ошибки в ответе: выбрасывает исключение и логирует данные при обнаружении ошибки в ответе.
-     * 
-     * @var object $response
-     * @return void
-     */
-    private function checkResponseError(object $response): void
-    {
-        if (isset($response->errors)) {
-            $message = 'Ошибка при обработке ответа: ' . $this->url . ': ' . __FILE__;
-            Log::channel('tk')->error($message,  [$response->errors]);
-            throw new Exception($message, 200);
+        // если нет успешных
+        if (empty($result['data']['success'])) {
+            throw new Exception(trans('messages.response.not_results'), 200);
+        } else {
+            return $result;
         }
     }
 }

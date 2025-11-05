@@ -73,7 +73,7 @@ class CalculateController extends Controller
                 CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
                 CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash),
                 CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash),
-                // CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash),
+                CompanyType::Pochta->value => PochtaJob::dispatchSync($request->all(), $hash),
                 CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash),
             };
         }

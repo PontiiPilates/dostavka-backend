@@ -36,21 +36,27 @@ class DatabaseSeeder extends Seeder
             LocationSeeder::class,
         ]);
 
+        // засев тарифов компаний
+        $this->call([
+            TariffPochtaSeeder::class, // почта россии не содержит локаций, только тарифы, собранные вручную
+        ]);
+
         // засев терминалов компаний
         $this->call([
+            TerminalDpdSeeder::class, // формирует список локаций + содержит индексы для почты
+
             TerminalBaikalSeeder::class,
             TerminalDellinSeeder::class,
-            TerminalPekSeeder::class,
+            TerminalPekSeeder::class, // ! есть индексы
             TerminalVozovozSeeder::class,
-            TerminalDpdSeeder::class,
             TerminalKitSeeder::class, // дополняет базу локаций/регионов, грязные типы/региональность
             TerminalNrgSeeder::class, // регистрирует собственные + дополняет в незначительной степени (нет типов, грязная региональность)
-
-            // TariffPochtaSeeder::class, // это вообще не локации, просто тарифы почты россии
-
-            TerminalCdekSeeder::class, // todo: скорректировать на: только регистрирует собственные, нет типов, бигдата
+            TerminalCdekSeeder::class, // todo: скорректировать на: только регистрирует собственные, нет типов, бигдата + есть возможность получить почтовые индексы
             TerminalJdeSeeder::class, // регистрирует собственные + дополняет в незначительной степени (нет типов, грязная региональность)
+
+            // gtd - не плохой список, но интеграции с этой тк нет
         ]);
+
 
         // финализация таблицы локаций
         $this->call([

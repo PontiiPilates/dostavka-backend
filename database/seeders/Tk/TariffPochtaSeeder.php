@@ -14,17 +14,19 @@ class TariffPochtaSeeder extends Seeder
     private array $badTariffs = [];
 
     /**
-     * Run the database seeds.
+     * Особенности работы:
+     * у данной тк не существует метода для получения всех тарифов,
+     * однако есть метод для получения информации по одному тарифу,
+     * также коды тарифов (объекты расчётов) перечислены в документации: https://delivery.pochta.ru/post-calculator-api.pdf?836,
+     * эти корды можно увидеть на страницах калькуляции: https://tariff.pochta.ru/,
+     * режим работы в методе allTariffToJson() необходим для получения информации по всем тарифам,
+     * это потребовалось для того, чтобы нейросеть расставила каждому из них способ доставки,
+     * поскольку тариф его не содержит,
+     * засев тарифов происходет на основе заранее подготовленного списка attributes(),
+     * при засеве происходит проверка актуальности тарифа
      */
     public function run(): void
     {
-        // особенность данной тк в том, что не существует метода для получения всех тарифов
-        // есть метод для получения информации по одному тарифу
-        // коды тарифов (объекты расчётов) перечислены в документации: https://delivery.pochta.ru/post-calculator-api.pdf?836
-        // эти корды можно увидеть на страницах калькуляции: https://tariff.pochta.ru/
-        // у тарифа отсутствует возможность определить способ доставки, который можно к нему применить
-        // поэтому информацию по всем тарифам пришлось поместить в файл и обучить нейросеть, чтобы она присвоила тарифу способ доставки
-
         // $this->allTariffToJson();
         $this->seedTariffs();
     }
@@ -38,12 +40,12 @@ class TariffPochtaSeeder extends Seeder
     private function allTariffToJson(): void
     {
         $data = [];
-        foreach ($this->attributes() as $object) {
+        foreach ($this->attributes() as $objectId => $attributes) {
 
-            $object = (object) $object;
+            $attributes = (object) $attributes;
 
             $url = config('companies.pochta.url') . PochtaUrlType::DictionaryObject->value;
-            $parameters = ['id' => $object->object];
+            $parameters = ['id' => $objectId];
 
             $response = Http::get($url, $parameters);
 
@@ -54,7 +56,11 @@ class TariffPochtaSeeder extends Seeder
 
         $save = Storage::put('app/assets/tk/pochta/tariffs.json', $data);
 
-        dump($save);
+        if ($save) {
+            $this->command->info("Информация о тарифах успешно сохранена");
+        } else {
+            $this->command->error("Не удалось сохранить информацию о тарифах");
+        }
     }
 
     private function seedTariffs()
@@ -89,7 +95,11 @@ class TariffPochtaSeeder extends Seeder
             ]));
         }
 
-        dump('Отсутствует информация по следующим объектам рассчёта: ', $this->badTariffs);
+        if ($this->badTariffs) {
+            $this->command->warn('Отсутствует информация по следующим объектам рассчёта: ', $this->badTariffs);
+        } else {
+            $this->command->info('Все тарифы в актуальном состоянии');
+        }
     }
 
     /**

@@ -47,11 +47,6 @@ class ResponseBuilder
         foreach ($responses as $deliveryType => $response) {
             $response = $response->object();
 
-            // отладка
-            if (env('SHOW_Q')) {
-                dump($response);
-            }
-
             foreach ($response->transfers as $tariff) {
 
                 // данная компания способна вернуть ошибку по каждому тарифу

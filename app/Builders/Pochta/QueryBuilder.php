@@ -34,6 +34,10 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
     /**
      * Обеспечивает сборку запросов для ассинхронной отправки.
      * 
+     * Особенности работы:
+     * первая особенность в том, что почта работает не с идентификаторами локаций а с индексами,
+     * таким образом, индексы в базе уже должны от кого-то быть
+     * 
      * @param array $request
      * @param Pool $pool
      * 
@@ -59,8 +63,8 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
         // проверка корректности получения идентификатора населённого пункта
         try {
-            $from = Location::find($request->from)->firstOrFail();
-            $to = Location::find($request->to)->firstOrFail();
+            $from = Location::findOrFail($request->from);
+            $to = Location::findOrFail($request->to);
         } catch (\Throwable $th) {
             throw new Exception("ТК не работает с локациями: $request->from -> $request->to", 200);
         }

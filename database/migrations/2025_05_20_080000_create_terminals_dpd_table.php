@@ -24,6 +24,9 @@ return new class extends Migration
             $table->boolean('federal')->default(false)->comment('значимая территория');
             $table->text('country', 10)->nullable()->comment('страна');
 
+            $table->integer('index_min')->nullable()->comment('начальный почтовый индекс');
+            $table->integer('index_max')->nullable()->comment('конечный почтовый индекс');
+
             $table->timestamps();
         });
     }

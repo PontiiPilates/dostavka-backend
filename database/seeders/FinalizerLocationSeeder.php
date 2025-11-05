@@ -61,6 +61,11 @@ class FinalizerLocationSeeder extends Seeder
                     $district = $this->createDistrict($country, $region, $terminal);
                 }
 
+                // если есть почтовые индексы
+                if ($terminal->index_min && $terminal->index_max) {
+                    $this->updateLocation($country, $region, $district, $terminal);
+                }
+
                 $location = $this->createLocation($country, $region, $district, $terminal);
 
                 $terminal->update(['location_id' => $location->id]);
@@ -163,6 +168,34 @@ class FinalizerLocationSeeder extends Seeder
             'district_id' => $district->id ?? null,
             'name' => $terminal->name,
             'type' => $terminal->type,
+            'index_min' => $terminal->index_min ?? null,
+            'index_max' => $terminal->index_max ?? null,
         ]);
+    }
+
+    /**
+     * Обновляет локацию почтовыми индексами.
+     * 
+     * @param Country $country
+     * @param Region|null $region
+     * @param District|null $district
+     * @param object $terminal
+     * @return int
+     */
+    private function updateLocation(Country $country, Region|null $region, District|null $district, object $terminal): int
+    {
+        return Location::query()
+            ->where('country_id', $country->id)
+            ->where('name', $terminal->name,)
+            ->when($region?->id, function ($q) use ($region) {
+                $q->where('region_id', $region->id);
+            })
+            ->when($district?->id, function ($q) use ($district) {
+                $q->where('district_id', $district->id);
+            })
+            ->update([
+                'index_min' => $terminal->index_min,
+                'index_max' => $terminal->index_max,
+            ]);
     }
 }
