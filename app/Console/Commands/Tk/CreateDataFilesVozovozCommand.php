@@ -36,8 +36,9 @@ class CreateDataFilesVozovozCommand extends Command
     public function handle()
     {
         $this->url = config('companies.vozovoz.url') . '?token=' . config('companies.vozovoz.token');
+        $this->createProgressFile();
 
-        $this->createDataFiles(10000);
+        $this->createDataFiles(1000);
     }
 
     /**
@@ -48,32 +49,33 @@ class CreateDataFilesVozovozCommand extends Command
         $this->createProgressFile();
 
         do {
-            $progress = Storage::json('assets/tk/vozovoz/progress.json');
-            $progress = (object) $progress;
+            $progress = Storage::json('assets/geo/tk/vozovoz/progress.json');
+            $progress = json_decode(json_encode($progress));
 
-            $template = $this->template($progress->offset, $progress->limit);
-            $response = Http::post($this->url, $template)->object();
+            $parameters = $this->parameters($progress->download->offset, $progress->download->limit);
+            $response = Http::post($this->url, $parameters)->object();
 
-            $progress->offset += $progress->limit;
+            $progress->download->offset += $progress->download->limit;
 
             foreach ($response->response->data as $place) {
                 $content[] = $place;
             }
 
-            if ($progress->offset % $chunk == 0) {
+            // если смещение делится без остатка на размер чанка, значит это не последняя итерация
+            if ($progress->download->offset % $chunk == 0) {
                 // сохранение чанка
-                Storage::put("assets/tk/vozovoz/data-files/vozovoz_$progress->offset.json", json_encode($content, JSON_UNESCAPED_UNICODE));
+                Storage::put("assets/geo/tk/vozovoz/data-files/vozovoz_{$progress->download->offset}.json", json_encode($content, JSON_UNESCAPED_UNICODE));
                 $content = [];
             }
 
             // сохранение прогресса
-            Storage::put('assets/tk/vozovoz/progress.json', json_encode($progress));
+            Storage::put('assets/geo/tk/vozovoz/progress.json', json_encode($progress));
 
-            dump("Выполнено $progress->offset из $progress->total");
-        } while ($progress->offset < $progress->total);
+            $this->info("Выполнено {$progress->download->offset} из {$progress->download->total}");
+        } while ($progress->download->offset < $progress->download->total);
 
         // сохранение остатка
-        Storage::put("assets/tk/vozovoz/data-files/vozovoz_$progress->offset.json", json_encode($content, JSON_UNESCAPED_UNICODE));
+        Storage::put("assets/geo/tk/vozovoz/data-files/vozovoz_{$progress->download->offset}.json", json_encode($content, JSON_UNESCAPED_UNICODE));
     }
 
     /**
@@ -81,21 +83,33 @@ class CreateDataFilesVozovozCommand extends Command
      */
     private function createProgressFile()
     {
-        $progress = Storage::json('assets/tk/vozovoz/progress.json');
+        $progress = Storage::json('assets/geo/tk/vozovoz/progress.json');
 
         if (!$progress) {
-            $template = $this->template();
-            $response = Http::post($this->url, $template)->object();
-            Storage::put('assets/tk/vozovoz/progress.json', json_encode($response->response->meta));
+            $parameters = $this->parameters();
+            $response = Http::post($this->url, $parameters)->object();
+            $template = $this->template($response->response->meta);
+            Storage::put('assets/geo/tk/vozovoz/progress.json', json_encode($template));
 
-            dump('Файл для фиксации прогресса загрузки данных создан');
+            $this->info('Создан файл для фиксации прогресса загрузки данных');
         }
+    }
+
+    /**
+     * Шаблон для progress-файла.
+     */
+    private function template($parameters)
+    {
+        return [
+            'download' => $parameters,
+            'seeding' => null,
+        ];
     }
 
     /**
      * Шаблон запроса.
      */
-    private function template($offset = null, $limit = null): array
+    private function parameters($offset = null, $limit = null): array
     {
         return [
             'object' => VozovozUrlType::Location->value,

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Database\Seeders\Tk\TariffPochtaSeeder;
 use Database\Seeders\Tk\TerminalBaikalSeeder;
-use Database\Seeders\Tk\TerminalBoxberrySeeder;
 use Database\Seeders\Tk\TerminalCdekSeeder;
 use Database\Seeders\Tk\TerminalDellinSeeder;
 use Database\Seeders\Tk\TerminalDpdSeeder;
@@ -13,9 +12,6 @@ use Database\Seeders\Tk\TerminalKitSeeder;
 use Database\Seeders\Tk\TerminalNrgSeeder;
 use Database\Seeders\Tk\TerminalPekSeeder;
 use Database\Seeders\Tk\TerminalVozovozSeeder;
-use Database\Seeders\Tk\TerritoriesDellinSeeder;
-use Database\Seeders\Tk\TerritoriesPekSeeder;
-use Database\Seeders\Tk\TerritoriesVozovozSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -29,36 +25,32 @@ class DatabaseSeeder extends Seeder
             CompanySeeder::class,
         ]);
 
-        // засев начальными (эталонными) данными
+        // посев первичных данных
         $this->call([
             CountrySeeder::class,
             RegionSeeder::class,
             LocationSeeder::class,
         ]);
 
-        // засев тарифов компаний
+        // посев тарифов компаний
         $this->call([
-            TariffPochtaSeeder::class, // почта россии не содержит локаций, только тарифы, собранные вручную
+            TariffPochtaSeeder::class,
         ]);
 
-        // засев терминалов компаний
+        // посев терминалов компаний
         $this->call([
-            TerminalDpdSeeder::class, // формирует список локаций + содержит индексы для почты
-
-            TerminalBaikalSeeder::class,
-            TerminalDellinSeeder::class,
-            TerminalPekSeeder::class, // ! есть индексы
-            TerminalVozovozSeeder::class,
-            TerminalKitSeeder::class, // дополняет базу локаций/регионов, грязные типы/региональность
-            TerminalNrgSeeder::class, // регистрирует собственные + дополняет в незначительной степени (нет типов, грязная региональность)
-            TerminalCdekSeeder::class, // todo: скорректировать на: только регистрирует собственные, нет типов, бигдата + есть возможность получить почтовые индексы
-            TerminalJdeSeeder::class, // регистрирует собственные + дополняет в незначительной степени (нет типов, грязная региональность)
-
-            // gtd - не плохой список, но интеграции с этой тк нет
+            TerminalBaikalSeeder::class, // 140
+            TerminalDellinSeeder::class, // 219
+            TerminalJdeSeeder::class, // 282
+            TerminalPekSeeder::class, // 743
+            TerminalNrgSeeder::class, // 4 801
+            TerminalDpdSeeder::class, // 6 098 + индексы для почты россии
+            TerminalKitSeeder::class, // 25 312
+            TerminalCdekSeeder::class, // 84 307
+            TerminalVozovozSeeder::class, // 184 437
         ]);
 
-
-        // финализация таблицы локаций
+        // постороение таблицы локаций
         $this->call([
             FinalizerLocationSeeder::class,
         ]);

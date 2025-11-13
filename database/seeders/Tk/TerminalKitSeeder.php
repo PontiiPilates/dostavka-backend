@@ -13,7 +13,8 @@ use Illuminate\Support\Facades\Http;
 class TerminalKitSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Особенности:
+     * список содержит дубли
      */
     public function run(): void
     {
@@ -29,7 +30,7 @@ class TerminalKitSeeder extends Seeder
         $iterable = 0;
         $timeStart = Carbon::now();
 
-        foreach ($response->object() as $city) {
+        foreach ($response->object() as $key => $city) {
 
             $region = null;
             $federal = false;

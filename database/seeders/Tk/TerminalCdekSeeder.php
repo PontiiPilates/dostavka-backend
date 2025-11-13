@@ -2,6 +2,7 @@
 
 namespace Database\Seeders\Tk;
 
+use App\Models\Location;
 use App\Models\Region;
 use App\Models\Tk\TerminalCdek;
 use App\Traits\Json;
@@ -28,19 +29,15 @@ class TerminalCdekSeeder extends Seeder
 
 
     /**
-     * Run the database seeds.
+     * Особенности:
+     * не содержит типа населённого пункта,
+     * нельзя получить список сразу всех населенных пунктов,
+     * команда php artisan app:create-data-files-cdek обеспечивает сборку файлов данных из множества запросов,
+     * данный парсер работает в режиме регистрации идентификаторов локаций,
+     * и не дополняет базу собственными локациями,
      */
     public function run(): void
     {
-        // особенности:
-        // не содержит типа населённого пункта
-        // нельзя получить список сразу всех населенных пунктов
-        // команда php artisan app:create-data-files-cdek обеспечивает сборку файлов данных из множества запросов
-
-        // todo: некоторые названия содержат тип в скобках, распарсить и поместить их в тип
-        // todo: в виду отсутствия типов - выполнять в последнюю очередь
-        // todo: постараться не дополнять, а лишь прописывать уже имеющиеся локации в список, с которым работает СДЕК
-
         $dataFiles = Storage::files('assets/geo/tk/cdek/data-files');
 
         // если data-файлы не существуют
@@ -112,6 +109,24 @@ class TerminalCdekSeeder extends Seeder
                     $this->saveIncorrectRegion[] = $location->region;
                 }
 
+                // режим пропуска, если локации не существует
+
+                // $exists = Location::query()
+                //     ->where('name', $location->city)
+                //     ->when($region, function ($q) use ($region) {
+                //         $q->with(['region' => function ($q) use ($region) {
+                //             $q->where('name', $region);
+                //         }]);
+                //     })
+                //     ->with(['country' => function ($q) use ($location) {
+                //         $q->where('alpha2', $location->country_code);
+                //     }])
+                //     ->exists();
+
+                // if (!$exists) {
+                //     continue;
+                // }
+
                 // данные содержат повторяющиеся локации
                 TerminalCdek::updateOrCreate(
                     [
@@ -140,12 +155,11 @@ class TerminalCdekSeeder extends Seeder
             // сохранение прогресса о наполнении базы данными
             $progress->seeding = $page;
             Storage::put($this->progressFile, json_encode($progress));
-
-            // ограничение числа обрабатываемых файлов
-            if ($i > 30) {
-                break;
-            }
         }
+
+        // автоматическое обнуление прогресса после успешного засева всех файлов
+        $progress->seeding = '0';
+        Storage::put($this->progressFile, json_encode($progress));
     }
 
     /**

@@ -40,6 +40,12 @@ class TerminalJdeSeeder extends Seeder
             $pool->as(2)->get($url, ['mode' => 2]), // пункты выдачи
         ]);
 
+        $countryCodes = [
+            190 => 'RU',
+            117 => 'KZ',
+            30 => 'BY',
+        ];
+
         TerminalJde::truncate();
 
         $this->addLocation();
@@ -59,6 +65,7 @@ class TerminalJdeSeeder extends Seeder
 
                 // если есть принадлежность к городу федерального значения
                 if ($terminal->city == 'Санкт-Петербург' || $terminal->city == 'Москва' || $terminal->city == 'Севастополь') {
+                    // dd($terminal);
                     $region = $terminal->city;
                     $federal = true;
                 }
@@ -82,8 +89,9 @@ class TerminalJdeSeeder extends Seeder
                                 'location_id' => $location->id,
                                 'identifier' => $terminal->code,
                                 'name' => $terminal->city,
-                                'region' => $location->region,
+                                'region' => $location->region?->name,
                                 'federal' => $federal,
+                                'country' => $countryCodes[$terminal->country_code],
                                 'acceptance' => true, // приём
                             ]
                         );
@@ -95,8 +103,9 @@ class TerminalJdeSeeder extends Seeder
                                 'location_id' => $location->id,
                                 'identifier' => $terminal->code,
                                 'name' => $terminal->city,
-                                'region' => $location->region->name,
+                                'region' => $location->region?->name,
                                 'federal' => $federal,
+                                'country' => $countryCodes[$terminal->country_code],
                                 'issue' => true, // выдача
                             ]
                         );

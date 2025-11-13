@@ -17,23 +17,41 @@ class TerminalVozovozSeeder extends Seeder
     use Logger;
 
     /**
-     * Run the database seeds.
+     * Особенности:
+     * нельзя получить сразу все терминалы,
+     * команда php artisan app:create-data-files-vozovoz обеспечивает сборку файлов данных из множества запросов,
+     * однако сами данные достаточно чистые и должны находиться выше прочих,
      */
     public function run(): void
     {
-        // особенность данной тк в том, что нельзя получить сразу все терминалы
-        // команда php artisan app:create-data-files-vozovoz обеспечивает сборку файлов данных из множества запросов
-        // однако сами данные достаточно чистые и должны находиться выше прочих
-
         $this->terminals();
     }
 
     private function terminals()
     {
-        $dataFiles = Storage::files('assets\geo\tk\vozovoz\data-files');
+        $dataFiles = Storage::files('assets/geo/tk/vozovoz/data-files');
 
-        $countFiles = 0;
-        foreach ($dataFiles as $dataFile) {
+        // если data-файлы не существуют
+        if (count($dataFiles) == 0) {
+            $this->command->warn('Сначала необходимо создать data-файлы: docker-compose exec app php artisan app:create-data-files-vozovoz');
+            return;
+        }
+
+        $progress = Storage::json('assets/geo/tk/vozovoz/progress.json');
+        $progress = json_decode(json_encode($progress));
+
+        // если существует файл, на котором был остановлен засев
+        if ($progress->seeding != null) {
+            $stoppedFile = array_search($progress->seeding, $dataFiles);
+        }
+
+        $total = $progress->download->total;
+        foreach ($dataFiles as $key => $dataFile) {
+
+            // если существует файл, на котором был остановлен засев, то пропускать все предыдущие файлы
+            if (isset($stoppedFile) && $key <= $stoppedFile) {
+                continue;
+            }
 
             $terminals = Storage::json($dataFile);
 
@@ -65,7 +83,7 @@ class TerminalVozovozSeeder extends Seeder
                     "ост-в", // остров
                     "п.", // посёлок
                     "пгт.", // посёлок городского типа
-                    "дп", // дачный посёлок
+                    // "дп", // дачный посёлок
                     "гп", // городской посёлок
                     "г", // город
                 ];
@@ -140,15 +158,20 @@ class TerminalVozovozSeeder extends Seeder
                     $this->parseFail(CompanyType::Vozovoz->value, $terminal->name . ': ' . $terminal->region_str);
                 }
 
-                TerminalVozovoz::create([
-                    'identifier' => $terminal->guid,
-                    'name' => $terminal->name,
-                    'type' => $this->typesReplacer($terminal->type),
-                    'district' => $this->territoryReplacer($district),
-                    'region' => $this->territoryReplacer($region),
-                    'federal' => $federal,
-                    'country' => $terminal->country,
-                ]);
+                TerminalVozovoz::updateOrCreate(
+                    [
+                        'identifier' => $terminal->guid,
+                    ],
+                    [
+                        'identifier' => $terminal->guid,
+                        'name' => $this->normalizeName($terminal->name),
+                        'type' => $this->typesReplacer($terminal->type),
+                        'district' => $this->territoryReplacer($district),
+                        'region' => $this->territoryReplacer($region),
+                        'federal' => $federal,
+                        'country' => $terminal->country,
+                    ]
+                );
 
                 $iterable++;
             }
@@ -157,19 +180,20 @@ class TerminalVozovozSeeder extends Seeder
             $executionTime = $timeStart->diffInSeconds($timeEnd);
             $executionTime = number_format((float) $executionTime, 1, '.');
 
-            $this->command->info("Добавлено $iterable терминалов, $executionTime сек.");
+            // сохранение результата засева
+            $progress->seeding = $dataFile;
+            Storage::put('assets/geo/tk/vozovoz/progress.json', json_encode($progress));
 
-            // если сидер выполняется в 'Dev', то выполняется обработка 1 файла из 32 (для скорости)
-            if (
-                config('app.env') == EnvironmentType::Local->value
-                || config('app.env') == EnvironmentType::Dev->value
-            ) {
-                break;
-            }
+            $dataFile = strstr($dataFile, '_');
+            $dataFile = strstr($dataFile, '.', true);
+            $dataFile = mb_strcut($dataFile, 1);
 
-            $countFiles++;
-            $this->command->info("Обработано $countFiles из 32");
+            $this->command->info("Добавлено $iterable терминалов, $dataFile/$total $executionTime сек.");
         }
+
+        // автоматическое обнуление прогресса после успешного засева всех файлов
+        $progress->seeding = null;
+        Storage::put('assets/geo/tk/vozovoz/progress.json', json_encode($progress));
     }
 
     /**
@@ -320,5 +344,19 @@ class TerminalVozovozSeeder extends Seeder
         }
 
         return $territory;
+    }
+
+    /**
+     * Нормализация наименования населённого пункта
+     */
+    private function normalizeName($name)
+    {
+        if (str_contains($name, '(')) {
+            $name = strstr($name, '(', true);
+        }
+
+        $name = trim($name);
+
+        return $name;
     }
 }

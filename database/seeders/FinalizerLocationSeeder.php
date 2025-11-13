@@ -23,63 +23,79 @@ use Illuminate\Support\Carbon;
 
 class FinalizerLocationSeeder extends Seeder
 {
+    private int $iterable = 0;
+
     /**
      * Обновляет таблицу локаций на основе таблицы терминалов. Добавляет регионы. Связывает все таблицы.
      */
     public function run(): void
     {
         $companys = [
-            CompanyType::Baikal->value => TerminalBaikal::class,
-            CompanyType::Cdek->value => TerminalCdek::class,
-            CompanyType::Dellin->value => TerminalDellin::class,
-            CompanyType::DPD->value => TerminalDpd::class,
-            CompanyType::Jde->value => TerminalJde::class,
-            CompanyType::Kit->value => TerminalKit::class,
-            CompanyType::Nrg->value => TerminalNrg::class,
-            CompanyType::Pek->value => TerminalPek::class,
             CompanyType::Vozovoz->value => TerminalVozovoz::class,
+            CompanyType::DPD->value => TerminalDpd::class,
+            CompanyType::Kit->value => TerminalKit::class,
+            CompanyType::Dellin->value => TerminalDellin::class,
+            CompanyType::Nrg->value => TerminalNrg::class,
+            CompanyType::Jde->value => TerminalJde::class,
+            CompanyType::Cdek->value => TerminalCdek::class,
+            CompanyType::Baikal->value => TerminalBaikal::class,
+            CompanyType::Pek->value => TerminalPek::class,
         ];
 
         foreach ($companys as $company => $model) {
-            $terminals = $model::get();
 
-            $iterable = 0;
             $timeStart = Carbon::now();
-            foreach ($terminals as $terminal) {
 
-                $country = Country::where('alpha2', $terminal->country)->first();
+            $total = $model::count();
 
-                // региона может не быть, допустимо поместить null в locations
-                $region = null;
-                if ($terminal->region) {
-                    $region = $this->createRegion($country, $terminal);
+            // иначе модель не выгружает таблицу в 200к записей
+            $model::chunk(1000, function ($terminals) use ($total, $timeStart) {
+
+                foreach ($terminals as $terminal) {
+
+                    // мониторинг прогресса
+                    if ($terminal->id % 1000 == 0) {
+                        $timeEnd = Carbon::now();
+                        $executionTime = $timeStart->diffInSeconds($timeEnd);
+                        $executionTime = number_format((float) $executionTime, 1, '.');
+                        $this->command->line("Обработано $terminal->id из $total, $executionTime сек.");
+                    }
+
+                    $country = Country::where('alpha2', $terminal->country)->first();
+
+                    // региона может не быть, допустимо поместить null в locations
+                    $region = null;
+                    if ($terminal->region) {
+                        $region = $this->createRegion($country, $terminal);
+                    }
+
+                    // района может не быть, допустимо поместить null в locations
+                    $district = null;
+                    if ($terminal->district) {
+                        $district = $this->createDistrict($country, $region, $terminal);
+                    }
+
+                    // если есть почтовые индексы
+                    if ($terminal->index_min && $terminal->index_max) {
+                        $this->updateLocation($country, $region, $district, $terminal);
+                    }
+
+                    $location = $this->createLocation($country, $region, $district, $terminal);
+
+                    $terminal->update(['location_id' => $location->id]);
+
+                    $this->iterable++;
                 }
+            });
 
-                // района может не быть, допустимо поместить null в locations
-                $district = null;
-                if ($terminal->district) {
-                    $district = $this->createDistrict($country, $region, $terminal);
-                }
-
-                // если есть почтовые индексы
-                if ($terminal->index_min && $terminal->index_max) {
-                    $this->updateLocation($country, $region, $district, $terminal);
-                }
-
-                $location = $this->createLocation($country, $region, $district, $terminal);
-
-                $terminal->update(['location_id' => $location->id]);
-
-                $iterable++;
-            }
             $timeEnd = Carbon::now();
             $executionTime = $timeStart->diffInSeconds($timeEnd);
             $executionTime = number_format((float) $executionTime, 1, '.');
 
-            if ($iterable > 0) {
-                $this->command->info("$company: сформировано $iterable локаций, $executionTime сек.");
+            if ($this->iterable > 0) {
+                $this->command->info("$company: сформировано $this->iterable локаций, $executionTime сек.");
             } else {
-                $this->command->line("$company: сформировано $iterable локаций, $executionTime сек.");
+                $this->command->line("$company: сформировано $this->iterable локаций, $executionTime сек.");
             }
         }
     }
