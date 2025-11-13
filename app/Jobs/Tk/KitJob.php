@@ -36,7 +36,7 @@ class KitJob implements ShouldQueue
         $this->responseBuilder = new ResponseBuilder();
         $this->client = new RestPoolClient();
         $this->transaction = new TransactionService();
-        $this->company = CompanyType::Cdek->value;
+        $this->company = CompanyType::Kit->value;
     }
 
     /**

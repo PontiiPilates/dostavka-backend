@@ -46,17 +46,20 @@ class BaseBuilder
     protected $aviaLimitVolume;
 
     /**
-     * Проверка способа доставки: возвращает способ доставки поумолчанию если ни один не выбран.
+     * Проверка способа доставки: возвращает все способы доставки если ни один не выбран.
      * 
      * @var object $request)
      * @return array
      */
     protected function checkDeliveryType(object $request): array
     {
-        // todo: добавить остальные способы доставки, поскольку логика такова что
-        // todo: если ни один не выбран, то предлагаются все, если выбран конкретный, то только он
         if (!isset($request->delivery_type)) {
-            return [DeliveryType::Ss->value];
+            return [
+                DeliveryType::Ss->value,
+                DeliveryType::Sd->value,
+                DeliveryType::Ds->value,
+                DeliveryType::Dd->value,
+            ];
         }
 
         return $request->delivery_type;

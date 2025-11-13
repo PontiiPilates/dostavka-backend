@@ -105,15 +105,15 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
             }
 
             $template = [
-                'city_pickup_code' => $from->identifier,                                                        // откуда
-                'city_delivery_code' => $to->identifier,                                                        // куда
+                'city_pickup_code' => $from->identifier,                                                    // откуда
+                'city_delivery_code' => $to->identifier,                                                    // куда
                 'declared_price' => (int) ($request->insurance ?? 1),                                       // объявленная стоимость груза
                 'places' => $places,
                 'pick_up' => $type == DeliveryType::Ds->value || $type == DeliveryType::Dd->value ? 1 : 0,  // забор груза
                 'delivery' => $type == DeliveryType::Sd->value || $type == DeliveryType::Dd->value ? 1 : 0, // доставка груза
             ];
 
-            Log::channel('requests')->info("Отправка запроса: " . $this->url . KitUrlType::Calculate->value, $template);
+            Log::channel('requests')->info("Запрос на отправку: " . $this->url . KitUrlType::Calculate->value, $template);
             $pools[] = $pool->as($type)->withToken($this->token)->post($this->url, $template);
         }
 

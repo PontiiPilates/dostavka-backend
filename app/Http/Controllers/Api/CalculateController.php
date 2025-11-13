@@ -66,15 +66,15 @@ class CalculateController extends Controller
         foreach ($request->companies as $company) {
             match ($company) {
                 CompanyType::Baikal->value => BaikalJob::dispatch($request->all(), $hash),
-                CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash),
+                CompanyType::Cdek->value => CdekJob::dispatch($request->all(), $hash), // 0.6, 0.4, 0.4
                 CompanyType::Dellin->value => DellinJob::dispatch($request->all(), $hash),
                 CompanyType::DPD->value => DpdJob::dispatch($request->all(), $hash),
                 CompanyType::Jde->value => JdeJob::dispatch($request->all(), $hash),
-                CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash),
+                CompanyType::Kit->value => KitJob::dispatch($request->all(), $hash), // 8, 8.5, 8.1
                 CompanyType::Nrg->value => NrgJob::dispatch($request->all(), $hash),
                 CompanyType::Pek->value => PekJob::dispatch($request->all(), $hash),
-                CompanyType::Pochta->value => PochtaJob::dispatchSync($request->all(), $hash),
-                CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash),
+                CompanyType::Pochta->value => PochtaJob::dispatch($request->all(), $hash), // 2.6, 5.3, 2.5
+                CompanyType::Vozovoz->value => VozovozJob::dispatch($request->all(), $hash), // 1.9, 2.9, 1.9
             };
         }
 

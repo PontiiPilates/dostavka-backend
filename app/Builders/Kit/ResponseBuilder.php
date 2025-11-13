@@ -19,7 +19,7 @@ class ResponseBuilder extends BaseBuilder
 
     public function __construct()
     {
-        $this->url = config('companies.baikal.url') . KitUrlType::Calculate->value;
+        $this->url = config('companies.kit.url') . KitUrlType::Calculate->value;
         $this->company = CompanyType::Kit->value;
     }
 

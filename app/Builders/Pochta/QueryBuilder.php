@@ -101,7 +101,16 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
 
                 $pools[] = $pool->as("$type:$tariff->object")->get($this->url, $template);
             }
-            Log::channel('requests')->info("Отправка запроса: " . $this->url, $template);
+
+            // если нет шаблона потому, что нет тарифов
+            if (isset($template)) {
+                Log::channel('requests')->info("Запрос на отправку: " . $this->url, $template);
+            }
+        }
+
+        // если список тарифов оказался пуст
+        if ($tariffs->isEmpty()) {
+            throw new Exception("Не удалось подобрать тариф под заданные параметры", 200); // увидит пользователь
         }
 
         return $pools;
