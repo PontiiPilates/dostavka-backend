@@ -47,7 +47,7 @@ class ResponseBuilder
                 continue;
             }
 
-            $result['data']['success'][$type] = CalculationResultDto::tariff(
+            $result['data']['success'][$type][] = CalculationResultDto::tariff(
                 'Автоперевозка',
                 $response->total,
                 $response->transit->int,

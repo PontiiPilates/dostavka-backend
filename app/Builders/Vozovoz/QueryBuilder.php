@@ -115,11 +115,6 @@ class QueryBuilder extends BaseBuilder implements RequestBuilderInterface
                 ]
             ];
 
-            // отладка
-            if (env('SHOW_Q')) {
-                dump($template);
-            }
-
             $pools[] = $pool->as($type)->post($this->url, $template);
         }
 

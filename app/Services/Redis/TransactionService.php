@@ -6,6 +6,7 @@ use App\Traits\Json;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Ramsey\Collection\Collection;
 
 class TransactionService
 {
@@ -31,7 +32,7 @@ class TransactionService
                 $structure['results'][$company]['is_complete'] = $result['is_complete'];
             } else {
                 // если получена ошибка, то result будет пуст
-                $structure['results'][$company]['errors'] = $errors;
+                $structure['results'][$company]['errors'][] = $errors;
                 $structure['results'][$company]['success'] = $result;
                 $structure['results'][$company]['is_complete'] = true;
             }

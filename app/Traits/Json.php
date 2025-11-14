@@ -16,7 +16,6 @@ trait Json
 
     public function toObject(string $data): object
     {
-        // todo: $progress = json_decode(json_encode($data));
         return json_decode($data);
     }
 }

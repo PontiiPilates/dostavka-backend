@@ -51,7 +51,7 @@ class ResponseBuilder
                 // JdeTariffType::Courier->value =>  JdeTariffType::Courier->label(), // не обслуживается
             ];
 
-            $result['data']['success'][$type] = CalculationResultDto::tariff(
+            $result['data']['success'][$type][] = CalculationResultDto::tariff(
                 $tariffs[$tariff],
                 $response->price,
                 $response->mindays,

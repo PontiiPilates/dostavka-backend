@@ -35,11 +35,6 @@ class ResponseBuilder
         foreach ($responses as $type => $response) {
             $response = $response->object();
 
-            // отладка
-            if (env('SHOW_Q')) {
-                dump($response);
-            }
-
             if (isset($response->error)) {
 
                 $errorId = Str::random(10);
@@ -52,7 +47,7 @@ class ResponseBuilder
                 continue;
             }
 
-            $result['data']['success'][$type] = CalculationResultDto::tariff(
+            $result['data']['success'][$type][] = CalculationResultDto::tariff(
                 '',
                 $response->response->price,
                 $response->response->deliveryTime->from,
