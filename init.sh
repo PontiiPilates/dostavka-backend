@@ -8,7 +8,7 @@ supervisorctl restart all
 if [ "$env" == 'local' ]; then
 
     echo "Установка прав..."
-    chmod -R 777 storage/
+    chmod -R 777 storage/ bootstrap/cache/
 
 else
 
